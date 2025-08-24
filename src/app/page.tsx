@@ -1,69 +1,177 @@
-import Link from "next/link";
+"use client";
 
-import { LatestPost } from "@/app/_components/post";
-import { auth } from "@/server/auth";
-import { api, HydrateClient } from "@/trpc/server";
+import { useState } from "react";
+import { Search, Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await auth();
+export default function HomePage() {
+  const [bibNumber, setBibNumber] = useState("");
+  const router = useRouter();
 
-  if (session?.user) {
-    void api.post.getLatest.prefetch();
-  }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (bibNumber.trim()) {
+      router.push(`/bib/${bibNumber.trim()}`);
+    }
+  };
+
 
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
-              </p>
-              <Link
-                href={session ? "/api/auth/signout" : "/api/auth/signin"}
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-              >
-                {session ? "Sign out" : "Sign in"}
-              </Link>
+    <div className="flex flex-col">
+      {/* Hero Section */}
+      <section className="from-background via-background to-muted/20 relative bg-gradient-to-br px-4 py-16 sm:py-24">
+        <div className="container mx-auto max-w-4xl text-center">
+          <div className="mb-8 flex justify-center">
+            <div className="bg-primary/10 ring-primary/5 flex h-16 w-16 items-center justify-center rounded-full ring-8">
+              <Camera className="text-primary h-8 w-8" />
             </div>
           </div>
 
-          {session?.user && <LatestPost />}
+          <h1 className="text-foreground font-montserrat mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            Find Your Race Photos
+            <span className="text-primary"> Instantly</span>
+          </h1>
+
+          <p className="text-muted-foreground mx-auto mb-12 max-w-2xl text-lg sm:text-xl">
+            Enter your bib number to discover all your race photos.
+          </p>
+
+          {/* Main Search */}
+          <div className="mx-auto max-w-md">
+            <form onSubmit={handleSearch} className="space-y-4">
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Enter your bib number"
+                  value={bibNumber}
+                  onChange={(e) => setBibNumber(e.target.value)}
+                  className="h-14 border text-center text-lg font-medium"
+                  autoFocus
+                />
+              </div>
+              <Button
+                type="submit"
+                size="lg"
+                className="h-12 w-full text-lg font-medium"
+                disabled={!bibNumber.trim()}
+              >
+                <Search className="mr-2 h-5 w-5" />
+                Find My Photos
+              </Button>
+            </form>
+          </div>
+
+          <p className="text-muted-foreground mt-4 text-sm">
+            Don&apos;t know your bib number?{" "}
+            <a href="/races" className="text-primary hover:underline">
+              Browse all races
+            </a>
+          </p>
         </div>
-      </main>
-    </HydrateClient>
+      </section>
+
+      {/* Features Section */}
+      {/* <section className="px-4 py-16 sm:py-24">
+        <div className="container mx-auto max-w-6xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl font-montserrat">
+              Why Choose SnapRace?
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              The fastest and easiest way to find and share your race memories
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+            {features.map((feature, index) => (
+              <Card key={index} className="group border-0 bg-background shadow-sm transition-all hover:shadow-lg hover:scale-105">
+                <CardContent className="p-6 text-center">
+                  <div className="mb-4 flex justify-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section> */}
+
+      {/* How It Works Section */}
+      {/* <section className="bg-muted/30 px-4 py-16 sm:py-24">
+        <div className="container mx-auto max-w-4xl">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl font-montserrat">
+              How It Works
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+              Three simple steps to find your perfect race moments
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                step: "01",
+                title: "Enter Bib Number",
+                description: "Type in your race bib number in the search box above",
+              },
+              {
+                step: "02", 
+                title: "Browse Your Photos",
+                description: "Our AI instantly finds all photos featuring your bib number",
+              },
+              {
+                step: "03",
+                title: "Download & Share", 
+                description: "Download high-resolution photos or share directly to social media",
+              },
+            ].map((step, index) => (
+              <div key={index} className="text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground text-xl font-bold">
+                    {step.step}
+                  </div>
+                </div>
+                <h3 className="mb-2 text-xl font-semibold text-foreground">
+                  {step.title}
+                </h3>
+                <p className="text-muted-foreground">
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section> */}
+
+      {/* CTA Section */}
+      {/* <section className="px-4 py-16">
+        <div className="container mx-auto max-w-2xl text-center">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground font-montserrat">
+            Ready to Find Your Photos?
+          </h2>
+          <p className="mb-8 text-lg text-muted-foreground">
+            Join thousands of runners who trust SnapRace to capture their best moments
+          </p>
+          <Button size="lg" className="h-12 px-8 text-lg font-medium" onClick={() => {
+            document.querySelector('input')?.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}>
+            <Search className="mr-2 h-5 w-5" />
+            Start Searching Now
+          </Button>
+        </div>
+      </section> */}
+    </div>
   );
 }
