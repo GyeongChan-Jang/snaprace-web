@@ -6,17 +6,18 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export function Header() {
   const [searchValue, setSearchValue] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Browse Races", href: "/races" },
+    { name: "Races", href: "/races" },
     { name: "How It Works", href: "/how-it-works" },
   ];
 
@@ -43,15 +44,25 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center space-x-8 md:flex">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/" && pathname.startsWith(item.href));
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`text-sm transition-colors ${
+                    isActive
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground font-medium"
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop Search */}
@@ -109,16 +120,26 @@ export function Header() {
                   </Link>
 
                   <nav className="flex flex-col space-y-3">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className="text-muted-foreground hover:text-foreground text-lg font-medium transition-colors"
-                        onClick={() => setIsSheetOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    ))}
+                    {navigation.map((item) => {
+                      const isActive =
+                        pathname === item.href ||
+                        (item.href !== "/" && pathname.startsWith(item.href));
+
+                      return (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={`text-lg transition-colors ${
+                            isActive
+                              ? "text-foreground font-bold"
+                              : "text-muted-foreground hover:text-foreground font-medium"
+                          }`}
+                          onClick={() => setIsSheetOpen(false)}
+                        >
+                          {item.name}
+                        </Link>
+                      );
+                    })}
                   </nav>
 
                   {/* Mobile Search in Menu */}

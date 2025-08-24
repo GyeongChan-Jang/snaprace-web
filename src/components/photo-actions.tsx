@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   Download,
   Share2,
-  Heart,
   Facebook,
   Twitter,
   Instagram,
@@ -32,11 +31,8 @@ interface PhotoActionsProps {
     url: string;
     location?: string;
     photographer?: string;
-    likes?: number;
-    isLiked?: boolean;
   };
   bibNumber?: string;
-  onLike?: (photoId: string) => void;
   compact?: boolean;
   className?: string;
 }
@@ -44,7 +40,6 @@ interface PhotoActionsProps {
 export function PhotoActions({
   photo,
   bibNumber,
-  onLike,
   compact = false,
   className = "",
 }: PhotoActionsProps) {
@@ -160,20 +155,6 @@ export function PhotoActions({
   if (compact) {
     return (
       <div className={`flex items-center gap-1 ${className}`}>
-        {/* Like Button */}
-        {onLike && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 p-0 ${photo.isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"}`}
-            onClick={() => onLike(photo.id)}
-          >
-            <Heart
-              className={`h-4 w-4 ${photo.isLiked ? "fill-current" : ""}`}
-            />
-          </Button>
-        )}
-
         {/* Download Button */}
         <Button
           variant="ghost"
@@ -257,19 +238,6 @@ export function PhotoActions({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Like Button with Count */}
-      {onLike && photo.likes !== undefined && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`flex h-auto items-center gap-2 p-2 ${photo.isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"}`}
-          onClick={() => onLike(photo.id)}
-        >
-          <Heart className={`h-4 w-4 ${photo.isLiked ? "fill-current" : ""}`} />
-          <span className="text-sm">{photo.likes}</span>
-        </Button>
-      )}
-
       {/* Download Button */}
       <Button
         variant="outline"

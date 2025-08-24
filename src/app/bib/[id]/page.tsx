@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import {
   Download,
   Share2,
-  Heart,
   ChevronLeft,
   Grid,
   List,
@@ -24,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api } from "@/trpc/react";
 
 // Mock data for development using real sample images
 const mockPhotos = [
@@ -34,8 +34,6 @@ const mockPhotos = [
     timestamp: "2024-01-15T10:30:00Z",
     location: "Run Course - Mile 10",
     photographer: "Millennium Running Photos",
-    likes: 12,
-    isLiked: false,
   },
   {
     id: "2",
@@ -44,8 +42,6 @@ const mockPhotos = [
     timestamp: "2024-01-15T11:45:00Z",
     location: "Run Course - Mile 10",
     photographer: "White Mountains Photography",
-    likes: 8,
-    isLiked: true,
   },
   {
     id: "3",
@@ -54,8 +50,6 @@ const mockPhotos = [
     timestamp: "2024-01-15T12:15:00Z",
     location: "Finish Line - Mile 10",
     photographer: "Triathlon Action Shots",
-    likes: 25,
-    isLiked: false,
   },
   {
     id: "4",
@@ -64,18 +58,19 @@ const mockPhotos = [
     timestamp: "2024-01-15T12:20:00Z",
     location: "Finish Line - Mile 10",
     photographer: "Event Photography",
-    likes: 15,
-    isLiked: false,
   },
 ];
 
 export default function BibNumberPage() {
   const params = useParams();
   const bibId = params.id as string;
-  const [photos, setPhotos] = useState(mockPhotos);
+  const [photos] = useState(mockPhotos);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("time");
+
+  const gallery = api.galleries.getAll.useQuery({});
+  console.log("gallery", gallery.data);
 
   useEffect(() => {
     // Simulate API call
@@ -86,19 +81,6 @@ export default function BibNumberPage() {
     return () => clearTimeout(timer);
   }, [bibId]);
 
-  const handleLike = (photoId: string) => {
-    setPhotos(
-      photos.map((photo) =>
-        photo.id === photoId
-          ? {
-              ...photo,
-              isLiked: !photo.isLiked,
-              likes: photo.isLiked ? photo.likes - 1 : photo.likes + 1,
-            }
-          : photo,
-      ),
-    );
-  };
 
   const handleDownload = async (photoUrl: string, photoId: string) => {
     // In production, this would download from your API
@@ -108,7 +90,7 @@ export default function BibNumberPage() {
     link.click();
   };
 
-  const handleShare = async (photoUrl: string, photoId: string) => {
+  const handleShare = async (_photoUrl: string, photoId: string) => {
     if (navigator.share) {
       try {
         await navigator.share({
@@ -134,8 +116,6 @@ export default function BibNumberPage() {
         return (
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
         );
-      case "likes":
-        return b.likes - a.likes;
       case "location":
         return a.location.localeCompare(b.location);
       default:
@@ -222,7 +202,6 @@ export default function BibNumberPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="time">Time</SelectItem>
-              <SelectItem value="likes">Popularity</SelectItem>
               <SelectItem value="location">Location</SelectItem>
             </SelectContent>
           </Select>

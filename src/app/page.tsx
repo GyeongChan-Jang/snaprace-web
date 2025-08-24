@@ -1,22 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Camera } from "lucide-react";
+import { Search, Camera, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+
+// Mock race data
+const MOCK_RACES = [
+  { id: "all", name: "All Races", year: "" },
+  {
+    id: "white-mountain-triathlon",
+    name: "White Mountain Triathlon",
+    year: "2025",
+  },
+  { id: "busan-half-2024", name: "Busan Half Marathon", year: "2024" },
+  { id: "jeju-ultra-2024", name: "Jeju Ultra Trail", year: "2024" },
+  { id: "incheon-10k-2024", name: "Incheon 10K", year: "2024" },
+  { id: "daegu-marathon-2023", name: "Daegu Marathon", year: "2023" },
+  { id: "gwangju-trail-2023", name: "Gwangju Trail Run", year: "2023" },
+];
 
 export default function HomePage() {
   const [bibNumber, setBibNumber] = useState("");
+  const [selectedRace, setSelectedRace] = useState("all");
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (bibNumber.trim()) {
-      router.push(`/bib/${bibNumber.trim()}`);
+      if (selectedRace === "all") {
+        router.push(`/bib/${bibNumber.trim()}`);
+      } else {
+        router.push(`/races/${selectedRace}/${bibNumber.trim()}`);
+      }
     }
   };
-
 
   return (
     <div className="flex flex-col">
@@ -34,33 +60,90 @@ export default function HomePage() {
             <span className="text-primary"> Instantly</span>
           </h1>
 
-          <p className="text-muted-foreground mx-auto mb-12 max-w-2xl text-lg sm:text-xl">
-            Enter your bib number to discover all your race photos.
+          <p className="text-muted-foreground text-md mx-auto mb-12 max-w-2xl sm:text-xl">
+            Select race and enter bib number to discover all your photos.
           </p>
 
           {/* Main Search */}
-          <div className="mx-auto max-w-md">
+          <div className="mx-auto max-w-xl">
             <form onSubmit={handleSearch} className="space-y-4">
-              <div className="relative">
+              {/* Race Selection */}
+              <div className="space-y-2">
+                <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                  <Trophy className="h-4 w-4" />
+                  Select Race Event
+                </label>
+                <Select value={selectedRace} onValueChange={setSelectedRace}>
+                  <SelectTrigger className="text-muted-foreground h-14 w-full text-sm font-medium">
+                    <SelectValue placeholder="Choose a race" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MOCK_RACES.map((race) => (
+                      <SelectItem
+                        key={race.id}
+                        value={race.id}
+                        className="py-3"
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <span
+                            className={race.id === "all" ? "font-semibold" : ""}
+                          >
+                            {race.name}
+                          </span>
+                          {race.year && (
+                            <span className="text-muted-foreground ml-2 text-sm">
+                              {race.year}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Bib Number Input */}
+              <div className="space-y-2">
+                <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                  <Search className="h-4 w-4" />
+                  Bib Number
+                </label>
                 <Input
                   type="text"
-                  placeholder="Enter your bib number"
+                  placeholder="Enter your bib number (e.g., 1234)"
                   value={bibNumber}
                   onChange={(e) => setBibNumber(e.target.value)}
-                  className="h-14 border text-center text-lg font-medium"
+                  className="h-14 text-lg font-medium"
                   autoFocus
                 />
               </div>
+
               <Button
                 type="submit"
                 size="lg"
-                className="h-12 w-full text-lg font-medium"
+                className="h-14 w-full text-lg font-semibold"
                 disabled={!bibNumber.trim()}
               >
                 <Search className="mr-2 h-5 w-5" />
                 Find My Photos
               </Button>
             </form>
+
+            {/* Quick Stats */}
+            {/* <div className="mt-8 grid grid-cols-3 gap-4 text-center">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-2xl font-bold text-primary">50K+</p>
+                <p className="text-xs text-muted-foreground">Photos</p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-2xl font-bold text-primary">20+</p>
+                <p className="text-xs text-muted-foreground">Races</p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-2xl font-bold text-primary">10K+</p>
+                <p className="text-xs text-muted-foreground">Runners</p>
+              </div>
+            </div> */}
           </div>
 
           <p className="text-muted-foreground mt-4 text-sm">

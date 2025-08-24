@@ -11,7 +11,6 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export default function HowItWorksPage() {
   const steps = [
@@ -133,9 +132,9 @@ export default function HowItWorksPage() {
             cutting-edge AI and a passion for capturing your race memories.
           </p>
 
-          <Badge variant="secondary" className="mb-8">
+          {/* <Badge variant="secondary" className="mb-8">
             Trusted by 50,000+ runners nationwide
-          </Badge>
+          </Badge> */}
         </div>
       </section>
 
