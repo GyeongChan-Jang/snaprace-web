@@ -18,6 +18,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhotoActions } from "@/components/photo-actions";
 import { api } from "@/trpc/react";
 
+// Photo type definition
+interface Photo {
+  id: string;
+  url: string;
+  thumbnail: string;
+  timestamp: string;
+  location: string;
+  photographer: string;
+}
+
 // Mock race data (same as in main page for consistency)
 const MOCK_RACES = {
   "white-mountain-triathlon": {
@@ -65,7 +75,7 @@ const MOCK_RACES = {
 };
 
 // Mock photo data
-const generateMockPhotos = (bibNumber: string, raceId: string) => {
+const generateMockPhotos = (bibNumber: string, raceId: string): Photo[] => {
   const count = Math.floor(Math.random() * 6) + 4; // 4-9 photos
   return Array.from({ length: count }, (_, i) => ({
     id: `photo-${raceId}-${bibNumber}-${i + 1}`,
@@ -74,7 +84,7 @@ const generateMockPhotos = (bibNumber: string, raceId: string) => {
     timestamp: `${Math.floor(Math.random() * 4) + 1}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
     location: ["Start Line", "5K Mark", "10K Mark", "Halfway", "Finish Line"][
       Math.floor(Math.random() * 5)
-    ],
+    ] ?? "Unknown",
     photographer: `Photographer ${Math.floor(Math.random() * 10) + 1}`,
   }));
 };
@@ -85,7 +95,7 @@ export default function RacePhotoPage() {
   const race = params?.race as string;
   const bibNumber = params?.bib as string;
 
-  const [photos, setPhotos] = useState<any[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState("photos");
 
@@ -238,7 +248,7 @@ export default function RacePhotoPage() {
                 <CardContent className="p-0">
                   <div className="bg-muted relative aspect-[4/3]">
                     <Image
-                      src={photos[selectedPhoto].url}
+                      src={photos[selectedPhoto]?.url ?? ""}
                       alt={`Race photo ${selectedPhoto + 1}`}
                       fill
                       className="object-cover"
@@ -247,11 +257,11 @@ export default function RacePhotoPage() {
                     <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-4">
                       <div className="text-white">
                         <p className="font-semibold">
-                          {photos[selectedPhoto].location}
+                          {photos[selectedPhoto]?.location ?? ""}
                         </p>
                         <p className="text-sm opacity-90">
                           <Clock className="mr-1 inline h-3 w-3" />
-                          {photos[selectedPhoto].timestamp}
+                          {photos[selectedPhoto]?.timestamp ?? ""}
                         </p>
                       </div>
                     </div>
@@ -260,10 +270,12 @@ export default function RacePhotoPage() {
               </Card>
 
               {/* Photo Actions */}
-              <PhotoActions
-                photo={photos[selectedPhoto]}
-                bibNumber={bibNumber}
-              />
+              {photos[selectedPhoto] && (
+                <PhotoActions
+                  photo={photos[selectedPhoto]}
+                  bibNumber={bibNumber}
+                />
+              )}
 
               {/* Photo Thumbnails */}
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
@@ -278,7 +290,7 @@ export default function RacePhotoPage() {
                     }`}
                   >
                     <Image
-                      src={photo.thumbnail}
+                      src={photo?.thumbnail ?? ""}
                       alt={`Thumbnail ${index + 1}`}
                       fill
                       className="object-cover"

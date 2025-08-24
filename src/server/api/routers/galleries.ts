@@ -32,7 +32,7 @@ export const galleriesRouter = createTRPCRouter({
       });
 
       const result = await dynamoClient.send(command);
-      return result.Item || null;
+      return result.Item ?? null;
     }),
 
   // Get all galleries (scan operation - use with caution in production)
@@ -52,7 +52,7 @@ export const galleriesRouter = createTRPCRouter({
 
       const result = await dynamoClient.send(command);
       return {
-        items: result.Items || [],
+        items: result.Items ?? [],
         lastEvaluatedKey: result.LastEvaluatedKey,
       };
     }),
@@ -82,9 +82,9 @@ export const galleriesRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const updateExpressions: string[] = [];
       const expressionAttributeNames: Record<string, string> = {};
-      const expressionAttributeValues: Record<string, any> = {};
+      const expressionAttributeValues: Record<string, unknown> = {};
 
-      Object.entries(input.data).forEach(([key, value], index) => {
+      Object.entries(input.data).forEach(([key, value], index: number) => {
         const nameKey = `#attr${index}`;
         const valueKey = `:val${index}`;
         updateExpressions.push(`${nameKey} = ${valueKey}`);

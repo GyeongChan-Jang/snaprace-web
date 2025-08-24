@@ -25,8 +25,18 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/trpc/react";
 
+// Photo type definition
+interface Photo {
+  id: string;
+  url: string;
+  thumbnail: string;
+  timestamp: string;
+  location: string;
+  photographer: string;
+}
+
 // Mock data for development using real sample images
-const mockPhotos = [
+const mockPhotos: Photo[] = [
   {
     id: "1",
     url: "/samples/sample-1.jpg",
@@ -70,7 +80,7 @@ export default function BibNumberPage() {
   const [sortBy, setSortBy] = useState("time");
 
   const gallery = api.galleries.getAll.useQuery({});
-  console.log("gallery", gallery.data);
+  console.log("gallery", gallery.data ?? null);
 
   useEffect(() => {
     // Simulate API call

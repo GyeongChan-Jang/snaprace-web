@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // Mock race data
 const MOCK_RACES = [
@@ -148,9 +149,9 @@ export default function HomePage() {
 
           <p className="text-muted-foreground mt-4 text-sm">
             Don&apos;t know your bib number?{" "}
-            <a href="/races" className="text-primary hover:underline">
+            <Link href="/races" className="text-primary hover:underline">
               Browse all races
-            </a>
+            </Link>
           </p>
         </div>
       </section>

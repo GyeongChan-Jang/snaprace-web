@@ -66,7 +66,7 @@ export function PhotoActions({
           const blob = await response.blob();
           const blobUrl = URL.createObjectURL(blob);
           link.href = blobUrl;
-        } catch (err) {
+        } catch {
           // Fallback to opening in new tab if CORS issues
           window.open(photo.url, "_blank");
           toast.success("Photo opened in new tab for download");
@@ -118,15 +118,14 @@ export function PhotoActions({
     }
   };
 
-  const handleSocialShare = async (platform: { action?: () => Promise<void>; url: string }) => {
+  const handleSocialShare = async (platform: {
+    action?: () => Promise<void>;
+    url: string;
+  }) => {
     if (platform.action) {
       await platform.action();
     } else {
-      window.open(
-        platform.url,
-        "_blank",
-        "width=600,height=400",
-      );
+      window.open(platform.url, "_blank", "width=600,height=400");
     }
   };
 
