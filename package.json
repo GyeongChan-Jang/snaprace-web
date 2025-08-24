@@ -16,6 +16,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.873.0",
+    "@aws-sdk/lib-dynamodb": "^3.873.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
