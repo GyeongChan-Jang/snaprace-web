@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 // Mock race data
 const MOCK_RACES = [
@@ -27,6 +28,20 @@ const MOCK_RACES = [
   { id: "incheon-10k-2024", name: "Incheon 10K", year: "2024" },
   { id: "daegu-marathon-2023", name: "Daegu Marathon", year: "2023" },
   { id: "gwangju-trail-2023", name: "Gwangju Trail Run", year: "2023" },
+];
+
+// Partner data
+const PARTNERS = [
+  {
+    name: "AutoFair",
+    logo: "/partners/partner-autofair.png",
+    url: "https://autofair.com",
+  },
+  {
+    name: "Millennium Running",
+    logo: "/partners/partner-millennium-running.png",
+    url: "https://millenniumrunning.com",
+  },
 ];
 
 export default function HomePage() {
@@ -256,6 +271,42 @@ export default function HomePage() {
           </Button>
         </div>
       </section> */}
+
+      {/* Partners Section */}
+      <section className="bg-muted/30 border-t px-4 py-12">
+        <div className="container mx-auto max-w-4xl">
+          <div className="mb-8 text-center">
+            <h2 className="text-foreground mb-4 text-2xl font-bold tracking-tight">
+              Partners & Sponsors
+            </h2>
+            <p className="text-muted-foreground mx-auto max-w-2xl">
+              Trusted by leading event organizers and photography partners
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            {PARTNERS.map((partner) => (
+              <Link
+                key={partner.name}
+                href={partner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center transition-all hover:scale-105"
+              >
+                <div className="relative h-12 w-32 md:h-16 md:w-40">
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    fill
+                    className="object-contain opacity-70 transition-opacity group-hover:opacity-100"
+                    sizes="(max-width: 768px) 128px, 160px"
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

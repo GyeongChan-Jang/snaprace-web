@@ -36,7 +36,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${poppins.variable} ${montserrat.variable}`}>
-      <body className="min-h-screen bg-background font-poppins antialiased">
+      <body className="m-0 min-h-screen bg-background font-poppins antialiased">
         <TRPCReactProvider>
           <div className="relative flex min-h-screen flex-col">
             <Header />
