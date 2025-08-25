@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -10,6 +10,10 @@ import {
   MapPin,
   Clock,
   User,
+  Camera,
+  Upload,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +30,33 @@ interface Photo {
   timestamp: string;
   location: string;
   photographer: string;
+  matchType?: 'bib_detected' | 'selfie_matched';
+}
+
+// Enhanced gallery data structure
+interface GalleryData {
+  bib_number: string;
+  runner_name?: string;
+  event_id?: string;
+  event_name?: string;
+  event_date?: string;
+  bib_matched_photos?: Array<{
+    s3_url: string;
+    photo_location?: string;
+    timestamp?: string;
+    match_type: 'bib_detected';
+  }>;
+  selfie_matched_photos?: Array<{
+    s3_url: string;
+    photo_location?: string;
+    timestamp?: string;
+    match_type: 'selfie_matched';
+  }>;
+  selfie_enhanced?: boolean;
+  last_updated?: string;
+  // Legacy format support
+  images?: string[];
+  total_photos?: number;
 }
 
 // Mock race data (same as in main page for consistency)
@@ -98,6 +129,10 @@ export default function RacePhotoPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState("photos");
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [isUploadingSelfie, setIsUploadingSelfie] = useState(false);
+  const [selfieEnhanced, setSelfieEnhanced] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const raceInfo = MOCK_RACES[race as keyof typeof MOCK_RACES];
 
@@ -109,15 +144,115 @@ export default function RacePhotoPage() {
     }
   );
 
+  // Handle selfie file selection
+  const handleSelfieSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelfiePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle selfie upload
+  const handleSelfieUpload = async () => {
+    if (!selfiePreview) return;
+    
+    setIsUploadingSelfie(true);
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Add mock selfie-matched photos
+    const enhancedPhotos = [
+      ...photos,
+      ...generateMockPhotos(bibNumber, race).map(photo => ({
+        ...photo,
+        matchType: 'selfie_matched' as const,
+        id: `selfie-${photo.id}`
+      }))
+    ];
+    
+    setPhotos(enhancedPhotos);
+    setSelfieEnhanced(true);
+    setIsUploadingSelfie(false);
+    setSelfiePreview(null);
+  };
+
+  // Clear selfie preview
+  const clearSelfiePreview = () => {
+    setSelfiePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   useEffect(() => {
+    // Transform API data to Photo format
+    const transformToPhotos = (data: GalleryData): Photo[] => {
+      const photos: Photo[] = [];
+      
+      // Handle new format with bib_matched_photos
+      if (data.bib_matched_photos) {
+        data.bib_matched_photos.forEach((photo, index) => {
+          photos.push({
+            id: `bib-${index}`,
+            url: photo.s3_url.replace('s3://', '/samples/sample-') + '.jpg', // Mock URL transformation
+            thumbnail: photo.s3_url.replace('s3://', '/samples/sample-') + '.jpg',
+            timestamp: photo.timestamp ?? `${Math.floor(Math.random() * 4) + 1}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+            location: photo.photo_location ?? 'Unknown',
+            photographer: `Photographer ${index + 1}`,
+            matchType: 'bib_detected'
+          });
+        });
+      }
+      
+      // Handle selfie matched photos if they exist
+      if (data.selfie_matched_photos && data.selfie_matched_photos.length > 0) {
+        data.selfie_matched_photos.forEach((photo, index) => {
+          photos.push({
+            id: `selfie-${index}`,
+            url: photo.s3_url.replace('s3://', '/samples/sample-') + '.jpg',
+            thumbnail: photo.s3_url.replace('s3://', '/samples/sample-') + '.jpg',
+            timestamp: photo.timestamp ?? 'Unknown',
+            location: photo.photo_location ?? 'Unknown',
+            photographer: `Photographer ${index + 1}`,
+            matchType: 'selfie_matched'
+          });
+        });
+        setSelfieEnhanced(true);
+      }
+      
+      // Handle legacy format with images array
+      if (!photos.length && data.images) {
+        data.images.forEach((_, index) => {
+          photos.push({
+            id: `legacy-${index}`,
+            url: `/samples/sample-${(index % 4) + 1}.jpg`, // Mock URL
+            thumbnail: `/samples/sample-${(index % 4) + 1}.jpg`,
+            timestamp: 'Unknown',
+            location: 'Unknown',
+            photographer: `Photographer ${index + 1}`,
+            matchType: 'bib_detected'
+          });
+        });
+      }
+      
+      // If still no photos, generate mock data
+      if (!photos.length) {
+        return generateMockPhotos(bibNumber, race);
+      }
+      
+      return photos;
+    };
+
     if (bibQuery.isSuccess) {
       if (bibQuery.data) {
         // Data found in DynamoDB
         console.log("Bib data found in DynamoDB:", bibQuery.data);
-        
-        // TODO: Transform DynamoDB data to match photo format
-        // For now, still use mock photos but log the real data
-        setPhotos(generateMockPhotos(bibNumber, race));
+        const transformedPhotos = transformToPhotos(bibQuery.data as GalleryData);
+        setPhotos(transformedPhotos);
       } else {
         // No data found for this bib number
         console.log("No data found for bib number:", bibNumber);
@@ -211,6 +346,129 @@ export default function RacePhotoPage() {
         </TabsList>
 
         <TabsContent value="photos" className="space-y-6">
+          {/* Selfie Enhancement Section */}
+          {!selfieEnhanced && photos.length > 0 && (
+            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="bg-primary/10 p-3 rounded-full">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-2">
+                      Get More Accurate Results
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Upload a selfie to find additional photos using facial recognition technology
+                    </p>
+                    
+                    {/* Selfie Upload UI */}
+                    <div className="space-y-4">
+                      {selfiePreview ? (
+                        <div className="flex items-center gap-4">
+                          <div className="relative w-20 h-20 rounded-lg overflow-hidden">
+                            <Image
+                              src={selfiePreview}
+                              alt="Selfie preview"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium mb-2">Ready to enhance your results?</p>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={handleSelfieUpload}
+                                disabled={isUploadingSelfie}
+                                size="sm"
+                                className="h-8"
+                              >
+                                {isUploadingSelfie ? (
+                                  <>
+                                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white/20 border-t-white mr-2"></div>
+                                    Processing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-3 w-3 mr-2" />
+                                    Find More Photos
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={clearSelfiePreview}
+                                className="h-8"
+                                disabled={isUploadingSelfie}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-8"
+                          >
+                            <Upload className="h-3 w-3 mr-2" />
+                            Choose Photo
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const input = fileInputRef.current;
+                              if (input) {
+                                input.setAttribute('capture', 'user');
+                                input.click();
+                              }
+                            }}
+                            className="h-8 md:hidden"
+                          >
+                            <Camera className="h-3 w-3 mr-2" />
+                            Take Selfie
+                          </Button>
+                        </div>
+                      )}
+                      
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleSelfieSelect}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Selfie Enhanced Badge */}
+          {selfieEnhanced && (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-2 rounded-full">
+                    <Sparkles className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-green-800">Enhanced Results</p>
+                    <p className="text-sm text-green-600">
+                      Additional photos found using facial recognition
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {bibQuery.isLoading ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -295,6 +553,12 @@ export default function RacePhotoPage() {
                       fill
                       className="object-cover"
                     />
+                    {/* Match Type Indicator */}
+                    {photo.matchType === 'selfie_matched' && (
+                      <div className="absolute top-1 right-1 bg-green-500 rounded-full p-1">
+                        <Sparkles className="h-2 w-2 text-white" />
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
