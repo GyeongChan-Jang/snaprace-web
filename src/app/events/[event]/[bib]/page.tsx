@@ -34,8 +34,11 @@ export default function EventPhotoPage() {
   const isAllPhotos = bibParam === "null";
   const bibNumber = isAllPhotos ? "" : bibParam;
 
-  const [searchBib, setSearchBib] = useState("");
+  const [searchBib, setSearchBib] = useState(bibNumber || "");
   const [columnCount, setColumnCount] = useState(4);
+  const [uploadedSelfie, setUploadedSelfie] = useState<File | null>(null);
+  const [isProcessingSelfie, setIsProcessingSelfie] = useState(false);
+  const [selfieResults, setSelfieResults] = useState<string[]>([]);
 
   // Fetch event info from API
   const eventQuery = api.events.getById.useQuery(
@@ -48,6 +51,93 @@ export default function EventPhotoPage() {
     if (searchBib.trim()) {
       router.push(`/events/${event}/${searchBib.trim()}`);
     }
+  };
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (reader.result) {
+          const base64String = (reader.result as string).split(",")[1];
+          if (!base64String) return;
+
+          resolve(base64String);
+        } else {
+          reject(new Error("Failed to convert file to base64"));
+        }
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const callLambdaFunction = async (base64Image: string) => {
+    try {
+      const payload = {
+        image: base64Image,
+        bib_number: bibNumber || "",
+        organizer_id: "snaprace", // Replace with actual organizer_id if available
+        event_id: event,
+      };
+
+      const response = await fetch(
+        "https://your-api-gateway-url.amazonaws.com/lambda_find_by_selfie",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`Lambda call failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.matched_photos || [];
+    } catch (error) {
+      console.error("Error calling Lambda function:", error);
+      throw error;
+    }
+  };
+
+  const handleSelfieUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    alert("not yet implemented");
+    const file = e.target.files?.[0];
+    // if (file) {
+    //   setUploadedSelfie(file);
+    //   setIsProcessingSelfie(true);
+
+    //   try {
+    //     // Convert file to base64
+    //     const base64Image = await convertToBase64(file);
+
+    //     // Call Lambda function
+    //     const matchedPhotos = await callLambdaFunction(base64Image);
+
+    //     // Update selfie results
+    //     setSelfieResults(matchedPhotos);
+
+    //       console.log(
+    //         "Selfie processing completed:",
+    //         matchedPhotos.length,
+    //       "photos found",
+    //     );
+    //   } catch (error) {
+    //     console.error("Error processing selfie:", error);
+    //     // Handle error - you might want to show a toast or error message
+    //   } finally {
+    //     setIsProcessingSelfie(false);
+    //   }
+    // }
+  };
+
+  const handleSelfieRemove = () => {
+    setUploadedSelfie(null);
+    setSelfieResults([]);
+    setIsProcessingSelfie(false);
   };
 
   // Fetch specific bib data from DynamoDB using tRPC (only when not showing all photos)
@@ -79,7 +169,13 @@ export default function EventPhotoPage() {
       const dynamoData = bibQuery.data as GalleryData;
       const bibPhotos = dynamoData.bib_matched_photos ?? [];
       const selfiePhotos = dynamoData.selfie_matched_photos ?? [];
-      const allPhotos = [...bibPhotos, ...selfiePhotos];
+      const additionalSelfiePhotos =
+        selfieResults.length > 0 ? selfieResults : [];
+      const allPhotos = [
+        ...bibPhotos,
+        ...selfiePhotos,
+        ...additionalSelfiePhotos,
+      ];
 
       return allPhotos.map((url: string, index: number) => ({
         id: `photo-${event}-${bibNumber}-${index + 1}`,
@@ -89,7 +185,14 @@ export default function EventPhotoPage() {
       }));
     }
     return [];
-  }, [isAllPhotos, allPhotosQuery.data, bibQuery.data, event, bibNumber]);
+  }, [
+    isAllPhotos,
+    allPhotosQuery.data,
+    bibQuery.data,
+    event,
+    bibNumber,
+    selfieResults,
+  ]);
 
   // Responsive column count
   useEffect(() => {
@@ -165,34 +268,136 @@ export default function EventPhotoPage() {
               )}
             </div>
 
-            {/* Search */}
-            <form
-              onSubmit={handleBibSearch}
-              className="flex w-[200px] items-center gap-2"
-            >
-              <Input
-                type="text"
-                placeholder="Bib number"
-                value={searchBib}
-                onChange={(e) => setSearchBib(e.target.value)}
-                className="h-8 w-full border-b border-gray-200 text-sm"
-              />
-              <Button
-                type="submit"
-                size="sm"
-                variant="outline"
-                className="h-8 px-3"
-                disabled={!searchBib.trim()}
-              >
-                <Search className="h-3 w-3" />
-              </Button>
-            </form>
+            <div className="w-24"></div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="w-full px-4 py-6">
+        {/* Search and Selfie Upload Section */}
+        <div className="mx-auto mb-12 max-w-4xl">
+          {/* Bib Number Search */}
+          <div className="mb-8 text-center">
+            <h3 className="mb-4 text-xl font-medium">Find Your Race Photos</h3>
+            <form
+              onSubmit={handleBibSearch}
+              className="mx-auto flex max-w-md items-center justify-center gap-3"
+            >
+              <Input
+                type="text"
+                placeholder="Enter bib number"
+                value={searchBib}
+                onChange={(e) => setSearchBib(e.target.value)}
+                className="h-11 border-b border-gray-200 text-center"
+              />
+              <Button
+                type="submit"
+                disabled={!searchBib.trim()}
+                className="h-11 px-6"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+
+          {/* Selfie Upload Section */}
+          <div className="text-center">
+            <div className="mb-6">
+              <h4 className="mb-2 text-lg font-medium">Upload Your Selfie</h4>
+              <p className="text-muted-foreground mx-auto max-w-md text-sm">
+                Upload a selfie to help us find more photos of you during the
+                race using AI face matching
+              </p>
+            </div>
+
+            {!uploadedSelfie ? (
+              <label className="mx-auto block max-w-sm">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSelfieUpload}
+                  className="hidden"
+                  disabled={isProcessingSelfie}
+                />
+                <div className="border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-muted/5 cursor-pointer rounded-lg border p-6 transition-all">
+                  <div className="flex flex-col items-center gap-3">
+                    <svg
+                      className="text-muted-foreground/60 h-8 w-8"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-medium">Click to upload</p>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        JPG, PNG or HEIC
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            ) : (
+              <div className="mx-auto max-w-sm">
+                <div className="bg-muted/20 flex items-center justify-between rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/10">
+                      {isProcessingSelfie ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-b-transparent" />
+                      ) : (
+                        <svg
+                          className="h-4 w-4 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium">
+                        {uploadedSelfie.name}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {isProcessingSelfie
+                          ? "Processing with AI..."
+                          : `${(uploadedSelfie.size / 1024 / 1024).toFixed(1)} MB`}
+                      </p>
+                      {selfieResults.length > 0 && (
+                        <p className="text-xs text-green-600">
+                          Found {selfieResults.length} additional photos!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSelfieRemove}
+                    className="text-xs"
+                    disabled={isProcessingSelfie}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {(!isAllPhotos && bibQuery.isLoading) ||
         (isAllPhotos && allPhotosQuery.isLoading) ? (
           <MasonryPhotoSkeleton count={12} />
@@ -238,21 +443,7 @@ export default function EventPhotoPage() {
                       <div className="absolute inset-0 bg-black/20" />
                       {/* Action Buttons */}
                       <div className="absolute top-2 right-2 flex gap-1">
-                        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                            />
-                          </svg>
-                        </button>
+                        {/* Share Button */}
                         <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
                           <svg
                             className="h-4 w-4"
@@ -268,6 +459,7 @@ export default function EventPhotoPage() {
                             />
                           </svg>
                         </button>
+                        {/* Download Button */}
                         <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
                           <svg
                             className="h-4 w-4"
@@ -279,7 +471,7 @@ export default function EventPhotoPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                             />
                           </svg>
                         </button>
