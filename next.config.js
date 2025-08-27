@@ -5,6 +5,18 @@
 import "./src/env.js";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  images: {
+    remotePatterns: [
+      // CloudFront domain (for future use)
+      {
+        protocol: "https",
+        hostname: "*.cloudfront.net",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
+};
 
 export default config;

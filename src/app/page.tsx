@@ -4,59 +4,19 @@ import { useState } from "react";
 import { Search, Camera, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
-// Mock race data
-const MOCK_RACES = [
-  { id: "all", name: "All Races", year: "" },
-  {
-    id: "white-mountain-triathlon",
-    name: "White Mountain Triathlon",
-    year: "2025",
-  },
-  { id: "busan-half-2024", name: "Busan Half Marathon", year: "2024" },
-  { id: "jeju-ultra-2024", name: "Jeju Ultra Trail", year: "2024" },
-  { id: "incheon-10k-2024", name: "Incheon 10K", year: "2024" },
-  { id: "daegu-marathon-2023", name: "Daegu Marathon", year: "2023" },
-  { id: "gwangju-trail-2023", name: "Gwangju Trail Run", year: "2023" },
-];
-
-// Partner data
-const PARTNERS = [
-  {
-    name: "AutoFair",
-    logo: "/partners/partner-autofair.png",
-    url: "https://autofair.com",
-  },
-  {
-    name: "Millennium Running",
-    logo: "/partners/partner-millennium-running.png",
-    url: "https://millenniumrunning.com",
-  },
-];
+import { EVENT, PARTNERS } from "@/constants/data";
 
 export default function HomePage() {
   const [bibNumber, setBibNumber] = useState("");
-  const [selectedRace, setSelectedRace] = useState("all");
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (bibNumber.trim()) {
-      if (selectedRace === "all") {
-        router.push(`/bib/${bibNumber.trim()}`);
-      } else {
-        router.push(`/races/${selectedRace}/${bibNumber.trim()}`);
-      }
+      router.push(`/events/${EVENT.id}/${bibNumber.trim()}`);
     }
   };
 
@@ -72,50 +32,26 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-foreground font-montserrat mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Find Your Race Photos
+            Find Your Event Photos
             <span className="text-primary"> Instantly</span>
           </h1>
 
           <p className="text-muted-foreground text-md mx-auto mb-12 max-w-2xl sm:text-xl">
-            Select race and enter bib number to discover all your photos.
+            Enter your bib number to discover all your photos.
           </p>
 
           {/* Main Search */}
           <div className="mx-auto max-w-xl">
             <form onSubmit={handleSearch} className="space-y-4">
-              {/* Race Selection */}
+              {/* Race Display */}
               <div className="space-y-2">
                 <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                   <Trophy className="h-4 w-4" />
-                  Select Race Event
+                  Event
                 </label>
-                <Select value={selectedRace} onValueChange={setSelectedRace}>
-                  <SelectTrigger className="text-muted-foreground h-14 w-full text-sm font-medium">
-                    <SelectValue placeholder="Choose a race" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MOCK_RACES.map((race) => (
-                      <SelectItem
-                        key={race.id}
-                        value={race.id}
-                        className="py-3"
-                      >
-                        <div className="flex w-full items-center justify-between">
-                          <span
-                            className={race.id === "all" ? "font-semibold" : ""}
-                          >
-                            {race.name}
-                          </span>
-                          {race.year && (
-                            <span className="text-muted-foreground ml-2 text-sm">
-                              {race.year}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="bg-muted/50 border-muted h-14 w-full rounded-md border px-3 py-2 flex items-center text-sm font-medium">
+                  <span>{EVENT.name} {EVENT.year}</span>
+                </div>
               </div>
 
               {/* Bib Number Input */}
@@ -164,8 +100,8 @@ export default function HomePage() {
 
           <p className="text-muted-foreground mt-4 text-sm">
             Don&apos;t know your bib number?{" "}
-            <Link href="/races" className="text-primary hover:underline">
-              Browse all races
+            <Link href="/events" className="text-primary hover:underline">
+              Browse all events
             </Link>
           </p>
         </div>

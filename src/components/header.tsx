@@ -1,32 +1,21 @@
 "use client";
 
-import { Camera, Search, Menu } from "lucide-react";
+import { Camera, Menu } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export function Header() {
-  const [searchValue, setSearchValue] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Races", href: "/races" },
+    { name: "Events", href: "/events" },
     { name: "How It Works", href: "/how-it-works" },
   ];
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      router.push(`/bib/${searchValue.trim()}`);
-    }
-  };
 
   return (
     <header className="bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
@@ -65,8 +54,8 @@ export function Header() {
             })}
           </nav>
 
-          {/* Desktop Search */}
-          <div className="hidden items-center space-x-2 md:flex">
+          {/* Desktop Search - Disabled */}
+          {/* <div className="hidden items-center space-x-2 md:flex">
             <form onSubmit={handleSearch} className="relative">
               <Input
                 type="text"
@@ -83,19 +72,19 @@ export function Header() {
                 <Search className="h-3 w-3" />
               </Button>
             </form>
-          </div>
+          </div> */}
 
           {/* Mobile Controls */}
           <div className="flex items-center space-x-2 md:hidden">
-            {/* Mobile Search Toggle */}
-            <Button
+            {/* Mobile Search Toggle - Disabled */}
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               aria-label="Toggle search"
             >
               <Search className="h-4 w-4" />
-            </Button>
+            </Button> */}
 
             {/* Mobile Menu */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -142,8 +131,8 @@ export function Header() {
                     })}
                   </nav>
 
-                  {/* Mobile Search in Menu */}
-                  <div className="border-t pt-4">
+                  {/* Mobile Search in Menu - Disabled */}
+                  {/* <div className="border-t pt-4">
                     <form onSubmit={handleSearch} className="space-y-2">
                       <Input
                         type="text"
@@ -157,31 +146,12 @@ export function Header() {
                         Find My Photos
                       </Button>
                     </form>
-                  </div>
+                  </div> */}
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
-
-        {/* Mobile Search Bar */}
-        {isSearchOpen && (
-          <div className="border-t py-3 md:hidden">
-            <form onSubmit={handleSearch} className="flex space-x-2">
-              <Input
-                type="text"
-                placeholder="Enter bib number..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="flex-1"
-                autoFocus
-              />
-              <Button type="submit">
-                <Search className="h-4 w-4" />
-              </Button>
-            </form>
-          </div>
-        )}
       </div>
     </header>
   );

@@ -11,20 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhotoActions } from "@/components/photo-actions";
 import { api } from "@/trpc/react";
-
-// Partner data
-const PARTNERS = [
-  {
-    name: "AutoFair",
-    logo: "/partners/partner-autofair.png",
-    url: "https://autofair.com",
-  },
-  {
-    name: "Millennium Running",
-    logo: "/partners/partner-millennium-running.png",
-    url: "https://millenniumrunning.com",
-  },
-];
+import { EVENT, PARTNERS } from "@/constants/data";
 
 // Photo type definition
 interface Photo {
@@ -36,121 +23,100 @@ interface Photo {
   photographer: string;
 }
 
-// Mock race data (same as in main page for consistency)
-const MOCK_RACES = {
-  "white-mountain-triathlon": {
-    name: "White Mountain Triathlon 2025",
-    date: "January 15, 2025",
-    location: "White Mountains, NH",
-    totalRunners: 1200,
-    distance: "Sprint/Olympic",
-  },
-  "busan-half-2024": {
-    name: "Busan Half Marathon 2024",
-    date: "April 21, 2024",
-    location: "Busan, South Korea",
-    totalRunners: 15000,
-    distance: "21.0975 km",
-  },
-  "jeju-ultra-2024": {
-    name: "Jeju Ultra Trail 2024",
-    date: "May 11, 2024",
-    location: "Jeju Island, South Korea",
-    totalRunners: 5000,
-    distance: "100 km",
-  },
-  "incheon-10k-2024": {
-    name: "Incheon 10K 2024",
-    date: "June 8, 2024",
-    location: "Incheon, South Korea",
-    totalRunners: 8000,
-    distance: "10 km",
-  },
-  "daegu-marathon-2023": {
-    name: "Daegu Marathon 2023",
-    date: "November 5, 2023",
-    location: "Daegu, South Korea",
-    totalRunners: 20000,
-    distance: "42.195 km",
-  },
-  "gwangju-trail-2023": {
-    name: "Gwangju Trail Run 2023",
-    date: "October 15, 2023",
-    location: "Gwangju, South Korea",
-    totalRunners: 3000,
-    distance: "25 km",
-  },
-};
+// DynamoDB data interface
+interface GalleryData {
+  event_id: string;
+  bib_number: string;
+  bib_matched_photos?: string[];
+  event_date?: string;
+  event_name?: string;
+  last_updated?: string;
+  organizer_id?: string;
+  runner_name?: string;
+  selfie_enhanced?: boolean;
+  selfie_matched_photos?: string[];
+}
 
-// Mock photo data
-const generateMockPhotos = (bibNumber: string, raceId: string): Photo[] => {
-  const count = Math.floor(Math.random() * 6) + 4; // 4-9 photos
-  return Array.from({ length: count }, (_, i) => ({
-    id: `photo-${raceId}-${bibNumber}-${i + 1}`,
-    url: `/samples/sample-${(i % 4) + 1}.jpg`,
-    thumbnail: `/samples/sample-${(i % 4) + 1}.jpg`,
-    timestamp: `${Math.floor(Math.random() * 4) + 1}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
-    location:
-      ["Start Line", "5K Mark", "10K Mark", "Halfway", "Finish Line"][
-        Math.floor(Math.random() * 5)
-      ] ?? "Unknown",
-    photographer: `Photographer ${Math.floor(Math.random() * 10) + 1}`,
-  }));
-};
-
-export default function RacePhotoPage() {
+export default function EventPhotoPage() {
   const params = useParams();
   const router = useRouter();
-  const race = params?.race as string;
+  const event = params?.event as string;
   const bibNumber = params?.bib as string;
 
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState("photos");
 
-  const raceInfo = MOCK_RACES[race as keyof typeof MOCK_RACES];
+  const eventInfo = event === EVENT.id ? EVENT : null;
 
   // Fetch specific bib data from DynamoDB using tRPC
-  const bibQuery = api.galleries.getById.useQuery(
-    { bibNumber },
+  const bibQuery = api.galleries.get.useQuery(
+    { eventId: event, bibNumber },
     {
-      enabled: !!bibNumber,
+      enabled: !!bibNumber && !!event,
     },
   );
 
-  useEffect(() => {
-    if (bibQuery.isSuccess) {
-      if (bibQuery.data) {
-        // Data found in DynamoDB
-        console.log("Bib data found in DynamoDB:", bibQuery.data);
+  // useEffect(() => {
+  //   if (bibQuery.isSuccess) {
+  //     if (bibQuery.data) {
+  //       // Data found in DynamoDB
+  //       console.log("Bib data found in DynamoDB:", bibQuery.data);
 
-        // TODO: Transform DynamoDB data to match photo format
-        // For now, still use mock photos but log the real data
-        setPhotos(generateMockPhotos(bibNumber, race));
-      } else {
-        // No data found for this bib number
-        console.log("No data found for bib number:", bibNumber);
-        setPhotos([]); // Show empty state
-      }
-    } else if (bibQuery.isError) {
-      // Error occurred, fallback to mock data
-      console.error("Error fetching bib data:", bibQuery.error);
-      setPhotos(generateMockPhotos(bibNumber, race));
-    }
-  }, [
-    bibQuery.isSuccess,
-    bibQuery.data,
-    bibQuery.isError,
-    bibQuery.error,
-    bibNumber,
-    race,
-  ]);
+  //       // Transform DynamoDB data to Photo format
+  //       const dynamoData = bibQuery.data as GalleryData;
 
-  if (!raceInfo) {
+  //       // Combine bib matched photos and selfie matched photos
+  //       const bibPhotos = dynamoData.bib_matched_photos ?? [];
+  //       const selfiePhotos = dynamoData.selfie_matched_photos ?? [];
+  //       const allPhotos = [...bibPhotos, ...selfiePhotos];
+
+  //       if (allPhotos.length > 0) {
+  //         const transformedPhotos: Photo[] = allPhotos.map(
+  //           (url: string, index: number) => {
+  //             const isSelfie = index >= bibPhotos.length;
+  //             return {
+  //               id: `photo-${event}-${bibNumber}-${index + 1}`,
+  //               url,
+  //               thumbnail: url,
+  //               timestamp: dynamoData.event_date ?? "Unknown Time",
+  //               location: isSelfie
+  //                 ? "Selfie"
+  //                 : index === 0
+  //                   ? "Start Line"
+  //                   : index === bibPhotos.length - 1
+  //                     ? "Finish Line"
+  //                     : `Mile ${index + 1}`,
+  //               photographer: dynamoData.organizer_id ?? "Unknown Photographer",
+  //             };
+  //           },
+  //         );
+  //         setPhotos(transformedPhotos);
+  //       } else {
+  //         setPhotos([]); // No photos available
+  //       }
+  //     } else {
+  //       // No data found for this bib number
+  //       console.log("No data found for bib number:", bibNumber);
+  //       setPhotos([]); // Show empty state
+  //     }
+  //   } else if (bibQuery.isError) {
+  //     console.error("Error fetching bib data:", bibQuery.error);
+  //   }
+  // }, [
+  //   bibQuery.isSuccess,
+  //   bibQuery.data,
+  //   bibQuery.isError,
+  //   bibQuery.error,
+  //   bibNumber,
+  //   race,
+  // ]);
+
+  if (!eventInfo) {
     return (
       <>
         <div className="container mx-auto py-8 text-center">
-          <h1 className="mb-4 text-2xl font-bold">Race not found</h1>
+          <h1 className="mb-4 text-2xl font-bold">Event not found</h1>
           <Button onClick={() => router.push("/")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Home
@@ -165,9 +131,6 @@ export default function RacePhotoPage() {
                 <h2 className="text-foreground mb-2 text-xl font-bold tracking-tight">
                   Photo Partners
                 </h2>
-                <p className="text-muted-foreground text-sm">
-                  Professional race photography by our trusted partners
-                </p>
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
@@ -216,7 +179,7 @@ export default function RacePhotoPage() {
             <div>
               <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold">
                 <Trophy className="text-primary h-8 w-8" />
-                {raceInfo.name}
+                {eventInfo.fullName}
               </h1>
               <div className="text-muted-foreground flex flex-wrap gap-4">
                 <span className="flex items-center gap-1">
@@ -225,18 +188,18 @@ export default function RacePhotoPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {raceInfo.date}
+                  {eventInfo.date}
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {raceInfo.location}
+                  {eventInfo.location}
                 </span>
               </div>
             </div>
 
             <div className="flex gap-2">
               <Badge variant="secondary" className="px-3 py-1">
-                {raceInfo.distance}
+                {eventInfo.distance}
               </Badge>
               <Badge variant="secondary" className="px-3 py-1">
                 {bibQuery.isLoading
@@ -262,7 +225,7 @@ export default function RacePhotoPage() {
         >
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="photos">Photos</TabsTrigger>
-            <TabsTrigger value="info">Race Info</TabsTrigger>
+            <TabsTrigger value="info">Event Info</TabsTrigger>
           </TabsList>
 
           <TabsContent value="photos" className="space-y-6">
@@ -374,7 +337,7 @@ export default function RacePhotoPage() {
                     </p>
                     <Button
                       variant="outline"
-                      onClick={() => router.push(`/races/${race}`)}
+                      onClick={() => router.push(`/events/${event}`)}
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Search Another Bib
@@ -388,21 +351,23 @@ export default function RacePhotoPage() {
           <TabsContent value="info">
             <Card>
               <CardContent className="p-6">
-                <h2 className="mb-6 text-2xl font-bold">Race Information</h2>
+                <h2 className="mb-6 text-2xl font-bold">Event Information</h2>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-4">
                     <div>
                       <h3 className="mb-1 font-semibold">Event Name</h3>
-                      <p className="text-muted-foreground">{raceInfo.name}</p>
+                      <p className="text-muted-foreground">
+                        {eventInfo.fullName}
+                      </p>
                     </div>
                     <div>
                       <h3 className="mb-1 font-semibold">Date</h3>
-                      <p className="text-muted-foreground">{raceInfo.date}</p>
+                      <p className="text-muted-foreground">{eventInfo.date}</p>
                     </div>
                     <div>
                       <h3 className="mb-1 font-semibold">Location</h3>
                       <p className="text-muted-foreground">
-                        {raceInfo.location}
+                        {eventInfo.location}
                       </p>
                     </div>
                   </div>
@@ -410,13 +375,13 @@ export default function RacePhotoPage() {
                     <div>
                       <h3 className="mb-1 font-semibold">Distance</h3>
                       <p className="text-muted-foreground">
-                        {raceInfo.distance}
+                        {eventInfo.distance}
                       </p>
                     </div>
                     <div>
                       <h3 className="mb-1 font-semibold">Total Participants</h3>
                       <p className="text-muted-foreground">
-                        {raceInfo.totalRunners.toLocaleString()} runners
+                        {eventInfo.totalRunners.toLocaleString()} runners
                       </p>
                     </div>
                     <div>
@@ -439,9 +404,6 @@ export default function RacePhotoPage() {
               <h2 className="text-foreground mb-2 text-xl font-bold tracking-tight">
                 Partners & Sponsors
               </h2>
-              <p className="text-muted-foreground text-sm">
-                Professional race photography by our trusted partners
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">

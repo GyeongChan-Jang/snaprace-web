@@ -14,6 +14,9 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
     DYNAMO_TABLE: z.string(),
+    // Auth.js (NextAuth) configuration
+    AUTH_SECRET: z.string(),
+    AUTH_URL: z.string().url().optional(),
   },
 
   /**
@@ -35,6 +38,8 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     DYNAMO_TABLE: process.env.DYNAMO_TABLE,
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    AUTH_URL: process.env.AUTH_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
