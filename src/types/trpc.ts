@@ -13,5 +13,8 @@ export type EventById = RouterOutputs["events"]["getById"];
 // Galleries
 export type GalleriesList =
   RouterOutputs["galleries"]["get"] extends Array<infer T> ? T[] : never;
-export type GalleryByBib = Exclude<RouterOutputs["galleries"]["get"], any[]>; // null | item shape
+export type GalleryByBib = Exclude<
+  RouterOutputs["galleries"]["get"],
+  undefined
+>;
 export type GalleriesGetInput = RouterInputs["galleries"]["get"];

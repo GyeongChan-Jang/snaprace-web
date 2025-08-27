@@ -269,6 +269,7 @@ export function PhotoActions({
           <div className="space-y-4">
             {/* Photo Preview */}
             <div className="bg-muted relative aspect-video overflow-hidden rounded-lg">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photo.url}
                 alt={`Race photo ${photo.location ? `from ${photo.location}` : ""}`}

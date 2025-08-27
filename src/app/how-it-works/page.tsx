@@ -1,11 +1,7 @@
 import {
   Search,
   Camera,
-  Zap,
-  Shield,
   Download,
-  Users,
-  Clock,
   CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -52,32 +48,33 @@ export default function HowItWorksPage() {
     },
   ];
 
-  const features = [
-    {
-      icon: <Zap className="text-primary h-6 w-6" />,
-      title: "Lightning Fast",
-      description:
-        "Get your results in seconds, not minutes. Our optimized system is built for speed.",
-    },
-    {
-      icon: <Shield className="text-primary h-6 w-6" />,
-      title: "Privacy Protected",
-      description:
-        "Your photos are only visible to you. We prioritize your privacy and data security.",
-    },
-    {
-      icon: <Users className="text-primary h-6 w-6" />,
-      title: "Race Partner Network",
-      description:
-        "Working with top race organizers to ensure comprehensive photo coverage.",
-    },
-    {
-      icon: <Clock className="text-primary h-6 w-6" />,
-      title: "24/7 Availability",
-      description:
-        "Access your race photos anytime, anywhere. Our service never sleeps.",
-    },
-  ];
+  // Commented out temporarily due to unused variable warning
+  // const features = [
+  //   {
+  //     icon: <Zap className="text-primary h-6 w-6" />,
+  //     title: "Lightning Fast",
+  //     description:
+  //       "Get your results in seconds, not minutes. Our optimized system is built for speed.",
+  //   },
+  //   {
+  //     icon: <Shield className="text-primary h-6 w-6" />,
+  //     title: "Privacy Protected",
+  //     description:
+  //       "Your photos are only visible to you. We prioritize your privacy and data security.",
+  //   },
+  //   {
+  //     icon: <Users className="text-primary h-6 w-6" />,
+  //     title: "Race Partner Network",
+  //     description:
+  //       "Working with top race organizers to ensure comprehensive photo coverage.",
+  //   },
+  //   {
+  //     icon: <Clock className="text-primary h-6 w-6" />,
+  //     title: "24/7 Availability",
+  //     description:
+  //       "Access your race photos anytime, anywhere. Our service never sleeps.",
+  //   },
+  // ];
 
   const faqs = [
     // {

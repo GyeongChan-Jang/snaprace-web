@@ -53,85 +53,66 @@ export default function EventPhotoPage() {
     }
   };
 
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (reader.result) {
-          const base64String = (reader.result as string).split(",")[1];
-          if (!base64String) return;
+  // const convertToBase64 = (file: File): Promise<string> => {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => {
+  //       if (reader.result) {
+  //         const base64String = (reader.result as string).split(",")[1];
+  //         if (!base64String) {
+  //           reject(new Error("Failed to extract base64 from result"));
+  //           return;
+  //         }
+  //         resolve(base64String);
+  //       } else {
+  //         reject(new Error("Failed to convert file to base64"));
+  //       }
+  //     };
+  //     reader.onerror = (error) => reject(new Error(`FileReader error: ${error}`));
+  //   });
+  // };
 
-          resolve(base64String);
-        } else {
-          reject(new Error("Failed to convert file to base64"));
-        }
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
+  // const callLambdaFunction = async (base64Image: string): Promise<string[]> => {
+  //   try {
+  //     const payload = {
+  //       image: base64Image,
+  //       bib_number: bibNumber ?? "",
+  //       organizer_id: "snaprace", // Replace with actual organizer_id if available
+  //       event_id: event,
+  //     };
 
-  const callLambdaFunction = async (base64Image: string) => {
-    try {
-      const payload = {
-        image: base64Image,
-        bib_number: bibNumber || "",
-        organizer_id: "snaprace", // Replace with actual organizer_id if available
-        event_id: event,
-      };
+  //     const response = await fetch(
+  //       "https://your-api-gateway-url.amazonaws.com/lambda_find_by_selfie",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(payload),
+  //       },
+  //     );
 
-      const response = await fetch(
-        "https://your-api-gateway-url.amazonaws.com/lambda_find_by_selfie",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+  //     if (!response.ok) {
+  //       throw new Error(`Lambda call failed: ${response.status}`);
+  //     }
 
-      if (!response.ok) {
-        throw new Error(`Lambda call failed: ${response.status}`);
-      }
-
-      const result = await response.json();
-      return result.matched_photos || [];
-    } catch (error) {
-      console.error("Error calling Lambda function:", error);
-      throw error;
-    }
-  };
+  //     const result = (await response.json()) as { matched_photos?: string[] };
+  //     return result.matched_photos ?? [];
+  //   } catch (error) {
+  //     console.error("Error calling Lambda function:", error);
+  //     throw error;
+  //   }
+  // };
 
   const handleSelfieUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     alert("not yet implemented");
     const file = e.target.files?.[0];
-    // if (file) {
-    //   setUploadedSelfie(file);
-    //   setIsProcessingSelfie(true);
-
-    //   try {
-    //     // Convert file to base64
-    //     const base64Image = await convertToBase64(file);
-
-    //     // Call Lambda function
-    //     const matchedPhotos = await callLambdaFunction(base64Image);
-
-    //     // Update selfie results
-    //     setSelfieResults(matchedPhotos);
-
-    //       console.log(
-    //         "Selfie processing completed:",
-    //         matchedPhotos.length,
-    //       "photos found",
-    //     );
-    //   } catch (error) {
-    //     console.error("Error processing selfie:", error);
-    //     // Handle error - you might want to show a toast or error message
-    //   } finally {
-    //     setIsProcessingSelfie(false);
-    //   }
-    // }
+    if (file) {
+      setUploadedSelfie(file);
+      // TODO: Implement selfie processing when Lambda endpoint is ready
+      console.log("Selfie uploaded:", file.name);
+    }
   };
 
   const handleSelfieRemove = () => {
