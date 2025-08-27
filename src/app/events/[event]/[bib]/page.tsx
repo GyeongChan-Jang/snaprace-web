@@ -66,45 +66,63 @@ export default function EventPhotoPage() {
     },
   );
 
-  // Mock all photos data when bib is null
-  const allPhotosData = isAllPhotos
-    ? [
-        {
-          id: "all-photo-1",
-          url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop",
-          thumbnail:
-            "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop",
-          timestamp: "2025-06-15T08:30:00Z",
-          location: "Start Line",
-          photographer: "Event Photographer",
-        },
-        {
-          id: "all-photo-2",
-          url: "https://images.unsplash.com/photo-1544717440-6a5d6efd7e44?w=800&h=600&fit=crop",
-          thumbnail:
-            "https://images.unsplash.com/photo-1544717440-6a5d6efd7e44?w=300&h=200&fit=crop",
-          timestamp: "2025-06-15T09:45:00Z",
-          location: "Mile 5",
-          photographer: "Event Photographer",
-        },
-        {
-          id: "all-photo-3",
-          url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&h=600&fit=crop",
-          thumbnail:
-            "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=300&h=200&fit=crop",
-          timestamp: "2025-06-15T10:15:00Z",
-          location: "Finish Line",
-          photographer: "Event Photographer",
-        },
-      ]
-    : [];
+  // Fetch all photos for the event when showing all photos
+  const allPhotosQuery = api.photos.getByEventId.useQuery(
+    { eventId: event },
+    {
+      enabled: !!event && isAllPhotos,
+    },
+  );
 
   // Set photos based on whether we're showing all photos or specific bib
   useEffect(() => {
-    if (isAllPhotos) {
-      setPhotos(allPhotosData);
+    if (isAllPhotos && allPhotosQuery.data) {
+      // Transform Photos API data to frontend Photo format
+      const transformedPhotos = allPhotosQuery.data.map((photo, index) => ({
+        id: `photo-${event}-${index + 1}`,
+        url: photo.imageUrl,
+        thumbnail: photo.imageUrl,
+        timestamp: new Date().toISOString(),
+        location: `Photo ${index + 1}`,
+        photographer: "Event Photographer",
+      }));
+      setPhotos(transformedPhotos);
+    } else if (!isAllPhotos && bibQuery.data) {
+      // Transform bibQuery data to Photo format (keeping existing logic)
+      const dynamoData = bibQuery.data as any;
+      const bibPhotos = dynamoData.bib_matched_photos ?? [];
+      const selfiePhotos = dynamoData.selfie_matched_photos ?? [];
+      const allPhotos = [...bibPhotos, ...selfiePhotos];
+
+      if (allPhotos.length > 0) {
+        const transformedPhotos = allPhotos.map(
+          (url: string, index: number) => {
+            const isSelfie = index >= bibPhotos.length;
+            return {
+              id: `photo-${event}-${bibNumber}-${index + 1}`,
+              url,
+              thumbnail: url,
+              timestamp: dynamoData.event_date ?? "Unknown Time",
+              location: isSelfie
+                ? "Selfie"
+                : index === 0
+                  ? "Start Line"
+                  : index === bibPhotos.length - 1
+                    ? "Finish Line"
+                    : `Mile ${index + 1}`,
+              photographer: dynamoData.organizer_id ?? "Unknown Photographer",
+            };
+          },
+        );
+        setPhotos(transformedPhotos);
+      } else {
+        setPhotos([]);
+      }
+    } else if (!isAllPhotos) {
+      // Reset photos when no data for specific bib
+      setPhotos([]);
     }
-  }, [isAllPhotos]);
+  }, [isAllPhotos, allPhotosQuery.data, bibQuery.data, event, bibNumber]);
 
   const eventInfo = eventQuery.data;
 
@@ -238,13 +256,25 @@ export default function EventPhotoPage() {
 
         {/* Photos Section */}
         <div className="space-y-6">
-          {!isAllPhotos && bibQuery.isLoading ? (
+          {(!isAllPhotos && bibQuery.isLoading) ||
+          (isAllPhotos && allPhotosQuery.isLoading) ? (
             <PhotoGridSkeleton />
-          ) : !isAllPhotos && bibQuery.isError ? (
+          ) : (!isAllPhotos && bibQuery.isError) ||
+            (isAllPhotos && allPhotosQuery.isError) ? (
             <ErrorState
               title="Unable to load photos"
-              message={`There was an error loading photos for this bib number: ${bibQuery.error?.message}`}
-              onRetry={() => bibQuery.refetch()}
+              message={`There was an error loading photos: ${
+                !isAllPhotos
+                  ? bibQuery.error?.message
+                  : allPhotosQuery.error?.message
+              }`}
+              onRetry={() => {
+                if (!isAllPhotos) {
+                  bibQuery.refetch();
+                } else {
+                  allPhotosQuery.refetch();
+                }
+              }}
             />
           ) : photos.length > 0 ? (
             <>

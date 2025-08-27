@@ -15,6 +15,7 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: z.string(),
     DYNAMO_GALLERIES_TABLE: z.string(),
     DYNAMO_EVENTS_TABLE: z.string(),
+    DYNAMO_PHOTOS_TABLE: z.string(),
     // Auth.js (NextAuth) configuration
     AUTH_SECRET: z.string(),
     AUTH_URL: z.string().url().optional(),
@@ -40,6 +41,7 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     DYNAMO_GALLERIES_TABLE: process.env.DYNAMO_GALLERIES_TABLE,
     DYNAMO_EVENTS_TABLE: process.env.DYNAMO_EVENTS_TABLE,
+    DYNAMO_PHOTOS_TABLE: process.env.DYNAMO_PHOTOS_TABLE,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_URL: process.env.AUTH_URL,
   },

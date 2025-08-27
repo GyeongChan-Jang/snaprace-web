@@ -14,4 +14,5 @@ export const dynamoClient = DynamoDBDocumentClient.from(client);
 export const TABLES = {
   GALLERIES: env.DYNAMO_GALLERIES_TABLE,
   EVENTS: env.DYNAMO_EVENTS_TABLE,
+  PHOTOS: env.DYNAMO_PHOTOS_TABLE,
 } as const;
