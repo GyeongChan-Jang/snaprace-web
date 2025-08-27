@@ -7,13 +7,13 @@ interface EventCardProps {
   id: string;
   name: string;
   image: string;
-  date: Date;
+  date: string; // ISO string from API
 }
 
 export default function EventCard({ id, name, image, date }: EventCardProps) {
   return (
     <div className="text-center">
-      <Link href={`/events/${id}`} className="block cursor-pointer">
+      <Link href={`/events/${id}/null`} className="block cursor-pointer">
         {/* Event Image */}
         <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden">
           <Image
@@ -40,7 +40,7 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
             {name}
           </h3>
           <p className="text-muted-foreground tablet:text-base text-sm">
-            {date.toLocaleDateString("en-US", {
+            {new Date(date).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",

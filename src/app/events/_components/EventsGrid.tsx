@@ -1,28 +1,22 @@
 "use client";
 
 import EventCard from "./EventCard";
-
-interface Event {
-  id: string;
-  name: string;
-  image: string;
-  date: Date;
-}
+import { type EventEntity } from "@/types/trpc";
 
 interface EventsGridProps {
-  events: Event[];
+  events: EventEntity[];
 }
 
 export default function EventsGrid({ events }: EventsGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-6 tablet:grid-cols-2 desktop:grid-cols-3 tablet:gap-8 desktop:gap-10">
+    <div className="tablet:grid-cols-2 desktop:grid-cols-3 tablet:gap-8 desktop:gap-10 grid grid-cols-1 gap-6">
       {events.map((event) => (
         <EventCard
-          key={event.id}
-          id={event.id}
-          name={event.name}
-          image={event.image}
-          date={event.date}
+          key={event.event_id}
+          id={event.event_id}
+          name={event.event_name}
+          image={event.event_image_url}
+          date={event.event_date}
         />
       ))}
     </div>

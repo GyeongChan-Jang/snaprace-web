@@ -4,16 +4,26 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Trophy, Calendar, MapPin, Clock, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Trophy,
+  Calendar,
+  MapPin,
+  Clock,
+  Search,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import { PhotoActions } from "@/components/photo-actions";
 import { api } from "@/trpc/react";
-import { EVENTS, PARTNERS } from "@/constants/data";
+import { PARTNERS } from "@/constants/data";
+import {
+  PhotoGridSkeleton,
+  EventHeaderSkeleton,
+} from "@/components/states/EventsSkeleton";
+import { ErrorState } from "@/components/states/ErrorState";
+import { NoPhotosState } from "@/components/states/EmptyState";
 
-// Photo type definition
 interface Photo {
   id: string;
   url: string;
@@ -23,96 +33,95 @@ interface Photo {
   photographer: string;
 }
 
-// DynamoDB data interface
-interface GalleryData {
-  event_id: string;
-  bib_number: string;
-  bib_matched_photos?: string[];
-  event_date?: string;
-  event_name?: string;
-  last_updated?: string;
-  organizer_id?: string;
-  runner_name?: string;
-  selfie_enhanced?: boolean;
-  selfie_matched_photos?: string[];
-}
-
 export default function EventPhotoPage() {
   const params = useParams();
   const router = useRouter();
   const event = params?.event as string;
-  const bibNumber = params?.bib as string;
+  const bibParam = params?.bib as string;
+  const isAllPhotos = bibParam === "null";
+  const bibNumber = isAllPhotos ? "" : bibParam;
 
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [selectedPhoto, setSelectedPhoto] = useState(0);
-  const [activeTab, setActiveTab] = useState("photos");
+  const [searchBib, setSearchBib] = useState("");
 
-  const eventInfo = EVENTS.find(e => e.id === event);
+  // Fetch event info from API
+  const eventQuery = api.events.getById.useQuery(
+    { eventId: event },
+    { enabled: !!event },
+  );
 
-  // Fetch specific bib data from DynamoDB using tRPC
+  const handleBibSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchBib.trim()) {
+      router.push(`/events/${event}/${searchBib.trim()}`);
+    }
+  };
+
+  // Fetch specific bib data from DynamoDB using tRPC (only when not showing all photos)
   const bibQuery = api.galleries.get.useQuery(
     { eventId: event, bibNumber },
     {
-      enabled: !!bibNumber && !!event,
+      enabled: !!bibNumber && !!event && !isAllPhotos,
     },
   );
 
-  // useEffect(() => {
-  //   if (bibQuery.isSuccess) {
-  //     if (bibQuery.data) {
-  //       // Data found in DynamoDB
-  //       console.log("Bib data found in DynamoDB:", bibQuery.data);
+  // Mock all photos data when bib is null
+  const allPhotosData = isAllPhotos
+    ? [
+        {
+          id: "all-photo-1",
+          url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop",
+          thumbnail:
+            "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop",
+          timestamp: "2025-06-15T08:30:00Z",
+          location: "Start Line",
+          photographer: "Event Photographer",
+        },
+        {
+          id: "all-photo-2",
+          url: "https://images.unsplash.com/photo-1544717440-6a5d6efd7e44?w=800&h=600&fit=crop",
+          thumbnail:
+            "https://images.unsplash.com/photo-1544717440-6a5d6efd7e44?w=300&h=200&fit=crop",
+          timestamp: "2025-06-15T09:45:00Z",
+          location: "Mile 5",
+          photographer: "Event Photographer",
+        },
+        {
+          id: "all-photo-3",
+          url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&h=600&fit=crop",
+          thumbnail:
+            "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=300&h=200&fit=crop",
+          timestamp: "2025-06-15T10:15:00Z",
+          location: "Finish Line",
+          photographer: "Event Photographer",
+        },
+      ]
+    : [];
 
-  //       // Transform DynamoDB data to Photo format
-  //       const dynamoData = bibQuery.data as GalleryData;
+  // Set photos based on whether we're showing all photos or specific bib
+  useEffect(() => {
+    if (isAllPhotos) {
+      setPhotos(allPhotosData);
+    }
+  }, [isAllPhotos]);
 
-  //       // Combine bib matched photos and selfie matched photos
-  //       const bibPhotos = dynamoData.bib_matched_photos ?? [];
-  //       const selfiePhotos = dynamoData.selfie_matched_photos ?? [];
-  //       const allPhotos = [...bibPhotos, ...selfiePhotos];
+  const eventInfo = eventQuery.data;
 
-  //       if (allPhotos.length > 0) {
-  //         const transformedPhotos: Photo[] = allPhotos.map(
-  //           (url: string, index: number) => {
-  //             const isSelfie = index >= bibPhotos.length;
-  //             return {
-  //               id: `photo-${event}-${bibNumber}-${index + 1}`,
-  //               url,
-  //               thumbnail: url,
-  //               timestamp: dynamoData.event_date ?? "Unknown Time",
-  //               location: isSelfie
-  //                 ? "Selfie"
-  //                 : index === 0
-  //                   ? "Start Line"
-  //                   : index === bibPhotos.length - 1
-  //                     ? "Finish Line"
-  //                     : `Mile ${index + 1}`,
-  //               photographer: dynamoData.organizer_id ?? "Unknown Photographer",
-  //             };
-  //           },
-  //         );
-  //         setPhotos(transformedPhotos);
-  //       } else {
-  //         setPhotos([]); // No photos available
-  //       }
-  //     } else {
-  //       // No data found for this bib number
-  //       console.log("No data found for bib number:", bibNumber);
-  //       setPhotos([]); // Show empty state
-  //     }
-  //   } else if (bibQuery.isError) {
-  //     console.error("Error fetching bib data:", bibQuery.error);
-  //   }
-  // }, [
-  //   bibQuery.isSuccess,
-  //   bibQuery.data,
-  //   bibQuery.isError,
-  //   bibQuery.error,
-  //   bibNumber,
-  //   race,
-  // ]);
+  if (eventQuery.isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <Button variant="ghost" className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+        <EventHeaderSkeleton />
+        <PhotoGridSkeleton />
+      </div>
+    );
+  }
 
-  if (!eventInfo) {
+  if (eventQuery.error || !eventInfo) {
     return (
       <>
         <div className="container mx-auto py-8 text-center">
@@ -169,140 +178,128 @@ export default function EventPhotoPage() {
           <Button
             variant="ghost"
             onClick={() => router.push("/")}
-            className="mb-4"
+            className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Search
+            Back to Home
           </Button>
 
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold">
-                <Trophy className="text-primary h-8 w-8" />
-                {eventInfo.name}
-              </h1>
-              <div className="text-muted-foreground flex flex-wrap gap-4">
-                <span className="flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  Bib #{bibNumber}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {eventInfo.date.toLocaleDateString()}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {eventInfo.location}
-                </span>
-              </div>
+          <div className="mb-8 text-center">
+            <h1 className="text-foreground mb-2 text-4xl font-bold">
+              {eventInfo.event_name}
+            </h1>
+            <div className="text-muted-foreground flex flex-wrap justify-center gap-4 text-sm">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {new Date(eventInfo.event_date).toLocaleDateString()}
+              </span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                {eventInfo.event_location}
+              </span>
+              <span className="flex items-center gap-1">
+                <Trophy className="h-4 w-4" />
+                {eventInfo.event_type}
+              </span>
             </div>
+          </div>
 
-            <div className="flex gap-2">
-              <Badge variant="secondary" className="px-3 py-1">
-                {eventInfo.type}
-              </Badge>
-              <Badge variant="secondary" className="px-3 py-1">
-                {bibQuery.isLoading
-                  ? "Loading..."
-                  : bibQuery.isError
-                    ? "Sample Photos"
-                    : `${photos.length} ${photos.length === 1 ? "Photo" : "Photos"}`}
-              </Badge>
-              {bibQuery.isSuccess && bibQuery.data && (
-                <Badge variant="default" className="px-3 py-1">
-                  ✓ Found in DB
-                </Badge>
-              )}
-            </div>
+          {/* Bib Search Section */}
+          <div className="mx-auto mb-8 max-w-md">
+            <form onSubmit={handleBibSearch} className="relative">
+              <Input
+                type="text"
+                placeholder="Enter your bib number to find your photos"
+                value={searchBib}
+                onChange={(e) => setSearchBib(e.target.value)}
+                className="bg-background border-border h-12 pr-12 text-center"
+              />
+              <Button
+                type="submit"
+                size="sm"
+                className="absolute top-1 right-1 h-10 px-3"
+                disabled={!searchBib.trim()}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </form>
+            {!isAllPhotos && (
+              <p className="text-muted-foreground mt-2 text-center text-sm">
+                Currently showing photos for bib #{bibNumber}
+              </p>
+            )}
+            {isAllPhotos && (
+              <p className="text-muted-foreground mt-2 text-center text-sm">
+                Showing all event photos
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="space-y-6"
-        >
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="photos">Photos</TabsTrigger>
-            <TabsTrigger value="info">Event Info</TabsTrigger>
-          </TabsList>
+        {/* Photos Section */}
+        <div className="space-y-6">
+          {!isAllPhotos && bibQuery.isLoading ? (
+            <PhotoGridSkeleton />
+          ) : !isAllPhotos && bibQuery.isError ? (
+            <ErrorState
+              title="Unable to load photos"
+              message={`There was an error loading photos for this bib number: ${bibQuery.error?.message}`}
+              onRetry={() => bibQuery.refetch()}
+            />
+          ) : photos.length > 0 ? (
+            <>
+              {/* Photo Count */}
+              <div className="mb-6 text-center">
+                <p className="text-muted-foreground text-sm">
+                  {photos.length} {photos.length === 1 ? "Photo" : "Photos"}{" "}
+                  Found
+                  {!isAllPhotos && ` for Bib #${bibNumber}`}
+                </p>
+              </div>
 
-          <TabsContent value="photos" className="space-y-6">
-            {bibQuery.isLoading ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground mb-4">
-                    Searching for your photos...
-                  </p>
-                  <div className="flex animate-pulse justify-center gap-2">
-                    <div className="bg-primary h-2 w-2 rounded-full"></div>
-                    <div className="bg-primary h-2 w-2 rounded-full delay-75"></div>
-                    <div className="bg-primary h-2 w-2 rounded-full delay-150"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : bibQuery.isError ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="mb-4 text-yellow-600">
-                    ⚠️ Unable to connect to photo database
-                  </p>
-                  <p className="text-muted-foreground mb-4 text-sm">
-                    Showing sample photos instead. Error:{" "}
-                    {bibQuery.error?.message}
-                  </p>
-                  <Button variant="outline" onClick={() => bibQuery.refetch()}>
-                    Try Again
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : photos.length > 0 ? (
-              <>
-                {/* Main Photo Display */}
-                <Card className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="bg-muted relative aspect-[4/3]">
-                      <Image
-                        src={photos[selectedPhoto]?.url ?? ""}
-                        alt={`Race photo ${selectedPhoto + 1}`}
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                      <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                        <div className="text-white">
-                          <p className="font-semibold">
-                            {photos[selectedPhoto]?.location ?? ""}
-                          </p>
-                          <p className="text-sm opacity-90">
-                            <Clock className="mr-1 inline h-3 w-3" />
-                            {photos[selectedPhoto]?.timestamp ?? ""}
-                          </p>
-                        </div>
-                      </div>
+              {/* Main Photo Display */}
+              <div className="mx-auto max-w-4xl">
+                <div className="bg-muted relative mb-6 aspect-[4/3] overflow-hidden rounded-lg">
+                  <Image
+                    src={photos[selectedPhoto]?.url ?? ""}
+                    alt={`Photo ${selectedPhoto + 1}`}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                    <div className="text-white">
+                      <p className="font-medium">
+                        {photos[selectedPhoto]?.location ?? ""}
+                      </p>
+                      <p className="text-sm opacity-90">
+                        <Clock className="mr-1 inline h-3 w-3" />
+                        {photos[selectedPhoto]?.timestamp ?? ""}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
                 {/* Photo Actions */}
-                {photos[selectedPhoto] && (
-                  <PhotoActions
-                    photo={photos[selectedPhoto]}
-                    bibNumber={bibNumber}
-                  />
+                {photos[selectedPhoto] && !isAllPhotos && (
+                  <div className="mb-6">
+                    <PhotoActions
+                      photo={photos[selectedPhoto]}
+                      bibNumber={bibNumber}
+                    />
+                  </div>
                 )}
 
-                {/* Photo Thumbnails */}
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                {/* Photo Grid/Thumbnails */}
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
                   {photos.map((photo, index) => (
                     <button
                       key={photo.id}
                       onClick={() => setSelectedPhoto(index)}
-                      className={`relative aspect-square overflow-hidden rounded-lg border-2 transition-all ${
+                      className={`relative aspect-square overflow-hidden rounded transition-all ${
                         selectedPhoto === index
-                          ? "border-primary ring-primary/20 ring-2"
-                          : "hover:border-muted-foreground/50 border-transparent"
+                          ? "ring-primary ring-2"
+                          : "opacity-70 hover:opacity-100"
                       }`}
                     >
                       <Image
@@ -314,86 +311,20 @@ export default function EventPhotoPage() {
                     </button>
                   ))}
                 </div>
-              </>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <div className="mb-4">
-                    <div className="bg-muted mx-auto flex h-16 w-16 items-center justify-center rounded-full">
-                      <User className="text-muted-foreground h-8 w-8" />
-                    </div>
-                  </div>
-                  <h3 className="mb-2 text-lg font-semibold">
-                    No Photos Found
-                  </h3>
-                  <p className="text-muted-foreground mb-6">
-                    {bibQuery.isSuccess && !bibQuery.data
-                      ? `No photos found for bib number #${bibNumber} in this race.`
-                      : "We couldn't find any photos for this bib number."}
-                  </p>
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-muted-foreground text-sm">
-                      Please check your bib number and try again
-                    </p>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`/events/${event}`)}
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Search Another Bib
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="info">
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="mb-6 text-2xl font-bold">Event Information</h2>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="mb-1 font-semibold">Event Name</h3>
-                      <p className="text-muted-foreground">
-                        {eventInfo.name}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="mb-1 font-semibold">Date</h3>
-                      <p className="text-muted-foreground">{eventInfo.date.toLocaleDateString()}</p>
-                    </div>
-                    <div>
-                      <h3 className="mb-1 font-semibold">Location</h3>
-                      <p className="text-muted-foreground">
-                        {eventInfo.location}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="mb-1 font-semibold">Distance</h3>
-                      <p className="text-muted-foreground">
-                        {eventInfo.type}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="mb-1 font-semibold">Total Participants</h3>
-                      <p className="text-muted-foreground">
-                        {eventInfo.totalRunners.toLocaleString()} runners
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="mb-1 font-semibold">Your Bib Number</h3>
-                      <p className="text-muted-foreground">#{bibNumber}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </>
+          ) : (
+            <NoPhotosState
+              isAllPhotos={isAllPhotos}
+              bibNumber={bibNumber}
+              onViewAllPhotos={
+                !isAllPhotos
+                  ? () => router.push(`/events/${event}/null`)
+                  : undefined
+              }
+            />
+          )}
+        </div>
       </div>
 
       {/* Footer Partners Section - Full Width */}

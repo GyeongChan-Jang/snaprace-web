@@ -1,15 +1,5 @@
-// Event information
-export const EVENTS = [
-  {
-    id: "white-mountain-triathlon-2025",
-    name: "White Mountain Triathlon",
-    image: "/images/events/white-mountain-triathlon-2025.jpg",
-    date: new Date("2025-06-15"),
-    location: "Franconia, NH",
-    totalRunners: 1200,
-    type: "Triathlon",
-  },
-];
+// Event information is now managed through tRPC API
+// See src/server/api/routers/events.ts for event management
 
 // Partner information
 export const PARTNERS = [

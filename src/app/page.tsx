@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,29 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { EVENTS, PARTNERS } from "@/constants/data";
+import { PARTNERS } from "@/constants/data";
+import { api } from "@/trpc/react";
+import { EventSelectSkeleton } from "@/components/states/EventsSkeleton";
 
 export default function HomePage() {
   const [bibNumber, setBibNumber] = useState("");
-  const [selectedEventId, setSelectedEventId] = useState(EVENTS[0]?.id || "");
+  const [selectedEventId, setSelectedEventId] = useState("");
   const router = useRouter();
+
+  // Fetch events from API
+  const eventsQuery = api.events.getAll.useQuery();
+
+  // Set default event when data loads
+  const events = eventsQuery.data ?? [];
+
+  console.log("events", events);
+
+  // Update selectedEventId when events are loaded and no event is selected
+  useEffect(() => {
+    if (events.length > 0 && !selectedEventId) {
+      setSelectedEventId(events[0]?.event_id ?? "");
+    }
+  }, [events, selectedEventId]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,31 +62,41 @@ export default function HomePage() {
           <div className="mx-auto max-w-xl">
             <form onSubmit={handleSearch} className="space-y-4">
               {/* Event Selection */}
-              <div className="space-y-2">
-                <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
-                  <Trophy className="h-4 w-4" />
-                  Event
-                </label>
-                <Select
-                  value={selectedEventId}
-                  onValueChange={setSelectedEventId}
-                >
-                  <SelectTrigger className="bg-background border-border !h-14 w-full text-sm font-medium">
-                    <SelectValue placeholder="Select an event" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EVENTS.map((event) => (
-                      <SelectItem
-                        key={event.id}
-                        value={event.id}
-                        className="!h-14"
-                      >
-                        {event.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {eventsQuery.isLoading ? (
+                <EventSelectSkeleton />
+              ) : (
+                <div className="space-y-2">
+                  <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
+                    <Trophy className="h-4 w-4" />
+                    Event
+                  </label>
+                  <Select
+                    value={selectedEventId}
+                    onValueChange={setSelectedEventId}
+                  >
+                    <SelectTrigger className="bg-background border-border !h-14 w-full text-sm font-medium">
+                      <SelectValue placeholder="Select an event" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {events.length > 0 ? (
+                        events.map((event) => (
+                          <SelectItem
+                            key={event.event_id}
+                            value={event.event_id}
+                            className="!h-14"
+                          >
+                            {event.event_name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>
+                          No events available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Bib Number Input */}
               <div className="space-y-2">
