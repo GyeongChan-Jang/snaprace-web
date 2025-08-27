@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { EVENT } from "@/constants/data";
+import { EVENTS } from "@/constants/data";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -15,8 +15,8 @@ export default function EventDetailPage() {
   const eventId = params?.event as string;
   const [bibNumber, setBibNumber] = useState("");
 
-  // Check if the event matches our EVENT constant
-  const event = eventId === EVENT.id ? EVENT : null;
+  // Find the event from EVENTS array
+  const event = EVENTS.find(e => e.id === eventId);
 
   if (!event) {
     return (
@@ -56,10 +56,10 @@ export default function EventDetailPage() {
             <Trophy className="h-8 w-8 text-primary" />
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">{event.fullName}</h1>
+            <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
             <div className="flex flex-wrap gap-3">
               <Badge variant="secondary" className="px-3 py-1">
-                {event.distance}
+                {event.type}
               </Badge>
               <Badge variant="outline" className="px-3 py-1">
                 {event.totalRunners.toLocaleString()} participants
@@ -104,7 +104,7 @@ export default function EventDetailPage() {
               <Calendar className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Date</h3>
             </div>
-            <p className="text-muted-foreground">{event.date}</p>
+            <p className="text-muted-foreground">{event.date.toLocaleDateString()}</p>
           </CardContent>
         </Card>
 

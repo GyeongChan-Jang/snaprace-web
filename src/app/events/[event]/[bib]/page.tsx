@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhotoActions } from "@/components/photo-actions";
 import { api } from "@/trpc/react";
-import { EVENT, PARTNERS } from "@/constants/data";
+import { EVENTS, PARTNERS } from "@/constants/data";
 
 // Photo type definition
 interface Photo {
@@ -47,7 +47,7 @@ export default function EventPhotoPage() {
   const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [activeTab, setActiveTab] = useState("photos");
 
-  const eventInfo = event === EVENT.id ? EVENT : null;
+  const eventInfo = EVENTS.find(e => e.id === event);
 
   // Fetch specific bib data from DynamoDB using tRPC
   const bibQuery = api.galleries.get.useQuery(
@@ -179,7 +179,7 @@ export default function EventPhotoPage() {
             <div>
               <h1 className="mb-2 flex items-center gap-3 text-3xl font-bold">
                 <Trophy className="text-primary h-8 w-8" />
-                {eventInfo.fullName}
+                {eventInfo.name}
               </h1>
               <div className="text-muted-foreground flex flex-wrap gap-4">
                 <span className="flex items-center gap-1">
@@ -188,7 +188,7 @@ export default function EventPhotoPage() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {eventInfo.date}
+                  {eventInfo.date.toLocaleDateString()}
                 </span>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
@@ -199,7 +199,7 @@ export default function EventPhotoPage() {
 
             <div className="flex gap-2">
               <Badge variant="secondary" className="px-3 py-1">
-                {eventInfo.distance}
+                {eventInfo.type}
               </Badge>
               <Badge variant="secondary" className="px-3 py-1">
                 {bibQuery.isLoading
@@ -357,12 +357,12 @@ export default function EventPhotoPage() {
                     <div>
                       <h3 className="mb-1 font-semibold">Event Name</h3>
                       <p className="text-muted-foreground">
-                        {eventInfo.fullName}
+                        {eventInfo.name}
                       </p>
                     </div>
                     <div>
                       <h3 className="mb-1 font-semibold">Date</h3>
-                      <p className="text-muted-foreground">{eventInfo.date}</p>
+                      <p className="text-muted-foreground">{eventInfo.date.toLocaleDateString()}</p>
                     </div>
                     <div>
                       <h3 className="mb-1 font-semibold">Location</h3>
@@ -375,7 +375,7 @@ export default function EventPhotoPage() {
                     <div>
                       <h3 className="mb-1 font-semibold">Distance</h3>
                       <p className="text-muted-foreground">
-                        {eventInfo.distance}
+                        {eventInfo.type}
                       </p>
                     </div>
                     <div>

@@ -1,57 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Camera, Trophy } from "lucide-react";
+import { Search, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { EVENT, PARTNERS } from "@/constants/data";
+import { EVENTS, PARTNERS } from "@/constants/data";
 
 export default function HomePage() {
   const [bibNumber, setBibNumber] = useState("");
+  const [selectedEventId, setSelectedEventId] = useState(EVENTS[0]?.id || "");
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (bibNumber.trim()) {
-      router.push(`/events/${EVENT.id}/${bibNumber.trim()}`);
+    if (bibNumber.trim() && selectedEventId) {
+      router.push(`/events/${selectedEventId}/${bibNumber.trim()}`);
     }
   };
 
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="from-background via-background to-muted/20 relative bg-gradient-to-br px-4 py-16 sm:py-24">
+      <section className="bg-background relative px-4 py-20 sm:py-32">
         <div className="container mx-auto max-w-4xl text-center">
-          <div className="mb-8 flex justify-center">
-            <div className="bg-primary/10 ring-primary/5 flex h-16 w-16 items-center justify-center rounded-full ring-8">
-              <Camera className="text-primary h-8 w-8" />
-            </div>
-          </div>
-
-          <h1 className="text-foreground font-montserrat mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="text-foreground font-montserrat mb-6 text-4xl font-medium tracking-tight sm:text-5xl md:text-6xl">
             Find Your Event Photos
-            <span className="text-primary"> Instantly</span>
           </h1>
 
-          <p className="text-muted-foreground text-md mx-auto mb-12 max-w-2xl sm:text-xl">
+          <p className="text-muted-foreground mx-auto mb-16 max-w-xl text-lg">
             Enter your bib number to discover all your photos.
           </p>
 
           {/* Main Search */}
           <div className="mx-auto max-w-xl">
             <form onSubmit={handleSearch} className="space-y-4">
-              {/* Race Display */}
+              {/* Event Selection */}
               <div className="space-y-2">
                 <label className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                   <Trophy className="h-4 w-4" />
                   Event
                 </label>
-                <div className="bg-muted/50 border-muted h-14 w-full rounded-md border px-3 py-2 flex items-center text-sm font-medium">
-                  <span>{EVENT.name} {EVENT.year}</span>
-                </div>
+                <Select
+                  value={selectedEventId}
+                  onValueChange={setSelectedEventId}
+                >
+                  <SelectTrigger className="bg-background border-border !h-14 w-full text-sm font-medium">
+                    <SelectValue placeholder="Select an event" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVENTS.map((event) => (
+                      <SelectItem
+                        key={event.id}
+                        value={event.id}
+                        className="!h-14"
+                      >
+                        {event.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Bib Number Input */}
@@ -65,7 +82,7 @@ export default function HomePage() {
                   placeholder="Enter your bib number (e.g., 1234)"
                   value={bibNumber}
                   onChange={(e) => setBibNumber(e.target.value)}
-                  className="h-14 text-lg font-medium"
+                  className="bg-background border-border h-14 text-lg font-medium"
                   autoFocus
                 />
               </div>
@@ -73,29 +90,13 @@ export default function HomePage() {
               <Button
                 type="submit"
                 size="lg"
-                className="h-14 w-full text-lg font-semibold"
-                disabled={!bibNumber.trim()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-14 w-full border-0 text-lg font-medium shadow-none"
+                disabled={!bibNumber.trim() || !selectedEventId}
               >
                 <Search className="mr-2 h-5 w-5" />
                 Find My Photos
               </Button>
             </form>
-
-            {/* Quick Stats */}
-            {/* <div className="mt-8 grid grid-cols-3 gap-4 text-center">
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-2xl font-bold text-primary">50K+</p>
-                <p className="text-xs text-muted-foreground">Photos</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-2xl font-bold text-primary">20+</p>
-                <p className="text-xs text-muted-foreground">Races</p>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-2xl font-bold text-primary">10K+</p>
-                <p className="text-xs text-muted-foreground">Runners</p>
-              </div>
-            </div> */}
           </div>
 
           <p className="text-muted-foreground mt-4 text-sm">

@@ -1,25 +1,26 @@
 // Event information
-export const EVENT = {
-  id: "white-mountain-triathlon-2025",
-  name: "White Mountain Triathlon",
-  year: "2025",
-  fullName: "White Mountain Triathlon 2025",
-  date: "June 15, 2025",
-  location: "	Franconia",
-  totalRunners: 1200,
-  distance: "Sprint/Olympic",
-};
+export const EVENTS = [
+  {
+    id: "white-mountain-triathlon-2025",
+    name: "White Mountain Triathlon",
+    image: "/images/events/white-mountain-triathlon-2025.jpg",
+    date: new Date("2025-06-15"),
+    location: "Franconia, NH",
+    totalRunners: 1200,
+    type: "Triathlon",
+  },
+];
 
 // Partner information
 export const PARTNERS = [
   {
     name: "AutoFair",
-    logo: "/partners/partner-autofair.png",
+    logo: "/images/partners/partner-autofair.png",
     url: "https://www.autofair.com/",
   },
   {
     name: "Millennium Running",
-    logo: "/partners/partner-millennium-running.png",
+    logo: "/images/partners/partner-millennium-running.png",
     url: "https://millenniumrunning.com",
   },
 ];
