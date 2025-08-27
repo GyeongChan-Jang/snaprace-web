@@ -39,6 +39,12 @@ export function EventSelectSkeleton() {
   );
 }
 
+// Random heights for masonry skeleton effect
+const getSkeletonHeight = (index: number) => {
+  const heights = [200, 250, 300, 350, 280, 320, 240, 380, 260, 340];
+  return heights[index % heights.length];
+};
+
 export function PhotoGridSkeleton({ count = 8 }: { count?: number }) {
   return (
     <>
@@ -59,6 +65,39 @@ export function PhotoGridSkeleton({ count = 8 }: { count?: number }) {
         </div>
       </div>
     </>
+  );
+}
+
+// New Masonry-style skeleton for photo grid
+export function MasonryPhotoSkeleton({ count = 12 }: { count?: number }) {
+  return (
+    <div className="mx-auto max-w-7xl">
+      <div
+        className="masonry-skeleton-grid gap-2"
+        style={{
+          columnCount: 4,
+          columnGap: "8px",
+        }}
+      >
+        {Array.from({ length: count }).map((_, index) => (
+          <div
+            key={index}
+            className="masonry-item mb-2 break-inside-avoid"
+            style={{
+              display: "inline-block",
+              width: "100%",
+            }}
+          >
+            <Skeleton
+              className="w-full rounded-none"
+              style={{
+                height: `${getSkeletonHeight(index)}px`,
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -28,8 +28,8 @@ export const photosRouter = createTRPCRouter({
       const photos = result.Items ?? [];
 
       const frontendPhotos = photos.map((photo) => ({
-        eventId: photo.event_id,
-        imageUrl: photo.cloudfront_url,
+        eventId: (photo as { event_id: string }).event_id,
+        imageUrl: (photo as { cloudfront_url: string }).cloudfront_url,
       }));
 
       return frontendPhotos;

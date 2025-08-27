@@ -1,36 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Trophy,
-  Calendar,
-  MapPin,
-  Clock,
-  Search,
-} from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PhotoActions } from "@/components/photo-actions";
 import { api } from "@/trpc/react";
-import { PARTNERS } from "@/constants/data";
 import {
-  PhotoGridSkeleton,
   EventHeaderSkeleton,
+  MasonryPhotoSkeleton,
 } from "@/components/states/EventsSkeleton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { NoPhotosState } from "@/components/states/EmptyState";
 
-interface Photo {
+interface PhotoData {
   id: string;
   url: string;
-  thumbnail: string;
-  timestamp: string;
-  location: string;
-  photographer: string;
+  width?: number;
+  height?: number;
+}
+
+interface GalleryData {
+  bib_matched_photos?: string[];
+  selfie_matched_photos?: string[];
 }
 
 export default function EventPhotoPage() {
@@ -41,9 +34,8 @@ export default function EventPhotoPage() {
   const isAllPhotos = bibParam === "null";
   const bibNumber = isAllPhotos ? "" : bibParam;
 
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState(0);
   const [searchBib, setSearchBib] = useState("");
+  const [columnCount, setColumnCount] = useState(4);
 
   // Fetch event info from API
   const eventQuery = api.events.getById.useQuery(
@@ -74,74 +66,66 @@ export default function EventPhotoPage() {
     },
   );
 
-  // Set photos based on whether we're showing all photos or specific bib
-  useEffect(() => {
+  // Transform photos data for masonry
+  const photos: PhotoData[] = useMemo(() => {
     if (isAllPhotos && allPhotosQuery.data) {
-      // Transform Photos API data to frontend Photo format
-      const transformedPhotos = allPhotosQuery.data.map((photo, index) => ({
+      return allPhotosQuery.data.map((photo, index) => ({
         id: `photo-${event}-${index + 1}`,
         url: photo.imageUrl,
-        thumbnail: photo.imageUrl,
-        timestamp: new Date().toISOString(),
-        location: `Photo ${index + 1}`,
-        photographer: "Event Photographer",
+        width: 300,
+        height: 300, // Remove random height, let image determine its own size
       }));
-      setPhotos(transformedPhotos);
     } else if (!isAllPhotos && bibQuery.data) {
-      // Transform bibQuery data to Photo format (keeping existing logic)
-      const dynamoData = bibQuery.data as any;
+      const dynamoData = bibQuery.data as GalleryData;
       const bibPhotos = dynamoData.bib_matched_photos ?? [];
       const selfiePhotos = dynamoData.selfie_matched_photos ?? [];
       const allPhotos = [...bibPhotos, ...selfiePhotos];
 
-      if (allPhotos.length > 0) {
-        const transformedPhotos = allPhotos.map(
-          (url: string, index: number) => {
-            const isSelfie = index >= bibPhotos.length;
-            return {
-              id: `photo-${event}-${bibNumber}-${index + 1}`,
-              url,
-              thumbnail: url,
-              timestamp: dynamoData.event_date ?? "Unknown Time",
-              location: isSelfie
-                ? "Selfie"
-                : index === 0
-                  ? "Start Line"
-                  : index === bibPhotos.length - 1
-                    ? "Finish Line"
-                    : `Mile ${index + 1}`,
-              photographer: dynamoData.organizer_id ?? "Unknown Photographer",
-            };
-          },
-        );
-        setPhotos(transformedPhotos);
-      } else {
-        setPhotos([]);
-      }
-    } else if (!isAllPhotos) {
-      // Reset photos when no data for specific bib
-      setPhotos([]);
+      return allPhotos.map((url: string, index: number) => ({
+        id: `photo-${event}-${bibNumber}-${index + 1}`,
+        url,
+        width: 300,
+        height: 300, // Remove random height, let image determine its own size
+      }));
     }
+    return [];
   }, [isAllPhotos, allPhotosQuery.data, bibQuery.data, event, bibNumber]);
+
+  // Responsive column count
+  useEffect(() => {
+    const updateColumnCount = () => {
+      const width = window.innerWidth;
+      if (width < 835) setColumnCount(2);
+      else if (width < 1035) setColumnCount(3);
+      else if (width < 1535) setColumnCount(4);
+      else setColumnCount(5);
+    };
+
+    updateColumnCount();
+    window.addEventListener("resize", updateColumnCount);
+    return () => window.removeEventListener("resize", updateColumnCount);
+  }, []);
 
   const eventInfo = eventQuery.data;
 
   if (eventQuery.isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <Button variant="ghost" className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Home
-        </Button>
-        <EventHeaderSkeleton />
-        <PhotoGridSkeleton />
+      <div className="min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          <Button variant="ghost" className="mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+          <EventHeaderSkeleton />
+          <MasonryPhotoSkeleton count={12} />
+        </div>
       </div>
     );
   }
 
   if (eventQuery.error || !eventInfo) {
     return (
-      <>
+      <div className="min-h-screen">
         <div className="container mx-auto py-8 text-center">
           <h1 className="mb-4 text-2xl font-bold">Event not found</h1>
           <Button onClick={() => router.push("/")}>
@@ -149,248 +133,187 @@ export default function EventPhotoPage() {
             Back to Home
           </Button>
         </div>
-
-        {/* Footer Partners Section - Full Width */}
-        <footer className="bg-muted/30 w-full border-t">
-          <div className="py-8">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="mb-6 text-center">
-                <h2 className="text-foreground mb-2 text-xl font-bold tracking-tight">
-                  Photo Partners
-                </h2>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
-                {PARTNERS.map((partner) => (
-                  <Link
-                    key={partner.name}
-                    href={partner.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-center transition-all hover:scale-105"
-                  >
-                    <div className="relative h-10 w-24 md:h-12 md:w-32">
-                      <Image
-                        src={partner.logo}
-                        alt={partner.name}
-                        fill
-                        className="object-contain opacity-60 transition-opacity group-hover:opacity-100"
-                        sizes="(max-width: 768px) 96px, 128px"
-                      />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </footer>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push("/")}
-            className="mb-6"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Home
-          </Button>
+    <div className="bg-background min-h-screen">
+      {/* Header */}
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b backdrop-blur">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/")}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
 
-          <div className="mb-8 text-center">
-            <h1 className="text-foreground mb-2 text-4xl font-bold">
-              {eventInfo.event_name}
-            </h1>
-            <div className="text-muted-foreground flex flex-wrap justify-center gap-4 text-sm">
-              <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                {new Date(eventInfo.event_date).toLocaleDateString()}
-              </span>
-              <span className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {eventInfo.event_location}
-              </span>
-              <span className="flex items-center gap-1">
-                <Trophy className="h-4 w-4" />
-                {eventInfo.event_type}
-              </span>
+            <div className="text-center">
+              <h1 className="text-xl font-semibold">{eventInfo.event_name}</h1>
+              {!isAllPhotos ? (
+                <p className="text-muted-foreground text-sm">
+                  Bib #{bibNumber}
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  {photos.length} {photos.length === 1 ? "Photo" : "Photos"}
+                </p>
+              )}
             </div>
-          </div>
 
-          {/* Bib Search Section */}
-          <div className="mx-auto mb-8 max-w-md">
-            <form onSubmit={handleBibSearch} className="relative">
+            {/* Search */}
+            <form
+              onSubmit={handleBibSearch}
+              className="flex w-[200px] items-center gap-2"
+            >
               <Input
                 type="text"
-                placeholder="Enter your bib number to find your photos"
+                placeholder="Bib number"
                 value={searchBib}
                 onChange={(e) => setSearchBib(e.target.value)}
-                className="bg-background border-border h-12 pr-12 text-center"
+                className="h-8 w-full border-b border-gray-200 text-sm"
               />
               <Button
                 type="submit"
                 size="sm"
-                className="absolute top-1 right-1 h-10 px-3"
+                variant="outline"
+                className="h-8 px-3"
                 disabled={!searchBib.trim()}
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-3 w-3" />
               </Button>
             </form>
-            {!isAllPhotos && (
-              <p className="text-muted-foreground mt-2 text-center text-sm">
-                Currently showing photos for bib #{bibNumber}
-              </p>
-            )}
-            {isAllPhotos && (
-              <p className="text-muted-foreground mt-2 text-center text-sm">
-                Showing all event photos
-              </p>
-            )}
           </div>
-        </div>
-
-        {/* Photos Section */}
-        <div className="space-y-6">
-          {(!isAllPhotos && bibQuery.isLoading) ||
-          (isAllPhotos && allPhotosQuery.isLoading) ? (
-            <PhotoGridSkeleton />
-          ) : (!isAllPhotos && bibQuery.isError) ||
-            (isAllPhotos && allPhotosQuery.isError) ? (
-            <ErrorState
-              title="Unable to load photos"
-              message={`There was an error loading photos: ${
-                !isAllPhotos
-                  ? bibQuery.error?.message
-                  : allPhotosQuery.error?.message
-              }`}
-              onRetry={() => {
-                if (!isAllPhotos) {
-                  bibQuery.refetch();
-                } else {
-                  allPhotosQuery.refetch();
-                }
-              }}
-            />
-          ) : photos.length > 0 ? (
-            <>
-              {/* Photo Count */}
-              <div className="mb-6 text-center">
-                <p className="text-muted-foreground text-sm">
-                  {photos.length} {photos.length === 1 ? "Photo" : "Photos"}{" "}
-                  Found
-                  {!isAllPhotos && ` for Bib #${bibNumber}`}
-                </p>
-              </div>
-
-              {/* Main Photo Display */}
-              <div className="mx-auto max-w-4xl">
-                <div className="bg-muted relative mb-6 aspect-[4/3] overflow-hidden rounded-lg">
-                  <Image
-                    src={photos[selectedPhoto]?.url ?? ""}
-                    alt={`Photo ${selectedPhoto + 1}`}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                  <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <div className="text-white">
-                      <p className="font-medium">
-                        {photos[selectedPhoto]?.location ?? ""}
-                      </p>
-                      <p className="text-sm opacity-90">
-                        <Clock className="mr-1 inline h-3 w-3" />
-                        {photos[selectedPhoto]?.timestamp ?? ""}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Photo Actions */}
-                {photos[selectedPhoto] && !isAllPhotos && (
-                  <div className="mb-6">
-                    <PhotoActions
-                      photo={photos[selectedPhoto]}
-                      bibNumber={bibNumber}
-                    />
-                  </div>
-                )}
-
-                {/* Photo Grid/Thumbnails */}
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8">
-                  {photos.map((photo, index) => (
-                    <button
-                      key={photo.id}
-                      onClick={() => setSelectedPhoto(index)}
-                      className={`relative aspect-square overflow-hidden rounded transition-all ${
-                        selectedPhoto === index
-                          ? "ring-primary ring-2"
-                          : "opacity-70 hover:opacity-100"
-                      }`}
-                    >
-                      <Image
-                        src={photo?.thumbnail ?? ""}
-                        alt={`Thumbnail ${index + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <NoPhotosState
-              isAllPhotos={isAllPhotos}
-              bibNumber={bibNumber}
-              onViewAllPhotos={
-                !isAllPhotos
-                  ? () => router.push(`/events/${event}/null`)
-                  : undefined
-              }
-            />
-          )}
         </div>
       </div>
 
-      {/* Footer Partners Section - Full Width */}
-      <footer className="bg-muted/30 w-full border-t">
-        <div className="py-8">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6 text-center">
-              <h2 className="text-foreground mb-2 text-xl font-bold tracking-tight">
-                Partners & Sponsors
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
-              {PARTNERS.map((partner) => (
-                <Link
-                  key={partner.name}
-                  href={partner.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center justify-center transition-all hover:scale-105"
+      {/* Content */}
+      <div className="w-full px-4 py-6">
+        {(!isAllPhotos && bibQuery.isLoading) ||
+        (isAllPhotos && allPhotosQuery.isLoading) ? (
+          <MasonryPhotoSkeleton count={12} />
+        ) : (!isAllPhotos && bibQuery.isError) ||
+          (isAllPhotos && allPhotosQuery.isError) ? (
+          <ErrorState
+            title="Unable to load photos"
+            message={`There was an error loading photos: ${
+              !isAllPhotos
+                ? bibQuery.error?.message
+                : allPhotosQuery.error?.message
+            }`}
+            onRetry={() => {
+              if (!isAllPhotos) {
+                void bibQuery.refetch();
+              } else {
+                void allPhotosQuery.refetch();
+              }
+            }}
+          />
+        ) : photos.length > 0 ? (
+          /* Pixieset-style Masonry Grid */
+          <div className="mx-auto max-w-7xl">
+            <div
+              className="masonry-grid gap-2"
+              style={{
+                columnCount: columnCount,
+                columnGap: "8px",
+              }}
+            >
+              {photos.map((photo, index) => (
+                <div
+                  key={photo.id}
+                  className="masonry-item group mb-2 cursor-pointer break-inside-avoid"
+                  style={{
+                    display: "inline-block",
+                    width: "100%",
+                  }}
                 >
-                  <div className="relative h-10 w-24 md:h-12 md:w-32">
+                  <div className="bg-muted relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+                    {/* Grid Overlay - Pixieset Style */}
+                    <div className="absolute inset-0 z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <div className="absolute inset-0 bg-black/20" />
+                      {/* Action Buttons */}
+                      <div className="absolute top-2 right-2 flex gap-1">
+                        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
+                          </svg>
+                        </button>
+                        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                            />
+                          </svg>
+                        </button>
+                        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white hover:text-black">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v8a2 2 0 01-2 2H9a2 2 0 01-2-2v-8m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
                     <Image
-                      src={partner.logo}
-                      alt={partner.name}
-                      fill
-                      className="object-contain opacity-60 transition-opacity group-hover:opacity-100"
-                      sizes="(max-width: 768px) 96px, 128px"
+                      src={photo.url}
+                      alt={`Photo ${index + 1}`}
+                      width={400}
+                      height={300}
+                      className="h-auto w-full object-cover"
+                      sizes="(max-width: 835px) 50vw, (max-width: 1035px) 33vw, (max-width: 1535px) 25vw, 20vw"
+                      style={{
+                        aspectRatio: "auto",
+                      }}
                     />
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
-        </div>
-      </footer>
-    </>
+        ) : (
+          <NoPhotosState
+            isAllPhotos={isAllPhotos}
+            bibNumber={bibNumber}
+            onViewAllPhotos={
+              !isAllPhotos
+                ? () => router.push(`/events/${event}/null`)
+                : undefined
+            }
+          />
+        )}
+      </div>
+    </div>
   );
 }
