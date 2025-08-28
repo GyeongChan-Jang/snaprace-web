@@ -5,6 +5,7 @@ import { Poppins, Montserrat } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Header } from "@/components/header";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "SnapRace - Find Your Race Photos",
@@ -42,6 +43,7 @@ export default function RootLayout({
             <Header />
             <main className="flex-1">{children}</main>
           </div>
+          <Toaster />
         </TRPCReactProvider>
       </body>
     </html>

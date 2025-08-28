@@ -14,9 +14,6 @@ export default function EventsPage() {
       {/* Header */}
       <div className="mb-12 text-center">
         <h1 className="text-foreground mb-4 text-4xl font-bold">Events</h1>
-        <p className="text-muted-foreground mx-auto max-w-2xl text-lg">
-          Find your event photos from our available events.
-        </p>
       </div>
 
       {/* Events Grid */}
