@@ -24,14 +24,14 @@ export function useSelfieUpload({
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
-  if (!organizerId || !eventId || !bibNumber) {
-    toast.error("Organizer ID or Event ID or Bib Number is not available");
-    return {
-      uploadSelfie: () => Promise.resolve([]),
-      isProcessing: false,
-      uploadedFile: null,
-    };
-  }
+  // if (!organizerId || !eventId || !bibNumber) {
+  //   toast.error("Organizer ID or Event ID or Bib Number is not available");
+  //   return {
+  //     uploadSelfie: () => Promise.resolve([]),
+  //     isProcessing: false,
+  //     uploadedFile: null,
+  //   };
+  // }
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {

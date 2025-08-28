@@ -169,54 +169,6 @@ export default function HomePage() {
         </div>
       </section> */}
 
-      {/* How It Works Section */}
-      {/* <section className="bg-muted/30 px-4 py-16 sm:py-24">
-        <div className="container mx-auto max-w-4xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl font-montserrat">
-              How It Works
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-              Three simple steps to find your perfect race moments
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              {
-                step: "01",
-                title: "Enter Bib Number",
-                description: "Type in your race bib number in the search box above",
-              },
-              {
-                step: "02", 
-                title: "Browse Your Photos",
-                description: "Our AI instantly finds all photos featuring your bib number",
-              },
-              {
-                step: "03",
-                title: "Download & Share", 
-                description: "Download high-resolution photos or share directly to social media",
-              },
-            ].map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground text-xl font-bold">
-                    {step.step}
-                  </div>
-                </div>
-                <h3 className="mb-2 text-xl font-semibold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="text-muted-foreground">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
       {/* CTA Section */}
       {/* <section className="px-4 py-16">
         <div className="container mx-auto max-w-2xl text-center">
@@ -241,15 +193,17 @@ export default function HomePage() {
         <div className="container mx-auto max-w-4xl">
           <div className="mb-8 text-center">
             <h2 className="text-foreground mb-4 text-2xl font-bold tracking-tight">
-              Partners & Sponsors
+              Partners
             </h2>
             <p className="text-muted-foreground mx-auto max-w-2xl">
-              Trusted by leading event organizers and photography partners
+              Trusted by leading event organizer
             </p>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            {PARTNERS.map((partner) => (
+            {PARTNERS.filter(
+              (partner) => partner.name === "Millennium Running",
+            ).map((partner) => (
               <Link
                 key={partner.name}
                 href={partner.url}

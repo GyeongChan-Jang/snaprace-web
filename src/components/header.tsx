@@ -14,7 +14,6 @@ export function Header() {
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Events", href: "/events" },
-    { name: "How It Works", href: "/how-it-works" },
   ];
 
   return (
