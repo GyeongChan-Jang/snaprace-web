@@ -6,10 +6,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import {
-  EventHeaderSkeleton,
-  MasonryPhotoSkeleton,
-} from "@/components/states/EventsSkeleton";
+import { MasonryPhotoSkeleton } from "@/components/states/EventsSkeleton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { NoPhotosState } from "@/components/states/EmptyState";
 import { useSelfieUpload } from "@/hooks/useSelfieUpload";
@@ -35,13 +32,12 @@ export default function EventPhotoPage() {
     isMobile,
     isModalOpen,
     currentPhotoIndex,
-    clickedPhotoRect,
     setClickedPhotoRect,
   } = usePhotoState();
 
   // Use custom hooks for handlers
   const {
-    handlePhotoClick,
+    handlePhotoClick, // Handle photo click to open SingleView
     handlePhotoIndexChange,
     handleCloseSingleView,
     handleShare,
@@ -78,7 +74,7 @@ export default function EventPhotoPage() {
   } = useSelfieUpload({
     eventId: event,
     bibNumber,
-    organizerId: "default", // TODO: Get from context or props
+    organizerId: eventQuery.data?.organization_id ?? "",
   });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -131,24 +127,26 @@ export default function EventPhotoPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header with max width constraint */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b backdrop-blur">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => router.push("/")}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
+      {/* Header */}
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 flex h-16 items-center border-b backdrop-blur md:h-18">
+        <div className="container mx-auto px-1 md:px-4">
+          <div className="flex items-center">
+            <div className="w-10 md:w-auto">
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/")}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-2 w-2 md:h-4 md:w-4" />
+                <span className="hidden md:block">Back</span>
+              </Button>
+            </div>
 
-            <div className="text-center">
-              <h1 className="text-xl font-semibold">
+            <div className="flex-1 text-center">
+              <h1 className="text-sm font-semibold md:text-xl">
                 {eventQuery.data?.event_name}
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-muted-foreground text-xs md:text-sm">
                 {!isAllPhotos && bibNumber ? (
                   <>
                     Bib #{bibNumber}{" "}
@@ -164,51 +162,41 @@ export default function EventPhotoPage() {
               </p>
             </div>
 
-            <div className="w-24">
-              {/* {!isAllPhotos && bibNumber ? (
-                <p className="text-muted-foreground text-sm">
-                  Bib #{bibNumber}{" "}
-                  {galleryData?.runner_name && `• ${galleryData.runner_name}`}
-                </p>
-              ) : (
-                <p className="text-muted-foreground text-sm">All Photos</p>
-              )}
-              <p className="text-muted-foreground text-xs">
-                {photos.length} photo{photos.length !== 1 ? "s" : ""} found
-              </p> */}
+            <div className="w-10 md:w-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={() => router.push("/")}
+                aria-label="Open search"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+              <form
+                onSubmit={handleBibSearch}
+                className="hidden items-center gap-2 md:flex"
+              >
+                <Input
+                  type="text"
+                  placeholder="Enter bib"
+                  value={searchBib}
+                  onChange={(e) => setSearchBib(e.target.value)}
+                  className="w-[100px] border border-gray-200"
+                />
+                <Button type="submit" size="sm" disabled={!searchBib.trim()}>
+                  <Search />
+                </Button>
+              </form>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Upload Section */}
-      <div className="mx-auto my-8 max-w-3xl">
+      <div className="mx-1 my-8 max-w-3xl md:mx-auto">
         <div className="bg-muted/50 rounded-lg p-6">
-          {/* Bib Search */}
-          <div className="mb-6">
-            <h3 className="mb-3 text-center text-lg font-medium">
-              Find Your Photos
-            </h3>
-            <form
-              onSubmit={handleBibSearch}
-              className="mx-auto flex max-w-md gap-2"
-            >
-              <Input
-                type="text"
-                placeholder="Enter your bib number"
-                value={searchBib}
-                onChange={(e) => setSearchBib(e.target.value)}
-                className="h-10 border border-gray-200"
-              />
-              <Button type="submit" disabled={!searchBib.trim()} size="default">
-                <Search className="mr-2 h-4 w-4" />
-                Search
-              </Button>
-            </form>
-          </div>
-
           {/* Selfie Upload */}
-          <div className="mx-auto max-w-md border-t pt-6">
+          <div className="mx-auto max-w-md">
             <div className="mb-4 text-center">
               <h4 className="text-base font-medium">
                 Find More Photos with Face Matching
@@ -379,7 +367,7 @@ export default function EventPhotoPage() {
       </div>
 
       {/* Full-width Photo Grid */}
-      <div className="w-full px-4 sm:px-6">
+      <div className="w-full px-[4px] sm:px-[20px]">
         {isLoading ? (
           <MasonryPhotoSkeleton />
         ) : photos.length > 0 ? (

@@ -11,13 +11,18 @@ export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
 
+  // Disable sticky on photo detail pages: /events/[event]/[bib]
+  const isPhotoPage = /^\/events\/[^/]+\/[^/]+$/.test(pathname);
+
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Events", href: "/events" },
   ];
 
   return (
-    <header className="bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-sm">
+    <header
+      className={`bg-background/80 ${isPhotoPage ? "" : "sticky top-0 z-50"} w-full border-b backdrop-blur-sm`}
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}

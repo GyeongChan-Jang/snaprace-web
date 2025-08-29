@@ -29,6 +29,12 @@ export function PhotoGrid({
   const [isGridReady, setIsGridReady] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
 
+  // Dynamic gap: use tighter gap on mobile when 2 columns
+  const DEFAULT_GAP_PX = 6;
+  const MOBILE_TWO_COLUMN_GAP_PX = 4;
+  const gridGap =
+    isMobile && columnCount === 2 ? MOBILE_TWO_COLUMN_GAP_PX : DEFAULT_GAP_PX;
+
   // Track container width
   useEffect(() => {
     const updateContainerWidth = () => {
@@ -47,7 +53,7 @@ export function PhotoGrid({
     if (!containerRef.current || photos.length === 0) return;
 
     const grid = new MasonryGrid(containerRef.current, {
-      gap: 6,
+      gap: gridGap,
       observeChildren: true,
       useResizeObserver: true,
       column: columnCount,
@@ -61,7 +67,7 @@ export function PhotoGrid({
       grid.destroy();
       gridRef.current = null;
     };
-  }, [columnCount, photos.length]);
+  }, [columnCount, photos.length, gridGap]);
 
   // Re-render grid when photos change
   useEffect(() => {
@@ -73,10 +79,10 @@ export function PhotoGrid({
   // Column width calculation for responsive images
   const columnWidth = useMemo(() => {
     if (containerWidth === 0) return 300;
-    const gaps = (columnCount - 1) * 6;
+    const gaps = (columnCount - 1) * gridGap;
     const padding = 0; // No additional padding needed as parent handles it
     return Math.floor((containerWidth - gaps - padding) / columnCount);
-  }, [containerWidth, columnCount]);
+  }, [containerWidth, columnCount, gridGap]);
 
   return (
     <div
@@ -93,20 +99,20 @@ export function PhotoGrid({
             if (el) photoRefs.current.set(index, el);
             else photoRefs.current.delete(index);
           }}
-          className="group cursor-pointer"
+          className="cursor-pointer"
           onClick={() => onPhotoClick(index)}
           style={{ width: `${columnWidth}px` }}
         >
           <div className="relative overflow-hidden">
             {/* Desktop Hover Overlay */}
             {!isMobile && (
-              <div className="absolute inset-0 z-10 flex items-start justify-end gap-1 bg-gradient-to-b from-black/50 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute inset-0 z-10 hidden items-start justify-end gap-1 p-2 opacity-0 transition-opacity hover:opacity-100 md:flex">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    void onShare(url, index);
+                    onShare(url, index);
                   }}
-                  className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm hover:bg-white/30"
+                  className="rounded-full bg-black/30 p-2 text-white backdrop-blur-sm hover:bg-black/40"
                   title="Share"
                 >
                   <Share2 className="h-4 w-4" />
@@ -114,9 +120,9 @@ export function PhotoGrid({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    void onDownload(url, index);
+                    onDownload(url, index);
                   }}
-                  className="rounded-full bg-white/20 p-2 text-white backdrop-blur-sm hover:bg-white/30"
+                  className="rounded-full bg-black/30 p-2 text-white backdrop-blur-sm hover:bg-black/40"
                   title="Download"
                 >
                   <Download className="h-4 w-4" />
@@ -129,7 +135,7 @@ export function PhotoGrid({
               alt={`Photo ${index + 1}`}
               width={columnWidth}
               height={300}
-              className="h-auto w-full object-cover transition-transform"
+              className="h-auto w-full object-cover"
               sizes={`${columnWidth}px`}
               loading="lazy"
               onLoad={() => {
