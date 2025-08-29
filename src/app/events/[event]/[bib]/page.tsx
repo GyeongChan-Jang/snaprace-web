@@ -17,6 +17,7 @@ import { PhotoSingleView } from "@/components/PhotoSingleView";
 import { PhotoGrid } from "@/components/PhotoGrid";
 import { usePhotoState } from "@/hooks/usePhotoState";
 import { usePhotoHandlers } from "@/hooks/usePhotoHandlers";
+import Image from "next/image";
 
 export default function EventPhotoPage() {
   const router = useRouter();
@@ -70,7 +71,11 @@ export default function EventPhotoPage() {
   );
 
   // Selfie upload hook
-  const { isProcessing: isUploading, uploadSelfie } = useSelfieUpload({
+  const {
+    isProcessing: isUploading,
+    uploadSelfie,
+    uploadedFile,
+  } = useSelfieUpload({
     eventId: event,
     bibNumber,
     organizerId: "default", // TODO: Get from context or props
@@ -127,79 +132,248 @@ export default function EventPhotoPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header with max width constraint */}
-      <div className="mx-auto px-4 py-8 sm:px-6 lg:px-6">
-        <div className="mb-8">
-          <div className="mb-4 flex items-center gap-4">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 border-b backdrop-blur">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => router.back()}
-              className="shrink-0"
+              onClick={() => router.push("/")}
+              className="flex items-center gap-2"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </Button>
-            <div className="flex-1">
-              {isLoading ? (
-                <EventHeaderSkeleton />
+
+            <div className="text-center">
+              <h1 className="text-xl font-semibold">
+                {eventQuery.data?.event_name}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {!isAllPhotos && bibNumber ? (
+                  <>
+                    Bib #{bibNumber}{" "}
+                    {galleryQuery.data?.runner_name && (
+                      <>• {galleryQuery.data.runner_name}</>
+                    )}
+                  </>
+                ) : (
+                  "All Photos"
+                )}
+                {" • "}
+                {photos.length} photo{photos.length !== 1 ? "s" : ""}
+              </p>
+            </div>
+
+            <div className="w-24">
+              {/* {!isAllPhotos && bibNumber ? (
+                <p className="text-muted-foreground text-sm">
+                  Bib #{bibNumber}{" "}
+                  {galleryData?.runner_name && `• ${galleryData.runner_name}`}
+                </p>
               ) : (
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-                    {eventQuery.data?.event_name ?? event}
-                  </h1>
-                  {!isAllPhotos && bibNumber && (
-                    <p className="mt-1 text-lg text-gray-600">
-                      Bib #{bibNumber} Photos
-                    </p>
-                  )}
-                  {isAllPhotos && (
-                    <p className="mt-1 text-lg text-gray-600">All Photos</p>
-                  )}
-                </div>
+                <p className="text-muted-foreground text-sm">All Photos</p>
               )}
+              <p className="text-muted-foreground text-xs">
+                {photos.length} photo{photos.length !== 1 ? "s" : ""} found
+              </p> */}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Search and Upload Section */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {/* Bib Search */}
-            {isAllPhotos && (
-              <form onSubmit={handleBibSearch} className="flex gap-2">
-                <Input
-                  placeholder="Enter bib number to find photos..."
-                  value={searchBib}
-                  onChange={(e) => setSearchBib(e.target.value)}
-                  className="flex-1"
-                />
-                <Button type="submit" className="shrink-0">
-                  <Search className="h-4 w-4" />
-                  Search
-                </Button>
-              </form>
-            )}
+      {/* Search and Upload Section */}
+      <div className="mx-auto my-8 max-w-3xl">
+        <div className="bg-muted/50 rounded-lg p-6">
+          {/* Bib Search */}
+          <div className="mb-6">
+            <h3 className="mb-3 text-center text-lg font-medium">
+              Find Your Photos
+            </h3>
+            <form
+              onSubmit={handleBibSearch}
+              className="mx-auto flex max-w-md gap-2"
+            >
+              <Input
+                type="text"
+                placeholder="Enter your bib number"
+                value={searchBib}
+                onChange={(e) => setSearchBib(e.target.value)}
+                className="h-10 border border-gray-200"
+              />
+              <Button type="submit" disabled={!searchBib.trim()} size="default">
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </Button>
+            </form>
+          </div>
 
-            {/* Selfie Upload */}
-            {!isAllPhotos && (
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="absolute inset-0 cursor-pointer opacity-0"
-                    disabled={isUploading}
-                  />
-                  <Button
-                    variant="outline"
-                    disabled={isUploading}
-                    className="cursor-pointer"
-                  >
-                    {isUploading
-                      ? "Uploading..."
-                      : "Upload Selfie to Find More Photos"}
-                  </Button>
+          {/* Selfie Upload */}
+          <div className="mx-auto max-w-md border-t pt-6">
+            <div className="mb-4 text-center">
+              <h4 className="text-base font-medium">
+                Find More Photos with Face Matching
+              </h4>
+              <p className="text-muted-foreground mt-1 text-sm">
+                {!bibNumber
+                  ? "Enter your bib number first to enable face matching"
+                  : "Upload a clear selfie to discover additional photos"}
+              </p>
+            </div>
+
+            <div>
+              <input
+                id="selfie-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={isUploading || !bibNumber}
+              />
+              <label htmlFor="selfie-upload" className="block">
+                <div
+                  className={`${
+                    !bibNumber || isUploading
+                      ? "cursor-not-allowed"
+                      : "hover:border-primary/40 hover:bg-muted/30 cursor-pointer"
+                  } ${
+                    !bibNumber ? "opacity-60" : ""
+                  } group border-muted-foreground/20 bg-muted/10 relative overflow-hidden rounded-lg border-2 border-dashed p-6 transition-all`}
+                >
+                  {/* Processing Overlay */}
+                  {isUploading && (
+                    <div className="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="border-primary/30 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
+                        <p className="text-sm font-medium">Processing...</p>
+                        <p className="text-muted-foreground text-xs">
+                          This may take a moment
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Success Overlay */}
+                  {uploadedFile &&
+                    !isUploading &&
+                    galleryQuery.data?.selfie_enhanced && (
+                      <div className="bg-background/90 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
+                            <svg
+                              className="h-6 w-6 text-green-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm font-medium">Success!</p>
+                            <p className="text-muted-foreground text-xs">
+                              Found{" "}
+                              {galleryQuery.data?.selfie_matched_photos.length}{" "}
+                              photo
+                              {galleryQuery.data?.selfie_matched_photos.length >
+                              1
+                                ? "s"
+                                : ""}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              void galleryQuery.refetch();
+                            }}
+                          >
+                            Upload another
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Default Content */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative h-20 w-20">
+                      <Image
+                        src="/images/selfie-upload.png"
+                        alt="Upload selfie"
+                        width={80}
+                        height={80}
+                        className={`${
+                          !bibNumber ? "grayscale" : ""
+                        } transition-all`}
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">
+                        {!bibNumber
+                          ? "Bib number required"
+                          : uploadedFile
+                            ? uploadedFile.name
+                            : "Click to upload your selfie"}
+                      </p>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {!bibNumber
+                          ? "Please enter bib number above"
+                          : uploadedFile
+                            ? `${(uploadedFile.size / 1024 / 1024).toFixed(1)} MB`
+                            : "JPG, PNG or HEIC • Max 10MB"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              </label>
+            </div>
+
+            {/* Alternative simple status for no photos found */}
+            {uploadedFile &&
+              !isUploading &&
+              galleryQuery.data &&
+              galleryQuery.data.selfie_matched_photos.length === 0 && (
+                <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg
+                      className="h-4 w-4 text-yellow-600 dark:text-yellow-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                    <p className="whitespace-pre-line text-yellow-700 dark:text-yellow-400">
+                      {
+                        "No additional photos found.\nTry uploading a different selfie."
+                      }
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // reset();
+                      }}
+                      className="ml-auto text-xs"
+                    >
+                      Try again
+                    </Button>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>

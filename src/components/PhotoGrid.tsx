@@ -129,7 +129,7 @@ export function PhotoGrid({
               alt={`Photo ${index + 1}`}
               width={columnWidth}
               height={300}
-              className="h-auto w-full object-cover transition-transform group-hover:scale-105"
+              className="h-auto w-full object-cover transition-transform"
               sizes={`${columnWidth}px`}
               loading="lazy"
               onLoad={() => {
@@ -140,12 +140,12 @@ export function PhotoGrid({
               }}
             />
 
-            {/* Photo counter overlay */}
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+            {/* Photo counter overlay for debugging*/}
+            {/* <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
               <p className="text-sm">
                 {index + 1} / {photos.length}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       ))}
