@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
+import { useSwipeable } from "react-swipeable";
 import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ANIMATION_TIMINGS, overlayVariants } from "@/utils/animation";
+import { ANIMATION_TIMINGS } from "@/utils/animation";
 import {
   generatePhotoFilename,
   sharePhoto,
@@ -45,6 +45,7 @@ export function PhotoSingleView({
   const [isClosing, setIsClosing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
+  // Swipe handlers (react-swipeable will manage touch events)
 
   // Detect mobile device
   useEffect(() => {
@@ -153,7 +154,7 @@ export function PhotoSingleView({
 
   const handleCloseWithAnimation = useCallback(() => {
     if (isClosing || isAnimating) return; // Prevent multiple close attempts
-    
+
     setIsClosing(true);
     setIsAnimating(true);
     setShowOverlay(false);
@@ -169,10 +170,31 @@ export function PhotoSingleView({
   if (!isOpen && !isAnimating && !isClosing) return null;
   if (!currentPhoto) return null;
 
+  const swipeable = useSwipeable({
+    onSwipedLeft: () => {
+      if (isMobile) handleNext();
+    },
+    onSwipedRight: () => {
+      if (isMobile) handlePrevious();
+    },
+    preventScrollOnSwipe: true,
+    trackTouch: true,
+    trackMouse: false,
+    delta: 40,
+  });
+  const { ref: swipeRef, ...swipeHandlers } = swipeable;
+
   return (
     <div
-      ref={containerRef}
+      ref={(el) => {
+        containerRef.current = el;
+        // react-swipeable ref forwarding
+        try {
+          swipeRef(el as unknown as HTMLElement);
+        } catch {}
+      }}
       className="fixed inset-0 z-50 bg-white"
+      {...swipeHandlers}
       onClick={(e) => {
         if (e.target === e.currentTarget && showOverlay && !isAnimating) {
           handleCloseWithAnimation();
@@ -184,7 +206,7 @@ export function PhotoSingleView({
         {/* Header with controls */}
         <div
           className={cn(
-            "absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4 transition-all duration-300 ease-out",
+            "absolute top-0 right-0 left-0 z-20 flex items-center justify-between p-4 transition-all duration-300 ease-out",
             showOverlay && !isAnimating
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0",
@@ -226,42 +248,67 @@ export function PhotoSingleView({
           </div>
         </div>
 
-        {/* Navigation arrows */}
-        {photos.length > 1 && (
+        {/* Desktop navigation arrows - appear on hover over left/right 1/3 */}
+        {!isMobile && photos.length > 1 && (
           <>
-            <motion.div
-              initial="hidden"
-              animate={showOverlay && !isAnimating ? "visible" : "hidden"}
-              variants={overlayVariants.leftArrow}
-              className="absolute top-1/2 left-4 z-10 -translate-y-1/2"
+            <div
+              className="group absolute top-0 bottom-0 left-0 z-10 w-1/3 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (showOverlay && !isAnimating) handlePrevious();
+              }}
             >
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handlePrevious}
-                className="h-12 w-12 text-gray-700 hover:bg-gray-100"
-                disabled={!showOverlay || isAnimating}
-              >
-                <ChevronLeft className="h-8 w-8" />
-              </Button>
-            </motion.div>
+              <div className="absolute top-1/2 left-4 -translate-y-1/2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handlePrevious}
+                  className={cn(
+                    "h-12 w-12 text-gray-700 opacity-0 transition-opacity hover:bg-gray-100",
+                    showOverlay && !isAnimating
+                      ? "group-hover:opacity-100"
+                      : "opacity-0",
+                  )}
+                  disabled={!showOverlay || isAnimating}
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+              </div>
+              {/* Prevent clicks on the header close/share/download from bubbling to this zone */}
+              <div
+                className="absolute top-0 right-0 left-0 h-16"
+                style={{ pointerEvents: "none" }}
+              />
+            </div>
 
-            <motion.div
-              initial="hidden"
-              animate={showOverlay && !isAnimating ? "visible" : "hidden"}
-              variants={overlayVariants.rightArrow}
-              className="absolute top-1/2 right-4 z-10 -translate-y-1/2"
+            <div
+              className="group absolute top-0 right-0 bottom-0 z-10 w-1/3 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (showOverlay && !isAnimating) handleNext();
+              }}
             >
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleNext}
-                className="h-12 w-12 text-gray-700 hover:bg-gray-100"
-                disabled={!showOverlay || isAnimating}
-              >
-                <ChevronRight className="h-8 w-8" />
-              </Button>
-            </motion.div>
+              <div className="absolute top-1/2 right-4 -translate-y-1/2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleNext}
+                  className={cn(
+                    "h-12 w-12 text-gray-700 opacity-0 transition-opacity hover:bg-gray-100",
+                    showOverlay && !isAnimating
+                      ? "group-hover:opacity-100"
+                      : "opacity-0",
+                  )}
+                  disabled={!showOverlay || isAnimating}
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+              </div>
+              <div
+                className="absolute top-0 right-0 left-0 h-16"
+                style={{ pointerEvents: "none" }}
+              />
+            </div>
           </>
         )}
 
@@ -320,35 +367,7 @@ export function PhotoSingleView({
           </div>
         )}
 
-        {/* Touch areas for navigation on mobile */}
-        {isMobile && photos.length > 1 && (
-          <>
-            <div
-              className="absolute top-0 bottom-0 left-0 z-5 w-1/3"
-              onClick={(e) => {
-                if (showOverlay && !isAnimating) {
-                  e.stopPropagation();
-                  handlePrevious();
-                }
-              }}
-              style={{
-                pointerEvents: showOverlay && !isAnimating ? "auto" : "none",
-              }}
-            />
-            <div
-              className="absolute top-0 right-0 bottom-0 z-5 w-1/3"
-              onClick={(e) => {
-                if (showOverlay && !isAnimating) {
-                  e.stopPropagation();
-                  handleNext();
-                }
-              }}
-              style={{
-                pointerEvents: showOverlay && !isAnimating ? "auto" : "none",
-              }}
-            />
-          </>
-        )}
+        {/* Mobile: swipe gestures handle navigation; no on-screen chevrons */}
       </div>
     </div>
   );

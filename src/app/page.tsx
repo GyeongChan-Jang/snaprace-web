@@ -46,7 +46,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-[calc(100vh-64px)] flex-col">
       {/* Hero Section */}
       <section className="bg-background relative px-4 py-20 sm:py-32">
         <div className="container mx-auto max-w-4xl text-center">
@@ -109,8 +109,10 @@ export default function HomePage() {
                   placeholder="Enter your bib number (e.g., 1234)"
                   value={bibNumber}
                   onChange={(e) => setBibNumber(e.target.value)}
-                  className="bg-background border-border h-14 text-lg font-medium"
-                  autoFocus
+                  className="bg-background border-border h-14 text-sm font-medium md:text-lg"
+                  style={{
+                    fontSize: "14px",
+                  }}
                 />
               </div>
 
@@ -189,7 +191,7 @@ export default function HomePage() {
       </section> */}
 
       {/* Partners Section */}
-      <section className="bg-muted/30 border-t px-4 py-12">
+      <section className="bg-muted/30 mt-auto border-t px-4 py-12">
         <div className="container mx-auto max-w-4xl">
           <div className="mb-8 text-center">
             <h2 className="text-foreground mb-4 text-2xl font-bold tracking-tight">

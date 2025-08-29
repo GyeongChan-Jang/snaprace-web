@@ -17,11 +17,15 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
         {/* Event Image */}
         <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden">
           <Image
-            src={image}
+            src={image ?? "/images/partners/partner-millennium-running.png"}
             alt={name}
             fill
-            className="object-cover transition-opacity duration-300 hover:opacity-80"
+            className="object-contain transition-opacity duration-300 hover:opacity-80"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            onError={(e) => {
+              e.currentTarget.src =
+                "/images/partners/partner-millennium-running.png";
+            }}
           />
 
           {/* Status Badge */}
