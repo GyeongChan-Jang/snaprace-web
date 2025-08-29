@@ -17,6 +17,11 @@ import {
 } from "@/utils/photo";
 import { isMobileDevice } from "@/utils/device";
 
+type NavigatorShare = Navigator & {
+  share?: (data: ShareData) => Promise<void>;
+  canShare?: (data?: ShareData) => boolean;
+};
+
 interface PhotoSingleViewProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,7 +48,6 @@ export function PhotoSingleView({
   const [isAnimating, setIsAnimating] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   // Swipe handlers (react-swipeable will manage touch events)
 
@@ -124,6 +128,48 @@ export function PhotoSingleView({
   const handleShare = async () => {
     if (!currentPhoto) return;
 
+    // Prefer native navigator.share on mobile
+    if (isMobile && typeof navigator !== "undefined") {
+      const nav = navigator as NavigatorShare;
+      if (nav.share) {
+        try {
+          // Attempt to share with file for better UX when supported
+          try {
+            const response = await fetch(currentPhoto, { mode: "cors" });
+            const blob = await response.blob();
+            const fileToShare = new File([blob], filename, {
+              type: blob.type || "image/jpeg",
+            });
+            const dataWithFiles = {
+              files: [fileToShare],
+              title: event ?? "SnapRace Photo",
+              text: `Photo ${currentIndex + 1}/${photos.length}`,
+            } as unknown as ShareData;
+            if (nav.canShare?.(dataWithFiles)) {
+              await nav.share({
+                files: [fileToShare],
+                title: event ?? "SnapRace Photo",
+                text: `Photo ${currentIndex + 1}/${photos.length}`,
+              });
+              toast.success("Shared via device");
+              return;
+            }
+          } catch {}
+
+          // Fallback: share URL
+          await nav.share({
+            title: event ?? "SnapRace Photo",
+            text: `Photo ${currentIndex + 1}/${photos.length}`,
+            url: currentPhoto,
+          });
+          toast.success("Shared via device");
+          return;
+        } catch {
+          // If native share fails, fall through to library util
+        }
+      }
+    }
+
     try {
       await sharePhoto(currentPhoto, currentIndex, event ?? "", isMobile);
       toast.success("Photo shared successfully!");
@@ -135,8 +181,43 @@ export function PhotoSingleView({
   const handleDownload = async () => {
     if (!currentPhoto) return;
 
-    const result = await downloadPhoto(currentPhoto, filename);
+    // On mobile, use Web Share with file to allow saving to device
+    if (isMobile && typeof navigator !== "undefined") {
+      const nav = navigator as NavigatorShare;
+      if (nav.share) {
+        try {
+          const response = await fetch(currentPhoto, { mode: "cors" });
+          const blob = await response.blob();
+          const fileToShare = new File([blob], filename, {
+            type: blob.type || "image/jpeg",
+          });
+          const dataWithFiles = {
+            files: [fileToShare],
+            title: filename,
+          } as unknown as ShareData;
+          if (nav.canShare?.(dataWithFiles)) {
+            await nav.share({
+              files: [fileToShare],
+              title: filename,
+            });
+            toast.success("Shared to save/download on device");
+            return;
+          }
+        } catch {
+          // ignore and fallback
+        }
 
+        // Fallback on mobile: open the image URL in a new tab so user can save
+        try {
+          window.open(currentPhoto, "_blank", "noopener,noreferrer");
+          toast.info("Opened in new tab. Use browser save.");
+          return;
+        } catch {}
+      }
+    }
+
+    // Desktop or final fallback: use existing download helper
+    const result = await downloadPhoto(currentPhoto, filename);
     if (result.success) {
       switch (result.method) {
         case "proxy":
@@ -167,40 +248,21 @@ export function PhotoSingleView({
     }, 200);
   }, [onClose, isClosing, isAnimating]);
 
-  if (!isOpen && !isAnimating && !isClosing) return null;
-  if (!currentPhoto) return null;
-
   const swipeable = useSwipeable({
-    onSwipedLeft: () => {
-      if (isMobile) handleNext();
-    },
-    onSwipedRight: () => {
-      if (isMobile) handlePrevious();
-    },
+    onSwipedLeft: handleNext,
+    onSwipedRight: handlePrevious,
     preventScrollOnSwipe: true,
     trackTouch: true,
     trackMouse: false,
     delta: 40,
   });
-  const { ref: swipeRef, ...swipeHandlers } = swipeable;
+  const { ...swipeHandlers } = swipeable;
+
+  if (!isOpen && !isAnimating && !isClosing) return null;
+  if (!currentPhoto) return null;
 
   return (
-    <div
-      ref={(el) => {
-        containerRef.current = el;
-        // react-swipeable ref forwarding
-        try {
-          swipeRef(el as unknown as HTMLElement);
-        } catch {}
-      }}
-      className="fixed inset-0 z-50 bg-white"
-      {...swipeHandlers}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && showOverlay && !isAnimating) {
-          handleCloseWithAnimation();
-        }
-      }}
-    >
+    <div {...swipeHandlers} className="fixed inset-0 z-50 bg-white">
       {/* Single View Content Layer */}
       <div className="relative h-full w-full">
         {/* Header with controls */}
