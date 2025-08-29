@@ -11,10 +11,7 @@ export type EventEntity = RouterOutputs["events"]["getAll"][number];
 export type EventById = RouterOutputs["events"]["getById"];
 
 // Galleries
-export type GalleriesList =
-  RouterOutputs["galleries"]["get"] extends Array<infer T> ? T[] : never;
-export type GalleryByBib = Exclude<
-  RouterOutputs["galleries"]["get"],
-  undefined
->;
-export type GalleriesGetInput = RouterInputs["galleries"]["get"];
+export type GalleriesList = RouterOutputs["galleries"]["getAllByEventId"];
+export type GalleryByBib = RouterOutputs["galleries"]["getByBibNumber"];
+export type GalleriesGetByBibInput = RouterInputs["galleries"]["getByBibNumber"];
+export type GalleriesGetAllInput = RouterInputs["galleries"]["getAllByEventId"];

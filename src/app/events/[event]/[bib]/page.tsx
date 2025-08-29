@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Search, Download, Clipboard } from "lucide-react";
+import { ArrowLeft, Search, Share2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
@@ -15,17 +15,13 @@ import {
 import { ErrorState } from "@/components/states/ErrorState";
 import { NoPhotosState } from "@/components/states/EmptyState";
 import { useSelfieUpload } from "@/hooks/useSelfieUpload";
-
-interface GalleryData {
-  bib_matched_photos?: string[];
-  selfie_matched_photos?: string[];
-  selfie_enhanced?: boolean;
-  runner_name?: string;
-}
+import { PhotoSingleView } from "@/components/PhotoSingleView";
+import type { GalleryItem } from "@/server/api/routers/galleries";
 
 export default function EventPhotoPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const event = params?.event as string;
   const bibParam = params?.bib as string;
   const isAllPhotos = bibParam === "null";
@@ -33,7 +29,18 @@ export default function EventPhotoPage() {
 
   const [searchBib, setSearchBib] = useState(bibNumber || "");
   const [columnCount, setColumnCount] = useState(4);
-  const [selfieMatchedPhotos, setSelfieMatchedPhotos] = useState<string[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+  const [clickedPhotoRect, setClickedPhotoRect] = useState<DOMRect | null>(
+    null,
+  );
+  const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const scrollPositionRef = useRef(0);
+
+  // Parse URL params for SingleView state
+  const photoIndex = searchParams.get("idx");
+  const scrollPosition = searchParams.get("scroll");
+  const isModalOpen = photoIndex !== null;
+  const currentPhotoIndex = photoIndex ? parseInt(photoIndex, 10) : 0;
 
   // Fetch event info
   const eventQuery = api.events.getById.useQuery(
@@ -42,7 +49,7 @@ export default function EventPhotoPage() {
   );
 
   // Fetch gallery data for specific bib
-  const galleryQuery = api.galleries.get.useQuery(
+  const galleryQuery = api.galleries.getByBibNumber.useQuery(
     { eventId: event, bibNumber },
     { enabled: !!bibNumber && !!event && !isAllPhotos },
   );
@@ -66,8 +73,7 @@ export default function EventPhotoPage() {
 
     const results = await uploadSelfie(file);
     if (results) {
-      setSelfieMatchedPhotos(results);
-      // Refetch gallery data to get updated photos
+      // Refetch gallery data to get updated photos including selfie matches
       await galleryQuery.refetch();
     }
 
@@ -90,40 +96,136 @@ export default function EventPhotoPage() {
     }
 
     if (!isAllPhotos && galleryQuery.data) {
-      const data = galleryQuery.data as GalleryData;
+      const data = galleryQuery.data;
       const selfiePhotos = data.selfie_matched_photos ?? [];
       const bibPhotos = data.bib_matched_photos ?? [];
-      const additionalSelfiePhotos = selfieMatchedPhotos;
 
       // Prioritize selfie matched photos
-      return [...selfiePhotos, ...additionalSelfiePhotos, ...bibPhotos];
+      return [...selfiePhotos, ...bibPhotos];
     }
 
     return [];
-  }, [
-    isAllPhotos,
-    allPhotosQuery.data,
-    galleryQuery.data,
-    selfieMatchedPhotos,
-  ]);
+  }, [isAllPhotos, allPhotosQuery.data, galleryQuery.data]);
 
-  // Responsive column count
+  // Responsive column count and mobile detection
   useEffect(() => {
-    const updateColumnCount = () => {
+    const updateLayout = () => {
       const width = window.innerWidth;
       if (width < 835) setColumnCount(2);
       else if (width < 1035) setColumnCount(3);
       else if (width < 1535) setColumnCount(4);
       else setColumnCount(5);
+
+      // Mobile detection
+      setIsMobile(width < 768 || "ontouchstart" in window);
     };
 
-    updateColumnCount();
-    window.addEventListener("resize", updateColumnCount);
-    return () => window.removeEventListener("resize", updateColumnCount);
+    updateLayout();
+    window.addEventListener("resize", updateLayout);
+    return () => window.removeEventListener("resize", updateLayout);
   }, []);
 
+  // Restore scroll position when closing SingleView
+  useEffect(() => {
+    if (scrollPosition && !isModalOpen) {
+      window.scrollTo(0, parseInt(scrollPosition, 10));
+    }
+  }, [scrollPosition, isModalOpen]);
+
+  // Save scroll position periodically
+  useEffect(() => {
+    const handleScroll = () => {
+      scrollPositionRef.current = window.scrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Handle photo click
+  const handlePhotoClick = useCallback(
+    (index: number) => {
+      const photoElement = photoRefs.current.get(index);
+      if (photoElement) {
+        setClickedPhotoRect(photoElement.getBoundingClientRect());
+      }
+
+      // Update URL with photo index and current scroll position
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set("idx", index.toString());
+      newParams.set("scroll", scrollPositionRef.current.toString());
+      router.push(`/events/${event}/${bibParam}?${newParams.toString()}`, {
+        scroll: false,
+      });
+    },
+    [event, bibParam, router, searchParams],
+  );
+
+  // Handle SingleView close
+  const handleModalClose = useCallback(() => {
+    // Remove query params but keep scroll position
+    router.push(`/events/${event}/${bibParam}`, { scroll: false });
+
+    // Scroll to the photo position if needed
+    if (scrollPosition) {
+      void setTimeout(() => {
+        window.scrollTo(0, parseInt(scrollPosition, 10));
+      }, 100);
+    }
+  }, [event, bibParam, router, scrollPosition]);
+
+  // Handle photo index change in SingleView
+  const handlePhotoIndexChange = useCallback(
+    (newIndex: number) => {
+      // Update scroll position reference without actually scrolling
+      // This keeps the background in sync but doesn't show the movement
+      const photoElement = photoRefs.current.get(newIndex);
+      let targetScroll = scrollPositionRef.current;
+
+      if (photoElement) {
+        const rect = photoElement.getBoundingClientRect();
+        const currentScroll = window.scrollY;
+
+        // Calculate where we would need to scroll to center this photo
+        const elementTop = rect.top + currentScroll;
+        const windowHeight = window.innerHeight;
+        targetScroll = elementTop - windowHeight / 2 + rect.height / 2;
+        targetScroll = Math.max(0, targetScroll);
+
+        // Update our scroll reference for when the modal closes
+        scrollPositionRef.current = targetScroll;
+      }
+
+      // Update URL with new index and calculated scroll position
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.set("idx", newIndex.toString());
+      newParams.set("scroll", targetScroll.toString());
+      router.push(`/events/${event}/${bibParam}?${newParams.toString()}`, {
+        scroll: false,
+      });
+    },
+    [event, bibParam, router, searchParams],
+  );
+
   // Handle photo actions
-  const handleShare = async (photoUrl: string) => {
+  const handleShare = async (photoUrl: string, index?: number) => {
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Race Photo ${(index ?? 0) + 1}`,
+          text: `Check out this race photo from ${event}!`,
+          url: photoUrl,
+        });
+        toast.success("Photo shared successfully!");
+        return;
+      } catch (error) {
+        if ((error as Error).name === "AbortError") {
+          return; // User cancelled
+        }
+      }
+    }
+
+    // Fallback to copy link
     try {
       await navigator.clipboard.writeText(photoUrl);
       toast.success("Photo link copied to clipboard!");
@@ -152,7 +254,7 @@ export default function EventPhotoPage() {
         toast.success("Photo download started!");
         return;
       }
-    } catch (apiError) {
+    } catch {
       console.log("API proxy failed, trying direct download");
     }
 
@@ -171,7 +273,7 @@ export default function EventPhotoPage() {
       URL.revokeObjectURL(url);
 
       toast.success("Photo downloaded!");
-    } catch (corsError) {
+    } catch {
       // Method 3: Fallback - open in new tab
       try {
         const link = document.createElement("a");
@@ -186,7 +288,7 @@ export default function EventPhotoPage() {
         toast.info(
           "Photo opened in new tab. Right-click and 'Save Image As' to download.",
         );
-      } catch (fallbackError) {
+      } catch {
         toast.error(
           "Unable to download photo. Please copy the image URL manually.",
         );
@@ -222,7 +324,7 @@ export default function EventPhotoPage() {
   }
 
   const eventInfo = eventQuery.data;
-  // const galleryData = galleryQuery.data as GalleryData | undefined;
+  const galleryData = galleryQuery.data as GalleryItem | undefined;
 
   return (
     <div className="bg-background min-h-screen">
@@ -243,7 +345,12 @@ export default function EventPhotoPage() {
               <h1 className="text-xl font-semibold">{eventInfo.event_name}</h1>
               <p className="text-muted-foreground text-sm">
                 {!isAllPhotos && bibNumber ? (
-                  <>Bib #{bibNumber}</>
+                  <>
+                    Bib #{bibNumber}{" "}
+                    {galleryData?.runner_name && (
+                      <>• {galleryData.runner_name}</>
+                    )}
+                  </>
                 ) : (
                   "All Photos"
                 )}
@@ -349,7 +456,7 @@ export default function EventPhotoPage() {
                     {/* Success Overlay */}
                     {uploadedFile &&
                       !isProcessing &&
-                      selfieMatchedPhotos.length > 0 && (
+                      galleryData?.selfie_enhanced && (
                         <div className="bg-background/90 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
                           <div className="flex flex-col items-center gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/10">
@@ -370,8 +477,11 @@ export default function EventPhotoPage() {
                             <div className="text-center">
                               <p className="text-sm font-medium">Success!</p>
                               <p className="text-muted-foreground text-xs">
-                                Found {selfieMatchedPhotos.length} photo
-                                {selfieMatchedPhotos.length > 1 ? "s" : ""}
+                                Found {galleryData.selfie_matched_photos.length}{" "}
+                                photo
+                                {galleryData.selfie_matched_photos.length > 1
+                                  ? "s"
+                                  : ""}
                               </p>
                             </div>
                             <Button
@@ -380,7 +490,6 @@ export default function EventPhotoPage() {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setSelfieMatchedPhotos([]);
                                 reset();
                               }}
                             >
@@ -427,7 +536,8 @@ export default function EventPhotoPage() {
               {/* Alternative simple status for no photos found */}
               {uploadedFile &&
                 !isProcessing &&
-                selfieMatchedPhotos.length === 0 && (
+                galleryData &&
+                galleryData.selfie_matched_photos.length === 0 && (
                   <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
                     <div className="flex items-center gap-2 text-sm">
                       <svg
@@ -454,7 +564,6 @@ export default function EventPhotoPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setSelfieMatchedPhotos([]);
                           reset();
                         }}
                         className="ml-auto text-xs"
@@ -497,43 +606,54 @@ export default function EventPhotoPage() {
               {photos.map((url, index) => (
                 <div
                   key={`photo-${index}`}
-                  className="masonry-item group mb-2 break-inside-avoid"
+                  ref={(el) => {
+                    if (el) photoRefs.current.set(index, el);
+                    else photoRefs.current.delete(index);
+                  }}
+                  className="masonry-item group mb-2 cursor-pointer break-inside-avoid"
+                  onClick={() => handlePhotoClick(index)}
                 >
                   <div className="relative overflow-hidden">
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 z-10 flex items-start justify-end gap-1 bg-gradient-to-b from-black/50 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
-                      {/* <button
-                        onClick={() => handleShare(url)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
-                        title="Share"
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </button> */}
-                      <button
-                        onClick={() => handleShare(url)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
-                        title="Share"
-                      >
-                        <Clipboard className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(url, index)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
-                        title="Download"
-                      >
-                        <Download className="h-4 w-4" />
-                      </button>
-                    </div>
+                    {/* Desktop Hover Overlay */}
+                    {!isMobile && (
+                      <div className="absolute inset-0 z-10 flex items-start justify-end gap-1 bg-gradient-to-b from-black/50 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleShare(url, index);
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
+                          title="Share"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleDownload(url, index);
+                          }}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-700 transition-colors hover:bg-white"
+                          title="Download"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
 
                     <Image
                       src={url}
                       alt={`Photo ${index + 1}`}
                       width={400}
                       height={300}
-                      className="h-auto w-full"
+                      className="h-auto w-full transition-transform duration-200 hover:scale-[1.02]"
                       sizes="(max-width: 835px) 50vw, (max-width: 1035px) 33vw, (max-width: 1535px) 25vw, 20vw"
                       priority={index < 4}
                     />
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 text-white">
+                      <p className="text-sm">
+                        {index + 1} / {photos.length}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -551,6 +671,25 @@ export default function EventPhotoPage() {
           />
         )}
       </div>
+
+      {/* Photo SingleView */}
+      <PhotoSingleView
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        photos={photos}
+        currentIndex={currentPhotoIndex}
+        onIndexChange={handlePhotoIndexChange}
+        event={event}
+        bibNumber={bibNumber}
+        originRect={clickedPhotoRect}
+        onPhotoChange={(index) => {
+          // Update clicked photo rect when navigating
+          const photoElement = photoRefs.current.get(index);
+          if (photoElement) {
+            setClickedPhotoRect(photoElement.getBoundingClientRect());
+          }
+        }}
+      />
     </div>
   );
 }
