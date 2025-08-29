@@ -1,11 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ANIMATION_TIMINGS, overlayVariants } from "@/utils/animation";
+import {
+  generatePhotoFilename,
+  sharePhoto,
+  downloadPhoto,
+  getNextPhotoIndex,
+  getPreviousPhotoIndex,
+} from "@/utils/photo";
+import { isMobileDevice } from "@/utils/device";
 
 interface PhotoSingleViewProps {
   isOpen: boolean;
@@ -15,7 +25,6 @@ interface PhotoSingleViewProps {
   onIndexChange: (index: number) => void;
   event?: string;
   bibNumber?: string;
-  originRect?: DOMRect | null;
   onPhotoChange?: (index: number) => void;
 }
 
@@ -27,19 +36,20 @@ export function PhotoSingleView({
   onIndexChange,
   event,
   bibNumber,
-  originRect,
   onPhotoChange,
 }: PhotoSingleViewProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
 
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || "ontouchstart" in window);
+      setIsMobile(isMobileDevice());
     };
 
     checkMobile();
@@ -49,15 +59,13 @@ export function PhotoSingleView({
 
   // Sequential navigation (row-based: 1→2→3→4→5...)
   const handlePrevious = useCallback(() => {
-    const totalPhotos = photos.length;
-    const newIndex = currentIndex > 0 ? currentIndex - 1 : totalPhotos - 1;
+    const newIndex = getPreviousPhotoIndex(currentIndex, photos.length);
     onIndexChange(newIndex);
     onPhotoChange?.(newIndex);
   }, [currentIndex, photos.length, onIndexChange, onPhotoChange]);
 
   const handleNext = useCallback(() => {
-    const totalPhotos = photos.length;
-    const newIndex = currentIndex < totalPhotos - 1 ? currentIndex + 1 : 0;
+    const newIndex = getNextPhotoIndex(currentIndex, photos.length);
     onIndexChange(newIndex);
     onPhotoChange?.(newIndex);
   }, [currentIndex, photos.length, onIndexChange, onPhotoChange]);
@@ -89,45 +97,20 @@ export function PhotoSingleView({
     };
   }, [isOpen]);
 
-  // Animation effect
+  // Animation effect - simplified with framer-motion handling most of it
   useEffect(() => {
-    if (isOpen && originRect && imageRef.current) {
+    if (isOpen) {
+      setIsClosing(false); // Reset closing state when opening
       setIsAnimating(true);
+      setShowOverlay(false);
 
-      // Start position (gallery photo position)
-      const startX = originRect.left + originRect.width / 2;
-      const startY = originRect.top + originRect.height / 2;
-
-      // End position (center of viewport)
-      const endX = window.innerWidth / 2;
-      const endY = window.innerHeight / 2;
-
-      // Calculate scale
-      const maxWidth = window.innerWidth * 0.9;
-      const maxHeight = window.innerHeight * 0.9;
-      const scale = Math.min(
-        maxWidth / originRect.width,
-        maxHeight / originRect.height,
-        3,
-      );
-
-      // Apply initial transform
-      imageRef.current.style.transform = `translate(${startX - endX}px, ${startY - endY}px) scale(${1 / scale})`;
-      imageRef.current.style.opacity = "0";
-
-      // Trigger animation
-      requestAnimationFrame(() => {
-        if (imageRef.current) {
-          imageRef.current.style.transition =
-            "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease";
-          imageRef.current.style.transform = "translate(0, 0) scale(1)";
-          imageRef.current.style.opacity = "1";
-        }
-      });
-
-      setTimeout(() => setIsAnimating(false), 300);
+      // Show overlay after a delay for natural flow
+      setTimeout(() => {
+        setShowOverlay(true);
+        setIsAnimating(false);
+      }, ANIMATION_TIMINGS.OVERLAY_DELAY);
     }
-  }, [isOpen, originRect]);
+  }, [isOpen]);
 
   // Reset image loaded state when photo changes
   useEffect(() => {
@@ -135,117 +118,55 @@ export function PhotoSingleView({
   }, [currentIndex]);
 
   const currentPhoto = photos[currentIndex];
-  const filename = `photo-${event}-${bibNumber ?? "all"}-${currentIndex + 1}.jpg`;
+  const filename = generatePhotoFilename(event ?? "", bibNumber, currentIndex);
 
   const handleShare = async () => {
-    if (isMobile && navigator.share) {
-      try {
-        await navigator.share({
-          title: `Race Photo ${currentIndex + 1}`,
-          text: `Check out this race photo from ${event}!`,
-          url: currentPhoto,
-        });
-        toast.success("Photo shared successfully!");
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
-          void handleCopyLink();
-        }
-      }
-    } else {
-      void handleCopyLink();
-    }
-  };
-
-  const handleCopyLink = async () => {
     if (!currentPhoto) return;
 
     try {
-      await navigator.clipboard.writeText(currentPhoto);
-      toast.success("Photo link copied to clipboard!");
+      await sharePhoto(currentPhoto, currentIndex, event ?? "", isMobile);
+      toast.success("Photo shared successfully!");
     } catch {
-      toast.error("Failed to copy link");
+      toast.error("Failed to share photo");
     }
   };
 
   const handleDownload = async () => {
     if (!currentPhoto) return;
 
-    try {
-      const proxyUrl = `/api/download-image?url=${encodeURIComponent(currentPhoto)}&filename=${encodeURIComponent(filename)}`;
-      const testResponse = await fetch(proxyUrl, { method: "HEAD" });
+    const result = await downloadPhoto(currentPhoto, filename);
 
-      if (testResponse.ok) {
-        const link = document.createElement("a");
-        link.href = proxyUrl;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success("Photo download started!");
-        return;
+    if (result.success) {
+      switch (result.method) {
+        case "proxy":
+        case "direct":
+          toast.success("Photo download started!");
+          break;
+        case "newTab":
+          toast.info("Photo opened in new tab. Right-click to save.");
+          break;
       }
-    } catch {
-      console.log("API proxy failed, trying direct download");
-    }
-
-    try {
-      const response = await fetch(currentPhoto, { mode: "no-cors" });
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("Photo downloaded!");
-    } catch {
-      try {
-        const link = document.createElement("a");
-        link.href = currentPhoto;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.info("Photo opened in new tab. Right-click to save.");
-      } catch {
-        toast.error("Unable to download photo.");
-      }
+    } else {
+      toast.error("Unable to download photo.");
     }
   };
 
   const handleCloseWithAnimation = useCallback(() => {
-    if (originRect && imageRef.current) {
-      setIsAnimating(true);
+    if (isClosing || isAnimating) return; // Prevent multiple close attempts
+    
+    setIsClosing(true);
+    setIsAnimating(true);
+    setShowOverlay(false);
 
-      const startX = originRect.left + originRect.width / 2;
-      const startY = originRect.top + originRect.height / 2;
-      const endX = window.innerWidth / 2;
-      const endY = window.innerHeight / 2;
-      const scale = Math.min(
-        (window.innerWidth * 0.9) / originRect.width,
-        (window.innerHeight * 0.9) / originRect.height,
-        3,
-      );
-
-      imageRef.current.style.transition =
-        "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease";
-      imageRef.current.style.transform = `translate(${startX - endX}px, ${startY - endY}px) scale(${1 / scale})`;
-      imageRef.current.style.opacity = "0";
-
-      setTimeout(() => {
-        setIsAnimating(false);
-        onClose();
-      }, 300);
-    } else {
+    // Close after animation completes
+    setTimeout(() => {
+      setIsClosing(false);
+      setIsAnimating(false);
       onClose();
-    }
-  }, [originRect, onClose]);
+    }, 200);
+  }, [onClose, isClosing, isAnimating]);
 
-  if (!isOpen && !isAnimating) return null;
+  if (!isOpen && !isAnimating && !isClosing) return null;
   if (!currentPhoto) return null;
 
   return (
@@ -253,7 +174,7 @@ export function PhotoSingleView({
       ref={containerRef}
       className="fixed inset-0 z-50 bg-white"
       onClick={(e) => {
-        if (e.target === e.currentTarget && !isAnimating) {
+        if (e.target === e.currentTarget && showOverlay && !isAnimating) {
           handleCloseWithAnimation();
         }
       }}
@@ -263,10 +184,11 @@ export function PhotoSingleView({
         {/* Header with controls */}
         <div
           className={cn(
-            "absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4",
-            isAnimating ? "opacity-0" : "opacity-100",
+            "absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4 transition-all duration-300 ease-out",
+            showOverlay && !isAnimating
+              ? "translate-y-0 opacity-100"
+              : "-translate-y-2 opacity-0",
           )}
-          style={{ transition: "opacity 0.3s ease" }}
         >
           <Button
             variant="ghost"
@@ -305,25 +227,41 @@ export function PhotoSingleView({
         </div>
 
         {/* Navigation arrows */}
-        {photos.length > 1 && !isAnimating && (
+        {photos.length > 1 && (
           <>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePrevious}
-              className="absolute top-1/2 left-4 z-10 h-12 w-12 -translate-y-1/2 text-gray-700 hover:bg-gray-100"
+            <motion.div
+              initial="hidden"
+              animate={showOverlay && !isAnimating ? "visible" : "hidden"}
+              variants={overlayVariants.leftArrow}
+              className="absolute top-1/2 left-4 z-10 -translate-y-1/2"
             >
-              <ChevronLeft className="h-8 w-8" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePrevious}
+                className="h-12 w-12 text-gray-700 hover:bg-gray-100"
+                disabled={!showOverlay || isAnimating}
+              >
+                <ChevronLeft className="h-8 w-8" />
+              </Button>
+            </motion.div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNext}
-              className="absolute top-1/2 right-4 z-10 h-12 w-12 -translate-y-1/2 text-gray-700 hover:bg-gray-100"
+            <motion.div
+              initial="hidden"
+              animate={showOverlay && !isAnimating ? "visible" : "hidden"}
+              variants={overlayVariants.rightArrow}
+              className="absolute top-1/2 right-4 z-10 -translate-y-1/2"
             >
-              <ChevronRight className="h-8 w-8" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNext}
+                className="h-12 w-12 text-gray-700 hover:bg-gray-100"
+                disabled={!showOverlay || isAnimating}
+              >
+                <ChevronRight className="h-8 w-8" />
+              </Button>
+            </motion.div>
           </>
         )}
 
@@ -331,7 +269,7 @@ export function PhotoSingleView({
         <div
           className="flex h-full w-full items-center justify-center p-4"
           onClick={(e) => {
-            if (e.target === e.currentTarget && !isAnimating) {
+            if (e.target === e.currentTarget && showOverlay && !isAnimating) {
               handleCloseWithAnimation();
             }
           }}
@@ -369,27 +307,44 @@ export function PhotoSingleView({
         </div>
 
         {/* Mobile-specific bottom info */}
-        {isMobile && !isAnimating && (
-          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-gray-100/80 to-transparent p-4 text-center">
+        {isMobile && (
+          <div
+            className={cn(
+              "absolute right-0 bottom-0 left-0 bg-gradient-to-t from-gray-100/80 to-transparent p-4 text-center transition-all duration-300 ease-out",
+              showOverlay && !isAnimating
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0",
+            )}
+          >
             <p className="text-sm text-gray-600">{filename}</p>
           </div>
         )}
 
         {/* Touch areas for navigation on mobile */}
-        {isMobile && photos.length > 1 && !isAnimating && (
+        {isMobile && photos.length > 1 && (
           <>
             <div
               className="absolute top-0 bottom-0 left-0 z-5 w-1/3"
               onClick={(e) => {
-                e.stopPropagation();
-                handlePrevious();
+                if (showOverlay && !isAnimating) {
+                  e.stopPropagation();
+                  handlePrevious();
+                }
+              }}
+              style={{
+                pointerEvents: showOverlay && !isAnimating ? "auto" : "none",
               }}
             />
             <div
               className="absolute top-0 right-0 bottom-0 z-5 w-1/3"
               onClick={(e) => {
-                e.stopPropagation();
-                handleNext();
+                if (showOverlay && !isAnimating) {
+                  e.stopPropagation();
+                  handleNext();
+                }
+              }}
+              style={{
+                pointerEvents: showOverlay && !isAnimating ? "auto" : "none",
               }}
             />
           </>
