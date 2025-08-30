@@ -6,8 +6,7 @@ import { useSwipeable } from "react-swipeable";
 import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-// Animations removed
+
 import {
   generatePhotoFilename,
   sharePhoto,

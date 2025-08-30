@@ -34,7 +34,7 @@ export const photosRouter = createTRPCRouter({
           ExclusiveStartKey: lastEvaluatedKey,
         });
 
-        const result = (await dynamoClient.send(command)) as QueryCommandOutput;
+        const result = await dynamoClient.send(command);
         const items =
           (result.Items as Array<{
             event_id: string;
