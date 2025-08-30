@@ -3,12 +3,77 @@
  */
 
 /**
+ * Extract photo ID from CloudFront URL
+ * Example: https://dlzt7slmb0gog.cloudfront.net/.../HHH-4-11655.jpg -> HHH-4-11655
+ */
+export function extractPhotoId(url: string): string {
+  const match = /\/([^/]+)\.(jpg|jpeg|png|webp)$/i.exec(url);
+  if (match) {
+    return match[1] ?? "";
+  }
+  // Fallback: use full URL hash if pattern doesn't match
+  return btoa(url)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .substring(0, 20);
+}
+
+/**
+ * Encode photo ID for URL-safe usage
+ */
+export function encodePhotoId(photoId: string): string {
+  return encodeURIComponent(photoId);
+}
+
+/**
+ * Decode photo ID from URL
+ */
+export function decodePhotoId(encodedId: string): string {
+  return decodeURIComponent(encodedId);
+}
+
+/**
+ * Find photo index by URL in photos array
+ */
+export function findPhotoIndexByUrl(
+  photos: string[],
+  targetUrl: string,
+): number {
+  const targetId = extractPhotoId(targetUrl);
+  return photos.findIndex((url) => extractPhotoId(url) === targetId);
+}
+
+/**
+ * Find photo URL by photo ID in photos array
+ */
+export function findPhotoUrlById(
+  photos: string[],
+  photoId: string,
+): string | undefined {
+  const decodedId = decodePhotoId(photoId);
+  return photos.find((url) => extractPhotoId(url) === decodedId);
+}
+
+/**
+ * Generate shareable photo URL
+ */
+export function generateShareablePhotoUrl(
+  photoUrl: string,
+  baseUrl?: string,
+): string {
+  const photoId = extractPhotoId(photoUrl);
+  const encodedId = encodePhotoId(photoId);
+  const base =
+    baseUrl || (typeof window !== "undefined" ? window.location.origin : "");
+  return `${base}/photo/${encodedId}`;
+}
+
+/**
  * Generate filename for photo download
  */
 export function generatePhotoFilename(
   event: string,
   bibNumber?: string,
-  index?: number
+  index?: number,
 ): string {
   return `photo-${event}-${bibNumber ?? "all"}-${(index ?? 0) + 1}.jpg`;
 }
@@ -20,7 +85,7 @@ export async function sharePhoto(
   url: string,
   index: number,
   event: string,
-  isMobile: boolean
+  isMobile: boolean,
 ): Promise<void> {
   if (isMobile && navigator.share) {
     try {
@@ -55,7 +120,7 @@ export async function copyToClipboard(text: string): Promise<void> {
  */
 export async function downloadPhoto(
   url: string,
-  filename: string
+  filename: string,
 ): Promise<{ success: boolean; method: string }> {
   // Try API proxy first
   try {
@@ -80,7 +145,7 @@ export async function downloadPhoto(
     const response = await fetch(url, { mode: "no-cors" });
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
-    
+
     const link = document.createElement("a");
     link.href = objectUrl;
     link.download = filename;
@@ -88,7 +153,7 @@ export async function downloadPhoto(
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
-    
+
     return { success: true, method: "direct" };
   } catch {
     // Final fallback - open in new tab
@@ -101,7 +166,7 @@ export async function downloadPhoto(
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       return { success: true, method: "newTab" };
     } catch {
       return { success: false, method: "failed" };
@@ -112,11 +177,17 @@ export async function downloadPhoto(
 /**
  * Navigation helpers for photo grid
  */
-export function getNextPhotoIndex(currentIndex: number, totalPhotos: number): number {
+export function getNextPhotoIndex(
+  currentIndex: number,
+  totalPhotos: number,
+): number {
   return currentIndex < totalPhotos - 1 ? currentIndex + 1 : 0;
 }
 
-export function getPreviousPhotoIndex(currentIndex: number, totalPhotos: number): number {
+export function getPreviousPhotoIndex(
+  currentIndex: number,
+  totalPhotos: number,
+): number {
   return currentIndex > 0 ? currentIndex - 1 : totalPhotos - 1;
 }
 
@@ -125,13 +196,13 @@ export function getPreviousPhotoIndex(currentIndex: number, totalPhotos: number)
  */
 export function scrollPhotoIntoView(
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>,
-  index: number
+  index: number,
 ): void {
   const photoElement = photoRefs.current.get(index);
   if (photoElement) {
-    photoElement.scrollIntoView({ 
-      behavior: 'smooth', 
-      block: 'center' 
+    photoElement.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
     });
   }
 }

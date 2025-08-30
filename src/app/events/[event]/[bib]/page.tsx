@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useRef, useCallback, useState, useEffect } from "react";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,35 +23,13 @@ export default function EventPhotoPage() {
   const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use custom hooks for state management
-  const {
-    event,
-    bibParam,
-    bibNumber,
-    isAllPhotos,
-    searchBib,
-    setSearchBib,
-    columnCount,
-    isMobile,
-    isModalOpen,
-    currentPhotoIndex,
-    setClickedPhotoRect,
-  } = usePhotoState();
-
-  // Use custom hooks for handlers
-  const {
-    handlePhotoClick, // Handle photo click to open SingleView
-    handlePhotoIndexChange,
-    handleCloseSingleView,
-    handleShare,
-    handleDownload,
-  } = usePhotoHandlers({
-    event,
-    bibParam,
-    isMobile,
-    photoRefs,
-    setClickedPhotoRect,
-  });
+  // Get initial state without photos first
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const event = params?.event as string;
+  const bibParam = params?.bib as string;
+  const isAllPhotos = bibParam === "null";
+  const bibNumber = isAllPhotos ? "" : bibParam;
 
   // API queries
   const eventQuery = api.events.getById.useQuery(
@@ -69,6 +47,57 @@ export default function EventPhotoPage() {
     { eventId: event },
     { enabled: !!event && isAllPhotos },
   );
+
+  // Process photos data
+  const photos = useMemo(() => {
+    if (isAllPhotos && allPhotosQuery.data) {
+      // Flatten all photos from all gallery items
+      const allPhotos: string[] = [];
+      if (allPhotosQuery.data) {
+        allPhotosQuery.data.forEach((photo) => {
+          allPhotos.push(photo.imageUrl);
+        });
+      }
+      return allPhotos;
+    }
+
+    if (!isAllPhotos && galleryQuery.data) {
+      const data = galleryQuery.data;
+      const selfiePhotos = data.selfie_matched_photos ?? [];
+      const bibPhotos = data.bib_matched_photos ?? [];
+      return [...selfiePhotos, ...bibPhotos];
+    }
+
+    return [];
+  }, [isAllPhotos, allPhotosQuery.data, galleryQuery.data]);
+
+  // Use custom hook for state management with photos
+  const {
+    searchBib,
+    setSearchBib,
+    columnCount,
+    isMobile,
+    isModalOpen,
+    currentPhotoIndex,
+    clickedPhotoRect,
+    setClickedPhotoRect,
+  } = usePhotoState(photos);
+
+  // Use custom hooks for handlers (now with photos)
+  const {
+    handlePhotoClick, // Handle photo click to open SingleView
+    handlePhotoIndexChange,
+    handleCloseSingleView,
+    handleShare,
+    handleDownload,
+  } = usePhotoHandlers({
+    event,
+    bibParam,
+    isMobile,
+    photoRefs,
+    setClickedPhotoRect,
+    photos,
+  });
 
   // Selfie upload hook
   const {
@@ -115,29 +144,6 @@ export default function EventPhotoPage() {
     }
   };
 
-  // Process photos data
-  const photos = useMemo(() => {
-    if (isAllPhotos && allPhotosQuery.data) {
-      // Flatten all photos from all gallery items
-      const allPhotos: string[] = [];
-      if (allPhotosQuery.data) {
-        allPhotosQuery.data.forEach((photo) => {
-          allPhotos.push(photo.imageUrl);
-        });
-      }
-      return allPhotos;
-    }
-
-    if (!isAllPhotos && galleryQuery.data) {
-      const data = galleryQuery.data;
-      const selfiePhotos = data.selfie_matched_photos ?? [];
-      const bibPhotos = data.bib_matched_photos ?? [];
-      return [...selfiePhotos, ...bibPhotos];
-    }
-
-    return [];
-  }, [isAllPhotos, allPhotosQuery.data, galleryQuery.data]);
-
   // selfie로 매칭된 사진 URL 집합 (상단 배지 표시에 사용)
   const selfieMatchedSet = useMemo(() => {
     if (!isAllPhotos && galleryQuery.data?.selfie_matched_photos?.length) {
@@ -162,27 +168,6 @@ export default function EventPhotoPage() {
       <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 flex h-16 items-center border-b backdrop-blur md:h-18">
         <div className="container mx-auto px-1 md:px-4">
           <div className="flex items-center">
-            {/* {isLoading ? (
-              <>
-                <div className="w-10 md:w-auto">
-                  <Skeleton className="h-8 w-8 rounded-md" />
-                </div>
-                <div className="flex-1 px-2 text-center">
-                  <div className="mx-auto flex max-w-sm flex-col items-center gap-2">
-                    <Skeleton className="h-5 w-40 md:h-6 md:w-56" />
-                    <Skeleton className="h-3 w-48 md:w-64" />
-                  </div>
-                </div>
-                <div className="w-10 md:w-auto">
-                  <div className="hidden items-center gap-2 md:flex">
-                    <Skeleton className="h-9 w-[160px]" />
-                    <Skeleton className="h-9 w-9 rounded-md" />
-                  </div>
-                  <Skeleton className="h-8 w-8 rounded-md md:hidden" />
-                </div>
-              </>
-            ) : ( */}
-
             <div className="w-10 md:w-auto">
               <Button
                 variant="ghost"
@@ -201,7 +186,7 @@ export default function EventPhotoPage() {
                   <Skeleton className="h-3 w-40 md:w-56" />
                 </div>
               ) : (
-                <>
+                <div>
                   <h1 className="text-sm font-semibold md:text-xl">
                     {eventQuery.data?.event_name}
                   </h1>
@@ -219,7 +204,7 @@ export default function EventPhotoPage() {
                     {" • "}
                     {photos.length} photo{photos.length !== 1 ? "s" : ""}
                   </p>
-                </>
+                </div>
               )}
             </div>
 

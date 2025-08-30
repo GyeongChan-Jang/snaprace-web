@@ -5,6 +5,17 @@ import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Share2, Download } from "lucide-react";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  LinkedinShareButton,
+  WhatsappShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  LinkedinIcon,
+  WhatsappIcon,
+} from "react-share";
+import { generateShareablePhotoUrl } from "@/utils/photo";
 
 interface PhotoGridProps {
   photos: string[];
@@ -138,37 +149,71 @@ export function PhotoGrid({
           onClick={() => onPhotoClick(index)}
           style={{ width: `${columnWidth}px` }}
         >
-          <div className="relative overflow-hidden">
+          <div className="group relative overflow-hidden shadow-md transition-all duration-200 hover:shadow-2xl">
             {selfieMatchedSet?.has(url) && (
-              <div className="absolute top-1 left-1">
+              <div className="absolute top-2 left-2 z-20">
                 <Badge variant="default">
                   <span className="font-poppins text-xs">Selfie</span>
                 </Badge>
               </div>
             )}
-            {/* Desktop Hover Overlay */}
+            {/* Desktop Hover Overlay - Bottom positioned */}
             {!isMobile && (
-              <div className="absolute inset-0 z-10 hidden items-start justify-end gap-1 p-2 opacity-0 transition-opacity hover:opacity-100 md:flex">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare(url, index);
-                  }}
-                  className="rounded-full bg-black/30 p-2 text-white backdrop-blur-sm hover:bg-black/40"
-                  title="Share"
+              <div className="absolute right-0 bottom-0 left-0 z-10 hidden translate-y-2 bg-gradient-to-t from-black/70 via-black/50 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex md:items-center md:justify-between">
+                {/* Social Share Icons - Left Side */}
+                <div
+                  className="flex items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Share2 className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDownload(url, index);
-                  }}
-                  className="rounded-full bg-black/30 p-2 text-white backdrop-blur-sm hover:bg-black/40"
-                  title="Download"
-                >
-                  <Download className="h-4 w-4" />
-                </button>
+                  <FacebookShareButton
+                    url={generateShareablePhotoUrl(url)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <FacebookIcon size={28} round />
+                  </FacebookShareButton>
+                  <TwitterShareButton
+                    url={generateShareablePhotoUrl(url)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <TwitterIcon size={28} round />
+                  </TwitterShareButton>
+                  <LinkedinShareButton
+                    url={generateShareablePhotoUrl(url)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <LinkedinIcon size={28} round />
+                  </LinkedinShareButton>
+                  <WhatsappShareButton
+                    url={generateShareablePhotoUrl(url)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <WhatsappIcon size={28} round />
+                  </WhatsappShareButton>
+                </div>
+
+                {/* Share & Download Icons - Right Side */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShare(url, index);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center bg-transparent text-white hover:scale-110"
+                    title="Share"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDownload(url, index);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center bg-transparent text-white hover:scale-110"
+                    title="Download"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -181,10 +226,7 @@ export function PhotoGrid({
               sizes={`${columnWidth}px`}
               priority={index < columnCount}
               loading={index < columnCount ? "eager" : "lazy"}
-              onLoad={() => {
-                // Re-layout after image natural size known
-                scheduleRelayout();
-              }}
+              onLoad={scheduleRelayout}
             />
           </div>
         </div>

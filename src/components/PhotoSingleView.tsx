@@ -10,10 +10,10 @@ import { Badge } from "@/components/ui/badge";
 
 import {
   generatePhotoFilename,
-  sharePhoto,
   downloadPhoto,
   getNextPhotoIndex,
   getPreviousPhotoIndex,
+  generateShareablePhotoUrl,
 } from "@/utils/photo";
 import { isMobileDevice } from "@/utils/device";
 
@@ -114,53 +114,38 @@ export function PhotoSingleView({
   const handleShare = async () => {
     if (!currentPhoto) return;
 
+    // Generate shareable URL for the photo
+    const shareableUrl = generateShareablePhotoUrl(currentPhoto);
+
     // Prefer native navigator.share on mobile
     if (isMobile && typeof navigator !== "undefined") {
       const nav = navigator as NavigatorShare;
       if (nav.share) {
         try {
-          // Attempt to share with file for better UX when supported
-          try {
-            const response = await fetch(currentPhoto, { mode: "cors" });
-            const blob = await response.blob();
-            const fileToShare = new File([blob], filename, {
-              type: blob.type || "image/jpeg",
-            });
-            const dataWithFiles = {
-              files: [fileToShare],
-              title: event ?? "SnapRace Photo",
-              text: `Photo ${currentIndex + 1}/${photos.length}`,
-            } as unknown as ShareData;
-            if (nav.canShare?.(dataWithFiles)) {
-              await nav.share({
-                files: [fileToShare],
-                title: event ?? "SnapRace Photo",
-                text: `Photo ${currentIndex + 1}/${photos.length}`,
-              });
-              toast.success("Shared via device");
-              return;
-            }
-          } catch {}
-
-          // Fallback: share URL
+          // Share the shareable URL instead of the image file
           await nav.share({
             title: event ?? "SnapRace Photo",
-            text: `Photo ${currentIndex + 1}/${photos.length}`,
-            url: currentPhoto,
+            text: `Check out this race photo!`,
+            url: shareableUrl,
           });
-          toast.success("Shared via device");
+          toast.success("Shared successfully!");
           return;
-        } catch {
-          // If native share fails, fall through to library util
+        } catch (error) {
+          // If user cancels, don't show error
+          if ((error as Error).name === "AbortError") {
+            return;
+          }
+          // Fall through to clipboard copy
         }
       }
     }
 
+    // Fallback: copy shareable URL to clipboard
     try {
-      await sharePhoto(currentPhoto, currentIndex, event ?? "", isMobile);
-      toast.success("Photo shared successfully!");
+      await navigator.clipboard.writeText(shareableUrl);
+      toast.success("Share link copied to clipboard!");
     } catch {
-      toast.error("Failed to share photo");
+      toast.error("Failed to copy share link");
     }
   };
 

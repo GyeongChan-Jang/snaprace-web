@@ -5,7 +5,7 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { sharePhoto, downloadPhoto, scrollPhotoIntoView } from "@/utils/photo";
+import { sharePhoto, downloadPhoto, scrollPhotoIntoView, extractPhotoId, encodePhotoId, generateShareablePhotoUrl } from "@/utils/photo";
 
 interface UsePhotoHandlersProps {
   event: string;
@@ -13,6 +13,7 @@ interface UsePhotoHandlersProps {
   isMobile: boolean;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
   setClickedPhotoRect: (rect: DOMRect | null) => void;
+  photos?: string[];
 }
 
 export function usePhotoHandlers({
@@ -21,6 +22,7 @@ export function usePhotoHandlers({
   isMobile,
   photoRefs,
   setClickedPhotoRect,
+  photos = [],
 }: UsePhotoHandlersProps) {
   const router = useRouter();
 
@@ -32,14 +34,21 @@ export function usePhotoHandlers({
         setClickedPhotoRect(photoElement.getBoundingClientRect());
       }
 
-      // Update URL with photo index only
+      // Update URL with photo ID if available, fallback to index
       const newParams = new URLSearchParams();
-      newParams.set("idx", index.toString());
+      if (photos[index]) {
+        const photoId = extractPhotoId(photos[index]);
+        const encodedId = encodePhotoId(photoId);
+        newParams.set("pid", encodedId);
+      } else {
+        // Fallback to index for backward compatibility
+        newParams.set("idx", index.toString());
+      }
       router.push(`/events/${event}/${bibParam}?${newParams.toString()}`, {
         scroll: false,
       });
     },
-    [event, bibParam, router, photoRefs, setClickedPhotoRect],
+    [event, bibParam, router, photoRefs, setClickedPhotoRect, photos],
   );
 
   // Handle photo index change in SingleView
@@ -48,14 +57,21 @@ export function usePhotoHandlers({
       // Real-time scroll synchronization with background gallery
       scrollPhotoIntoView(photoRefs, newIndex);
 
-      // Update URL with new index only (no scroll parameter)
+      // Update URL with photo ID if available, fallback to index
       const newParams = new URLSearchParams();
-      newParams.set("idx", newIndex.toString());
+      if (photos[newIndex]) {
+        const photoId = extractPhotoId(photos[newIndex]);
+        const encodedId = encodePhotoId(photoId);
+        newParams.set("pid", encodedId);
+      } else {
+        // Fallback to index for backward compatibility
+        newParams.set("idx", newIndex.toString());
+      }
       router.push(`/events/${event}/${bibParam}?${newParams.toString()}`, {
         scroll: false,
       });
     },
-    [event, bibParam, router, photoRefs],
+    [event, bibParam, router, photoRefs, photos],
   );
 
   // Handle closing SingleView
@@ -67,13 +83,34 @@ export function usePhotoHandlers({
   const handleShare = useCallback(
     async (photoUrl: string, index?: number) => {
       try {
-        await sharePhoto(photoUrl, index ?? 0, event, isMobile);
-        toast.success("Photo shared successfully!");
+        const shareableUrl = generateShareablePhotoUrl(photoUrl);
+        
+        // On mobile, try native share first
+        if (isMobile && typeof navigator !== "undefined" && navigator.share) {
+          try {
+            await navigator.share({
+              title: "SnapRace Photo",
+              text: "Check out this race photo!",
+              url: shareableUrl,
+            });
+            toast.success("Shared successfully!");
+            return;
+          } catch (error) {
+            if ((error as Error).name === "AbortError") {
+              return; // User cancelled, don't show error
+            }
+            // Fall through to clipboard copy
+          }
+        }
+        
+        // Fallback to clipboard copy
+        await navigator.clipboard.writeText(shareableUrl);
+        toast.success("Share link copied to clipboard!");
       } catch {
         toast.error("Failed to share photo");
       }
     },
-    [event, isMobile],
+    [isMobile],
   );
 
   // Handle photo download

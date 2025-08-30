@@ -2,14 +2,19 @@
  * Photo state management hook for URL and modal states
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { calculateColumnCount, isMobileDevice, debounce } from "@/utils/device";
+import {
+  findPhotoIndexByUrl,
+  findPhotoUrlById,
+  decodePhotoId,
+} from "@/utils/photo";
 
-export function usePhotoState() {
+export function usePhotoState(photos: string[] = []) {
   const params = useParams();
   const searchParams = useSearchParams();
-  
+
   // URL parameters
   const event = params?.event as string;
   const bibParam = params?.bib as string;
@@ -20,12 +25,35 @@ export function usePhotoState() {
   const [searchBib, setSearchBib] = useState(bibNumber || "");
   const [columnCount, setColumnCount] = useState(4);
   const [isMobile, setIsMobile] = useState(false);
-  const [clickedPhotoRect, setClickedPhotoRect] = useState<DOMRect | null>(null);
+  const [clickedPhotoRect, setClickedPhotoRect] = useState<DOMRect | null>(
+    null,
+  );
 
-  // Parse SingleView state from URL
-  const photoIndex = searchParams.get("idx");
-  const isModalOpen = photoIndex !== null;
-  const currentPhotoIndex = photoIndex ? parseInt(photoIndex, 10) : 0;
+  // Parse SingleView state from URL - support both idx and pid
+  const photoIdParam = searchParams.get("pid");
+  const photoIndexParam = searchParams.get("idx"); // backward compatibility
+
+  // Calculate current photo index
+  const currentPhotoIndex = useMemo(() => {
+    if (photoIdParam && photos.length > 0) {
+      const decodedId = decodePhotoId(photoIdParam);
+      const foundUrl = photos.find((url) => {
+        const urlId = /\/([^/]+)\.(jpg|jpeg|png|webp)$/i.exec(url)?.[1];
+        return urlId === decodedId;
+      });
+      if (foundUrl) {
+        return photos.indexOf(foundUrl);
+      }
+    }
+    // Fallback to idx parameter for backward compatibility
+    if (photoIndexParam) {
+      return parseInt(photoIndexParam, 10);
+    }
+    return 0;
+  }, [photoIdParam, photoIndexParam, photos]);
+
+  const isModalOpen = photoIdParam !== null || photoIndexParam !== null;
+  const currentPhotoId = photoIdParam ? decodePhotoId(photoIdParam) : null;
 
   // Responsive layout effect
   useEffect(() => {
@@ -46,18 +74,19 @@ export function usePhotoState() {
     bibParam,
     bibNumber,
     isAllPhotos,
-    
+
     // Search state
     searchBib,
     setSearchBib,
-    
+
     // Layout state
     columnCount,
     isMobile,
-    
+
     // Modal state
     isModalOpen,
     currentPhotoIndex,
+    currentPhotoId,
     clickedPhotoRect,
     setClickedPhotoRect,
   };
