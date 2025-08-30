@@ -90,15 +90,15 @@ export function useSelfieUpload({
     return true;
   };
 
-  const uploadSelfie = async (file: File): Promise<string[] | null> => {
+  const uploadSelfie = async (file: File): Promise<boolean> => {
     // Check if all required params are available
     if (!bibNumber || !eventId) {
       toast.error("Please enter a bib number first");
-      return null;
+      return false;
     }
 
     if (!validateFile(file)) {
-      return null;
+      return false;
     }
 
     setUploadedFile(file);
@@ -107,7 +107,6 @@ export function useSelfieUpload({
     try {
       const base64Image = await convertToBase64(file);
       const matchedPhotos = await callLambdaFunction(base64Image);
-
       if (matchedPhotos.length > 0) {
         toast.success(
           `Found ${matchedPhotos.length} additional photo${matchedPhotos.length > 1 ? "s" : ""} using face matching!`,
@@ -117,13 +116,12 @@ export function useSelfieUpload({
           "No additional photos found. Try a different photo with clearer face visibility.",
         );
       }
-
-      return matchedPhotos;
+      return matchedPhotos.length > 0;
     } catch (error) {
       console.error("Selfie upload error:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
       toast.error(`Failed to process selfie: ${message}`);
-      return null;
+      return false;
     } finally {
       setIsProcessing(false);
     }

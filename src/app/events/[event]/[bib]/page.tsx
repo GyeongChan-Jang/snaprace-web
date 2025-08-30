@@ -20,6 +20,7 @@ import Image from "next/image";
 export default function EventPhotoPage() {
   const router = useRouter();
   const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use custom hooks for state management
   const {
@@ -83,7 +84,15 @@ export default function EventPhotoPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      await uploadSelfie(file);
+      // Upload selfie and then refetch gallery only on success
+      const success = await uploadSelfie(file);
+      if (success) {
+        await galleryQuery.refetch();
+      }
+    }
+    // Always clear input so selecting the same file triggers onChange again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -221,6 +230,7 @@ export default function EventPhotoPage() {
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={isUploading || !bibNumber}
+                ref={fileInputRef}
               />
               <label htmlFor="selfie-upload" className="block">
                 <div
@@ -286,6 +296,10 @@ export default function EventPhotoPage() {
                               e.stopPropagation();
 
                               reset();
+                              // Clear file input so the same file can be chosen again
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = "";
+                              }
                             }}
                           >
                             Upload another
@@ -328,11 +342,13 @@ export default function EventPhotoPage() {
               </label>
             </div>
 
-            {/* Alternative simple status for no photos found */}
+            {/* No additional photos status (only after selfie processing is reflected in data) */}
             {uploadedFile &&
               !isUploading &&
-              galleryQuery.data &&
-              galleryQuery.data.selfie_matched_photos.length === 0 && (
+              galleryQuery.isFetched &&
+              !galleryQuery.isFetching &&
+              galleryQuery.data?.selfie_enhanced === true &&
+              (galleryQuery.data.selfie_matched_photos?.length ?? 0) === 0 && (
                 <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
                   <div className="flex items-center gap-2 text-sm">
                     <svg
