@@ -73,6 +73,7 @@ export default function EventPhotoPage() {
     isProcessing: isUploading,
     uploadSelfie,
     uploadedFile,
+    reset,
   } = useSelfieUpload({
     eventId: event,
     bibNumber,
@@ -123,8 +124,7 @@ export default function EventPhotoPage() {
   const hasError =
     eventQuery.error ?? galleryQuery.error ?? allPhotosQuery.error;
 
-  console.log("isLoading", isLoading);
-  console.log("hasError", hasError);
+  console.log("galleryQuery.data", galleryQuery.data);
 
   if (hasError) {
     return <ErrorState message="Failed to load event data" />;
@@ -284,7 +284,8 @@ export default function EventPhotoPage() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              void galleryQuery.refetch();
+
+                              reset();
                             }}
                           >
                             Upload another
