@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { dynamoClient, TABLES } from "@/lib/dynamodb";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
+import type { QueryCommandOutput } from "@aws-sdk/lib-dynamodb";
 
 export const PhotoSchema = z.object({
   event_id: z.string(),
@@ -14,22 +15,38 @@ export const photosRouter = createTRPCRouter({
   getByEventId: publicProcedure
     .input(z.object({ eventId: z.string() }))
     .query(async ({ input }) => {
-      const command = new QueryCommand({
-        TableName: TABLES.PHOTOS,
-        IndexName: "EventIndex",
-        KeyConditionExpression: "event_id = :eventId",
-        ExpressionAttributeValues: {
-          ":eventId": input.eventId,
-        },
-        ProjectionExpression: "event_id, cloudfront_url",
-      });
+      let lastEvaluatedKey: QueryCommandOutput["LastEvaluatedKey"] | undefined =
+        undefined;
+      const aggregatedItems: Array<{
+        event_id: string;
+        cloudfront_url: string;
+      }> = [];
 
-      const result = await dynamoClient.send(command);
-      const photos = result.Items ?? [];
+      do {
+        const command: QueryCommand = new QueryCommand({
+          TableName: TABLES.PHOTOS,
+          IndexName: "EventIndex",
+          KeyConditionExpression: "event_id = :eventId",
+          ExpressionAttributeValues: {
+            ":eventId": input.eventId,
+          },
+          ProjectionExpression: "event_id, cloudfront_url",
+          ExclusiveStartKey: lastEvaluatedKey,
+        });
 
-      const frontendPhotos = photos.map((photo) => ({
-        eventId: (photo as { event_id: string }).event_id,
-        imageUrl: (photo as { cloudfront_url: string }).cloudfront_url,
+        const result = (await dynamoClient.send(command)) as QueryCommandOutput;
+        const items =
+          (result.Items as Array<{
+            event_id: string;
+            cloudfront_url: string;
+          }>) ?? [];
+        aggregatedItems.push(...items);
+        lastEvaluatedKey = result.LastEvaluatedKey ?? undefined;
+      } while (lastEvaluatedKey);
+
+      const frontendPhotos = aggregatedItems.map((photo) => ({
+        eventId: photo.event_id,
+        imageUrl: photo.cloudfront_url,
       }));
 
       return frontendPhotos;

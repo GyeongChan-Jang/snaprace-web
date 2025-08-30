@@ -12,6 +12,7 @@ import { NoPhotosState } from "@/components/states/EmptyState";
 import { useSelfieUpload } from "@/hooks/useSelfieUpload";
 import { PhotoSingleView } from "@/components/PhotoSingleView";
 import { PhotoGrid } from "@/components/PhotoGrid";
+import { InfinitePhotoGrid } from "@/components/InfinitePhotoGrid";
 import { usePhotoState } from "@/hooks/usePhotoState";
 import { usePhotoHandlers } from "@/hooks/usePhotoHandlers";
 import Image from "next/image";
@@ -62,15 +63,10 @@ export default function EventPhotoPage() {
     { enabled: !!event && !isAllPhotos && !!bibNumber },
   );
 
-  // if [bib] is null, get all photos for the event
-  const allPhotosQuery = api.galleries.getAllByEventId.useQuery(
+  const allPhotosQuery = api.photos.getByEventId.useQuery(
     { eventId: event },
     { enabled: !!event && isAllPhotos },
   );
-
-  // console.log("eventQuery", eventQuery);
-  // console.log("galleryQuery", galleryQuery);
-  // console.log("allPhotosQuery", allPhotosQuery);
 
   // Selfie upload hook
   const {
@@ -103,11 +99,11 @@ export default function EventPhotoPage() {
     if (isAllPhotos && allPhotosQuery.data) {
       // Flatten all photos from all gallery items
       const allPhotos: string[] = [];
-      allPhotosQuery.data.forEach((item) => {
-        const selfiePhotos = item.selfie_matched_photos ?? [];
-        const bibPhotos = item.bib_matched_photos ?? [];
-        allPhotos.push(...selfiePhotos, ...bibPhotos);
-      });
+      if (allPhotosQuery.data) {
+        allPhotosQuery.data.forEach((photo) => {
+          allPhotos.push(photo.imageUrl);
+        });
+      }
       return allPhotos;
     }
 
@@ -380,15 +376,27 @@ export default function EventPhotoPage() {
         {isLoading ? (
           <MasonryPhotoSkeleton />
         ) : photos.length > 0 ? (
-          <PhotoGrid
-            photos={photos}
-            columnCount={columnCount}
-            isMobile={isMobile}
-            onPhotoClick={handlePhotoClick}
-            onShare={handleShare}
-            onDownload={handleDownload}
-            photoRefs={photoRefs}
-          />
+          isAllPhotos ? (
+            <InfinitePhotoGrid
+              photos={photos}
+              columnCount={columnCount}
+              isMobile={isMobile}
+              onPhotoClick={handlePhotoClick}
+              onShare={handleShare}
+              onDownload={handleDownload}
+              photoRefs={photoRefs}
+            />
+          ) : (
+            <PhotoGrid
+              photos={photos}
+              columnCount={columnCount}
+              isMobile={isMobile}
+              onPhotoClick={handlePhotoClick}
+              onShare={handleShare}
+              onDownload={handleDownload}
+              photoRefs={photoRefs}
+            />
+          )
         ) : (
           <NoPhotosState
             isAllPhotos={isAllPhotos}
