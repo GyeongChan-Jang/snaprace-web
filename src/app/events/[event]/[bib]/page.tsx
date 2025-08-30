@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,16 @@ export default function EventPhotoPage() {
     }
   };
 
+  // Unified retry helper for both "Upload another" and "Try again"
+  const resetAndPromptSelfieUpload = useCallback(() => {
+    reset();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      // Open the file picker immediately for a smooth retry flow
+      fileInputRef.current.click();
+    }
+  }, [reset]);
+
   // Bib search handler
   const handleBibSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +136,14 @@ export default function EventPhotoPage() {
 
     return [];
   }, [isAllPhotos, allPhotosQuery.data, galleryQuery.data]);
+
+  // selfie로 매칭된 사진 URL 집합 (상단 배지 표시에 사용)
+  const selfieMatchedSet = useMemo(() => {
+    if (!isAllPhotos && galleryQuery.data?.selfie_matched_photos?.length) {
+      return new Set(galleryQuery.data.selfie_matched_photos);
+    }
+    return new Set<string>();
+  }, [isAllPhotos, galleryQuery.data?.selfie_matched_photos]);
 
   // Loading states
   const isLoading =
@@ -294,12 +312,7 @@ export default function EventPhotoPage() {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-
-                              reset();
-                              // Clear file input so the same file can be chosen again
-                              if (fileInputRef.current) {
-                                fileInputRef.current.value = "";
-                              }
+                              resetAndPromptSelfieUpload();
                             }}
                           >
                             Upload another
@@ -375,7 +388,7 @@ export default function EventPhotoPage() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        // reset();
+                        resetAndPromptSelfieUpload();
                       }}
                       className="ml-auto text-xs"
                     >
@@ -412,6 +425,7 @@ export default function EventPhotoPage() {
               onShare={handleShare}
               onDownload={handleDownload}
               photoRefs={photoRefs}
+              selfieMatchedSet={selfieMatchedSet}
             />
           )
         ) : (
@@ -439,6 +453,7 @@ export default function EventPhotoPage() {
             setClickedPhotoRect(photoElement.getBoundingClientRect());
           }
         }}
+        selfieMatchedSet={selfieMatchedSet}
       />
     </div>
   );

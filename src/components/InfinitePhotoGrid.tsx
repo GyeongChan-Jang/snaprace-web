@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 import { Share2, Download } from "lucide-react";
 
 interface InfinitePhotoGridProps {
@@ -13,6 +14,7 @@ interface InfinitePhotoGridProps {
   onShare: (url: string, index: number) => void;
   onDownload: (url: string, index: number) => void;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
+  selfieMatchedSet?: Set<string>;
 }
 
 export function InfinitePhotoGrid({
@@ -23,6 +25,7 @@ export function InfinitePhotoGrid({
   onShare,
   onDownload,
   photoRefs,
+  selfieMatchedSet,
 }: InfinitePhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
@@ -161,6 +164,11 @@ export function InfinitePhotoGrid({
             style={{ width: `${columnWidth}px` }}
           >
             <div className="relative overflow-hidden">
+              {selfieMatchedSet?.has(url) && (
+                <div className="absolute top-1 left-1 z-20">
+                  <Badge variant="selfie">Selfie match</Badge>
+                </div>
+              )}
               {!isMobile && (
                 <div className="absolute inset-0 z-10 hidden items-start justify-end gap-1 p-2 opacity-0 transition-opacity hover:opacity-100 md:flex">
                   <button

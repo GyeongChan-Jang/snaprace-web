@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
 import { Share2, Download } from "lucide-react";
 
 interface PhotoGridProps {
@@ -13,6 +14,7 @@ interface PhotoGridProps {
   onShare: (url: string, index: number) => void;
   onDownload: (url: string, index: number) => void;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
+  selfieMatchedSet?: Set<string>;
 }
 
 export function PhotoGrid({
@@ -23,6 +25,7 @@ export function PhotoGrid({
   onShare,
   onDownload,
   photoRefs,
+  selfieMatchedSet,
 }: PhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
@@ -112,6 +115,13 @@ export function PhotoGrid({
           style={{ width: `${columnWidth}px` }}
         >
           <div className="relative overflow-hidden">
+            {selfieMatchedSet?.has(url) && (
+              <div className="absolute top-1 left-1">
+                <Badge variant="default">
+                  <span className="font-poppins text-xs">Selfie</span>
+                </Badge>
+              </div>
+            )}
             {/* Desktop Hover Overlay */}
             {!isMobile && (
               <div className="absolute inset-0 z-10 hidden items-start justify-end gap-1 p-2 opacity-0 transition-opacity hover:opacity-100 md:flex">

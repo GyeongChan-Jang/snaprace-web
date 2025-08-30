@@ -6,6 +6,7 @@ import { useSwipeable } from "react-swipeable";
 import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 import {
   generatePhotoFilename,
@@ -30,6 +31,7 @@ interface PhotoSingleViewProps {
   event?: string;
   bibNumber?: string;
   onPhotoChange?: (index: number) => void;
+  selfieMatchedSet?: Set<string>;
 }
 
 export function PhotoSingleView({
@@ -41,6 +43,7 @@ export function PhotoSingleView({
   event,
   bibNumber,
   onPhotoChange,
+  selfieMatchedSet,
 }: PhotoSingleViewProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -338,7 +341,7 @@ export function PhotoSingleView({
         >
           <div
             ref={imageRef}
-            className="relative max-h-full max-w-full"
+            className="relative inline-block"
             style={{
               transformOrigin: "center",
             }}
@@ -354,11 +357,18 @@ export function PhotoSingleView({
               alt={`Photo ${currentIndex + 1}`}
               width={1200}
               height={800}
-              className="max-h-[90vh] max-w-full object-contain"
+              className="h-auto max-h-[85vh] w-auto max-w-[90vw] object-contain"
               onLoad={() => setImageLoaded(true)}
               priority
               unoptimized
             />
+            {selfieMatchedSet?.has(currentPhoto) && (
+              <div className="absolute top-2 left-2 z-20">
+                <Badge variant="default">
+                  <span className="font-poppins text-xs">Selfie</span>
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
 

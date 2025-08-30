@@ -37,12 +37,25 @@ export const galleriesRouter = createTRPCRouter({
         },
       });
       const result = await dynamoClient.send(command);
-      
-      // Parse and validate the response
-      if (result.Item) {
-        return GalleryItemSchema.parse(result.Item);
+
+      if (!result.Item) return null;
+
+      const parsed = GalleryItemSchema.parse(result.Item);
+
+      // When selfie enhancement is enabled, ensure selfie_matched_photos only
+      if (parsed.selfie_enhanced) {
+        const bibSet = new Set(parsed.bib_matched_photos ?? []);
+        const uniqueSelfie = (parsed.selfie_matched_photos ?? []).filter(
+          (url) => !bibSet.has(url),
+        );
+
+        return {
+          ...parsed,
+          selfie_matched_photos: uniqueSelfie,
+        } satisfies typeof parsed;
       }
-      return null;
+
+      return parsed;
     }),
 
   // Get all gallery items for an event
@@ -61,7 +74,7 @@ export const galleriesRouter = createTRPCRouter({
         },
       });
       const result = await dynamoClient.send(command);
-      
+
       // Parse and validate each item
       const items = result.Items ?? [];
       return z.array(GalleryItemSchema).parse(items);

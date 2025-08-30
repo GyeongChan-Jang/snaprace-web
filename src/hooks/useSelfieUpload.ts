@@ -107,15 +107,15 @@ export function useSelfieUpload({
     try {
       const base64Image = await convertToBase64(file);
       const matchedPhotos = await callLambdaFunction(base64Image);
-      if (matchedPhotos.length > 0) {
-        toast.success(
-          `Found ${matchedPhotos.length} additional photo${matchedPhotos.length > 1 ? "s" : ""} using face matching!`,
-        );
-      } else {
-        toast.info(
-          "No additional photos found. Try a different photo with clearer face visibility.",
-        );
-      }
+      // if (matchedPhotos.length > 0) {
+      //   toast.success(
+      //     `Found ${matchedPhotos.length} additional photo${matchedPhotos.length > 1 ? "s" : ""} using face matching!`,
+      //   );
+      // } else {
+      //   toast.info(
+      //     "No additional photos found. Try a different photo with clearer face visibility.",
+      //   );
+      // }
       return matchedPhotos.length > 0;
     } catch (error) {
       console.error("Selfie upload error:", error);
