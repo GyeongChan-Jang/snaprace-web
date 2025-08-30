@@ -56,15 +56,21 @@ export default function EventPhotoPage() {
     { enabled: !!event },
   );
 
+  // if [bib] is not null, get the photos for the bib number
   const galleryQuery = api.galleries.getByBibNumber.useQuery(
     { eventId: event, bibNumber },
     { enabled: !!event && !isAllPhotos && !!bibNumber },
   );
 
+  // if [bib] is null, get all photos for the event
   const allPhotosQuery = api.galleries.getAllByEventId.useQuery(
     { eventId: event },
     { enabled: !!event && isAllPhotos },
   );
+
+  // console.log("eventQuery", eventQuery);
+  // console.log("galleryQuery", galleryQuery);
+  // console.log("allPhotosQuery", allPhotosQuery);
 
   // Selfie upload hook
   const {
@@ -120,6 +126,9 @@ export default function EventPhotoPage() {
     eventQuery.isLoading ?? galleryQuery.isLoading ?? allPhotosQuery.isLoading;
   const hasError =
     eventQuery.error ?? galleryQuery.error ?? allPhotosQuery.error;
+
+  console.log("isLoading", isLoading);
+  console.log("hasError", hasError);
 
   if (hasError) {
     return <ErrorState message="Failed to load event data" />;

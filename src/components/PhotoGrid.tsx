@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
+import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
 import { Share2, Download } from "lucide-react";
@@ -84,6 +84,17 @@ export function PhotoGrid({
     return Math.floor((containerWidth - gaps - padding) / columnCount);
   }, [containerWidth, columnCount, gridGap]);
 
+  const setPhotoRef = useCallback(
+    (el: HTMLDivElement | null, index: number) => {
+      if (el) {
+        photoRefs.current.set(index, el);
+      } else {
+        photoRefs.current.delete(index);
+      }
+    },
+    [photoRefs],
+  );
+
   return (
     <div
       ref={containerRef}
@@ -95,10 +106,7 @@ export function PhotoGrid({
       {photos.map((url, index) => (
         <div
           key={index}
-          ref={(el) => {
-            if (el) photoRefs.current.set(index, el);
-            else photoRefs.current.delete(index);
-          }}
+          ref={(el) => setPhotoRef(el, index)}
           className="cursor-pointer"
           onClick={() => onPhotoClick(index)}
           style={{ width: `${columnWidth}px` }}
@@ -137,7 +145,8 @@ export function PhotoGrid({
               height={300}
               className="h-auto w-full object-cover"
               sizes={`${columnWidth}px`}
-              loading="lazy"
+              priority={index < columnCount}
+              loading={index < columnCount ? "eager" : "lazy"}
               onLoad={() => {
                 // Re-render grid after image loads for proper masonry positioning
                 if (gridRef.current) {

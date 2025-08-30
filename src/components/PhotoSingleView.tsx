@@ -7,7 +7,7 @@ import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ANIMATION_TIMINGS } from "@/utils/animation";
+// Animations removed
 import {
   generatePhotoFilename,
   sharePhoto,
@@ -45,11 +45,8 @@ export function PhotoSingleView({
 }: PhotoSingleViewProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
   const imageRef = useRef<HTMLDivElement>(null);
-  // Swipe handlers (react-swipeable will manage touch events)
+  // Swipe handlers (react-swipeable will manage touch events
 
   // Detect mobile device
   useEffect(() => {
@@ -102,20 +99,7 @@ export function PhotoSingleView({
     };
   }, [isOpen]);
 
-  // Animation effect - simplified with framer-motion handling most of it
-  useEffect(() => {
-    if (isOpen) {
-      setIsClosing(false); // Reset closing state when opening
-      setIsAnimating(true);
-      setShowOverlay(false);
-
-      // Show overlay after a delay for natural flow
-      setTimeout(() => {
-        setShowOverlay(true);
-        setIsAnimating(false);
-      }, ANIMATION_TIMINGS.OVERLAY_DELAY);
-    }
-  }, [isOpen]);
+  // Animations removed
 
   // Reset image loaded state when photo changes
   useEffect(() => {
@@ -233,20 +217,9 @@ export function PhotoSingleView({
     }
   };
 
-  const handleCloseWithAnimation = useCallback(() => {
-    if (isClosing || isAnimating) return; // Prevent multiple close attempts
-
-    setIsClosing(true);
-    setIsAnimating(true);
-    setShowOverlay(false);
-
-    // Close after animation completes
-    setTimeout(() => {
-      setIsClosing(false);
-      setIsAnimating(false);
-      onClose();
-    }, 200);
-  }, [onClose, isClosing, isAnimating]);
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   const swipeable = useSwipeable({
     onSwipedLeft: handleNext,
@@ -258,7 +231,7 @@ export function PhotoSingleView({
   });
   const { ...swipeHandlers } = swipeable;
 
-  if (!isOpen && !isAnimating && !isClosing) return null;
+  if (!isOpen) return null;
   if (!currentPhoto) return null;
 
   return (
@@ -266,18 +239,11 @@ export function PhotoSingleView({
       {/* Single View Content Layer */}
       <div className="relative h-full w-full">
         {/* Header with controls */}
-        <div
-          className={cn(
-            "absolute top-0 right-0 left-0 z-20 flex items-center justify-between p-4 transition-all duration-300 ease-out",
-            showOverlay && !isAnimating
-              ? "translate-y-0 opacity-100"
-              : "-translate-y-2 opacity-0",
-          )}
-        >
+        <div className="absolute top-0 right-0 left-0 z-20 flex items-center justify-between p-4">
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleCloseWithAnimation}
+            onClick={handleClose}
             className="text-gray-700 hover:bg-gray-100"
           >
             <X className="h-6 w-6" />
@@ -317,7 +283,7 @@ export function PhotoSingleView({
               className="group absolute top-0 bottom-0 left-0 z-10 w-1/3 cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
-                if (showOverlay && !isAnimating) handlePrevious();
+                handlePrevious();
               }}
             >
               <div className="absolute top-1/2 left-4 -translate-y-1/2">
@@ -325,13 +291,8 @@ export function PhotoSingleView({
                   variant="ghost"
                   size="icon"
                   onClick={handlePrevious}
-                  className={cn(
-                    "h-12 w-12 text-gray-700 opacity-0 transition-opacity hover:bg-gray-100",
-                    showOverlay && !isAnimating
-                      ? "group-hover:opacity-100"
-                      : "opacity-0",
-                  )}
-                  disabled={!showOverlay || isAnimating}
+                  className="h-12 w-12 text-gray-700 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100"
+                  disabled={false}
                 >
                   <ChevronLeft className="h-8 w-8" />
                 </Button>
@@ -347,7 +308,7 @@ export function PhotoSingleView({
               className="group absolute top-0 right-0 bottom-0 z-10 w-1/3 cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
-                if (showOverlay && !isAnimating) handleNext();
+                handleNext();
               }}
             >
               <div className="absolute top-1/2 right-4 -translate-y-1/2">
@@ -355,13 +316,8 @@ export function PhotoSingleView({
                   variant="ghost"
                   size="icon"
                   onClick={handleNext}
-                  className={cn(
-                    "h-12 w-12 text-gray-700 opacity-0 transition-opacity hover:bg-gray-100",
-                    showOverlay && !isAnimating
-                      ? "group-hover:opacity-100"
-                      : "opacity-0",
-                  )}
-                  disabled={!showOverlay || isAnimating}
+                  className="h-12 w-12 text-gray-700 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-gray-100"
+                  disabled={false}
                 >
                   <ChevronRight className="h-8 w-8" />
                 </Button>
@@ -378,9 +334,7 @@ export function PhotoSingleView({
         <div
           className="flex h-full w-full items-center justify-center p-4"
           onClick={(e) => {
-            if (e.target === e.currentTarget && showOverlay && !isAnimating) {
-              handleCloseWithAnimation();
-            }
+            if (e.target === e.currentTarget) handleClose();
           }}
         >
           <div
@@ -401,14 +355,8 @@ export function PhotoSingleView({
               alt={`Photo ${currentIndex + 1}`}
               width={1200}
               height={800}
-              className={cn(
-                "max-h-[90vh] max-w-full object-contain",
-                imageLoaded ? "opacity-100" : "opacity-0",
-              )}
-              style={{ transition: "opacity 0.2s ease" }}
-              onLoad={() => {
-                setImageLoaded(true);
-              }}
+              className="max-h-[90vh] max-w-full object-contain"
+              onLoad={() => setImageLoaded(true)}
               priority
               unoptimized
             />
@@ -417,14 +365,7 @@ export function PhotoSingleView({
 
         {/* Mobile-specific bottom info */}
         {isMobile && (
-          <div
-            className={cn(
-              "absolute right-0 bottom-0 left-0 bg-gradient-to-t from-gray-100/80 to-transparent p-4 text-center transition-all duration-300 ease-out",
-              showOverlay && !isAnimating
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0",
-            )}
-          >
+          <div className="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-gray-100/80 to-transparent p-4 text-center">
             <p className="text-sm text-gray-600">{filename}</p>
           </div>
         )}

@@ -7,7 +7,7 @@ interface EventCardProps {
   id: string;
   name: string;
   image: string;
-  date: string; // ISO string from API
+  date: string;
 }
 
 export default function EventCard({ id, name, image, date }: EventCardProps) {
@@ -17,7 +17,11 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
         {/* Event Image */}
         <div className="relative mb-4 aspect-[4/3] w-full overflow-hidden">
           <Image
-            src={image ?? "/images/partners/partner-millennium-running.png"}
+            src={
+              Boolean(image)
+                ? image
+                : "/images/partners/partner-millennium-running.png"
+            }
             alt={name}
             fill
             className="object-contain transition-opacity duration-300 hover:opacity-80"
@@ -26,6 +30,7 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
               e.currentTarget.src =
                 "/images/partners/partner-millennium-running.png";
             }}
+            priority
           />
 
           {/* Status Badge */}
