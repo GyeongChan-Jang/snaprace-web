@@ -164,13 +164,6 @@ export function PhotoGrid({
                 }
               }}
             />
-
-            {/* Photo counter overlay for debugging*/}
-            {/* <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
-              <p className="text-sm">
-                {index + 1} / {photos.length}
-              </p>
-            </div> */}
           </div>
         </div>
       ))}

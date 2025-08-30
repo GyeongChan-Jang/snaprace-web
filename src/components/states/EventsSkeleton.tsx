@@ -31,7 +31,7 @@ export function EventSelectSkeleton() {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <Skeleton className="h-4 w-4 rounded-full" />
+        <Skeleton className="h-5 w-5 rounded-full" />
         <Skeleton className="h-4 w-16" />
       </div>
       <Skeleton className="h-14 w-full" />

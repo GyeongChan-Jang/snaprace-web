@@ -16,6 +16,7 @@ import { InfinitePhotoGrid } from "@/components/InfinitePhotoGrid";
 import { usePhotoState } from "@/hooks/usePhotoState";
 import { usePhotoHandlers } from "@/hooks/usePhotoHandlers";
 import Image from "next/image";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function EventPhotoPage() {
   const router = useRouter();
@@ -147,9 +148,9 @@ export default function EventPhotoPage() {
 
   // Loading states
   const isLoading =
-    eventQuery.isLoading ?? galleryQuery.isLoading ?? allPhotosQuery.isLoading;
+    eventQuery.isLoading || galleryQuery.isLoading || allPhotosQuery.isLoading;
   const hasError =
-    eventQuery.error ?? galleryQuery.error ?? allPhotosQuery.error;
+    eventQuery.error || galleryQuery.error || allPhotosQuery.error;
 
   console.log("galleryQuery.data", galleryQuery.data);
 
@@ -163,6 +164,27 @@ export default function EventPhotoPage() {
       <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 flex h-16 items-center border-b backdrop-blur md:h-18">
         <div className="container mx-auto px-1 md:px-4">
           <div className="flex items-center">
+            {/* {isLoading ? (
+              <>
+                <div className="w-10 md:w-auto">
+                  <Skeleton className="h-8 w-8 rounded-md" />
+                </div>
+                <div className="flex-1 px-2 text-center">
+                  <div className="mx-auto flex max-w-sm flex-col items-center gap-2">
+                    <Skeleton className="h-5 w-40 md:h-6 md:w-56" />
+                    <Skeleton className="h-3 w-48 md:w-64" />
+                  </div>
+                </div>
+                <div className="w-10 md:w-auto">
+                  <div className="hidden items-center gap-2 md:flex">
+                    <Skeleton className="h-9 w-[160px]" />
+                    <Skeleton className="h-9 w-9 rounded-md" />
+                  </div>
+                  <Skeleton className="h-8 w-8 rounded-md md:hidden" />
+                </div>
+              </>
+            ) : ( */}
+
             <div className="w-10 md:w-auto">
               <Button
                 variant="ghost"
@@ -175,23 +197,32 @@ export default function EventPhotoPage() {
             </div>
 
             <div className="flex-1 text-center">
-              <h1 className="text-sm font-semibold md:text-xl">
-                {eventQuery.data?.event_name}
-              </h1>
-              <p className="text-muted-foreground text-xs md:text-sm">
-                {!isAllPhotos && bibNumber ? (
-                  <>
-                    Bib #{bibNumber}{" "}
-                    {galleryQuery.data?.runner_name && (
-                      <>• {galleryQuery.data.runner_name}</>
+              {isLoading ? (
+                <div className="mx-auto flex max-w-sm flex-col items-center gap-2">
+                  <Skeleton className="h-5 w-48 md:h-6 md:w-70" />
+                  <Skeleton className="h-3 w-40 md:w-56" />
+                </div>
+              ) : (
+                <>
+                  <h1 className="text-sm font-semibold md:text-xl">
+                    {eventQuery.data?.event_name}
+                  </h1>
+                  <p className="text-muted-foreground text-xs md:text-sm">
+                    {!isAllPhotos && bibNumber ? (
+                      <>
+                        Bib #{bibNumber}{" "}
+                        {galleryQuery.data?.runner_name && (
+                          <>• {galleryQuery.data.runner_name}</>
+                        )}
+                      </>
+                    ) : (
+                      "All Photos"
                     )}
-                  </>
-                ) : (
-                  "All Photos"
-                )}
-                {" • "}
-                {photos.length} photo{photos.length !== 1 ? "s" : ""}
-              </p>
+                    {" • "}
+                    {photos.length} photo{photos.length !== 1 ? "s" : ""}
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="w-10 md:w-auto">
@@ -227,6 +258,51 @@ export default function EventPhotoPage() {
       {/* Search and Upload Section */}
       <div className="mx-1 my-8 max-w-3xl md:mx-auto">
         <div className="bg-muted/50 rounded-lg p-6">
+          {/* Partners & Sponsors (above selfie upload) */}
+          <div className="mx-auto mb-6 grid max-w-3xl gap-4 sm:grid-cols-2">
+            {/* Partners */}
+            <div className="border-border/60 bg-background/60 rounded-xl border p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="bg-primary h-1.5 w-1.5 rounded-full" />
+                <p className="text-muted-foreground text-xs font-medium tracking-wide">
+                  Partners
+                </p>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="relative h-10 w-36 md:h-12 md:w-40">
+                  <Image
+                    src="/images/partners/partner-millennium-running.png"
+                    alt="Millennium Running"
+                    fill
+                    className="object-contain opacity-70 transition-opacity hover:opacity-100"
+                    sizes="(max-width: 768px) 144px, 160px"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Sponsors */}
+            <div className="border-border/60 bg-background/60 rounded-xl border p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2">
+                <div className="bg-primary h-1.5 w-1.5 rounded-full" />
+                <p className="text-muted-foreground text-xs font-medium tracking-wide">
+                  Sponsors
+                </p>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="relative h-10 w-36 md:h-12 md:w-40">
+                  <Image
+                    src="/images/partners/partner-autofair.png"
+                    alt="AutoFair"
+                    fill
+                    className="object-contain opacity-70 transition-opacity hover:opacity-100"
+                    sizes="(max-width: 768px) 144px, 160px"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Selfie Upload */}
           <div className="mx-auto max-w-md">
             <div className="mb-4 text-center">

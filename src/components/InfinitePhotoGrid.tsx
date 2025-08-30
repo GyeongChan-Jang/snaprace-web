@@ -212,9 +212,9 @@ export function InfinitePhotoGrid({
               />
 
               {/* for debugging */}
-              <div className="text-center text-xs text-gray-500">
+              {/* <div className="text-center text-xs text-gray-500">
                 {index + 1} / {photos.length}
-              </div>
+              </div> */}
             </div>
           </div>
         ))}

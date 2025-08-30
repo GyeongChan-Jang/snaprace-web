@@ -15,7 +15,7 @@ export function Header() {
   const isPhotoPage = /^\/events\/[^/]+\/[^/]+$/.test(pathname);
 
   const navigation = [
-    { name: "Home", href: "/" },
+    { name: "Search", href: "/" },
     { name: "Events", href: "/events" },
   ];
 

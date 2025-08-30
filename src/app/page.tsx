@@ -191,9 +191,9 @@ export default function HomePage() {
       </section> */}
 
       {/* Partners Section */}
-      <section className="bg-muted/30 mt-auto border-t px-4 py-12">
+      <section className="bg-muted/30 mt-auto border-t px-4 py-8">
         <div className="container mx-auto max-w-4xl">
-          <div className="mb-8 text-center">
+          <div className="mb-6 text-center">
             <h2 className="text-foreground mb-4 text-2xl font-bold tracking-tight">
               Partners
             </h2>
