@@ -146,9 +146,9 @@ export default function EventPhotoPage() {
     return new Set<string>();
   }, [isAllPhotos, galleryQuery.data?.selfie_matched_photos]);
 
-  // Loading states
   const isLoading =
     eventQuery.isLoading || galleryQuery.isLoading || allPhotosQuery.isLoading;
+
   const hasError =
     eventQuery.error || galleryQuery.error || allPhotosQuery.error;
 
