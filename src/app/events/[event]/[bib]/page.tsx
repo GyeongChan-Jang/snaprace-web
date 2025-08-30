@@ -241,7 +241,7 @@ export default function EventPhotoPage() {
       {/* Search and Upload Section */}
       <div className="mx-1 my-8 max-w-3xl md:mx-auto">
         <div className="bg-muted/50 rounded-lg p-6">
-          {/* Partners & Sponsors (above selfie upload) */}
+          {/* Partners & Sponsors desktop */}
           <div className="mx-auto mb-6 grid max-w-3xl gap-4 sm:grid-cols-2">
             {/* Partners */}
             <div className="border-border/60 bg-background/60 rounded-xl border p-4 shadow-sm">
@@ -474,6 +474,8 @@ export default function EventPhotoPage() {
               onShare={handleShare}
               onDownload={handleDownload}
               photoRefs={photoRefs}
+              event={event}
+              bibNumber={bibNumber}
             />
           ) : (
             <PhotoGrid
@@ -485,6 +487,8 @@ export default function EventPhotoPage() {
               onDownload={handleDownload}
               photoRefs={photoRefs}
               selfieMatchedSet={selfieMatchedSet}
+              event={event}
+              bibNumber={bibNumber}
             />
           )
         ) : (

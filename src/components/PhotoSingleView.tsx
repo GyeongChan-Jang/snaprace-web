@@ -7,6 +7,7 @@ import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { ShareDialog } from "@/components/ShareDialog";
 
 import {
   generatePhotoFilename,
@@ -14,6 +15,7 @@ import {
   getNextPhotoIndex,
   getPreviousPhotoIndex,
   generateShareablePhotoUrl,
+  downloadPhotoEnhanced,
 } from "@/utils/photo";
 import { isMobileDevice } from "@/utils/device";
 
@@ -241,20 +243,47 @@ export function PhotoSingleView({
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleShare}
-              className="text-gray-700 hover:bg-gray-100"
-              title={isMobile ? "Share" : "Copy link"}
+            <ShareDialog
+              photoUrl={currentPhoto}
+              filename={filename}
+              isMobile={isMobile}
             >
-              <Share className="h-5 w-5" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-700 hover:bg-gray-100"
+                title="Share"
+              >
+                <Share className="h-5 w-5" />
+              </Button>
+            </ShareDialog>
 
             <Button
               variant="ghost"
               size="icon"
-              onClick={handleDownload}
+              onClick={async () => {
+                const result = await downloadPhotoEnhanced(currentPhoto, filename, isMobile);
+                
+                if (result.success) {
+                  switch (result.method) {
+                    case "native_share":
+                      toast.success("Shared to save on device!");
+                      break;
+                    case "new_tab":
+                      toast.info("Opened in new tab. Use browser save.");
+                      break;
+                    case "proxy":
+                    case "direct":
+                      toast.success("Photo download started!");
+                      break;
+                    case "newTab":
+                      toast.info("Photo opened in new tab. Right-click to save.");
+                      break;
+                  }
+                } else {
+                  toast.error("Unable to download photo.");
+                }
+              }}
               className="text-gray-700 hover:bg-gray-100"
               title="Download"
             >

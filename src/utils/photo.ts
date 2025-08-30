@@ -206,3 +206,115 @@ export function scrollPhotoIntoView(
     });
   }
 }
+
+/**
+ * Enhanced photo share functionality with multiple options
+ */
+export async function sharePhotoWithOptions(
+  photoUrl: string,
+  shareableUrl: string,
+  filename: string,
+  isMobile = false
+): Promise<{ success: boolean; method: string }> {
+  const isMobileDevice = isMobile || /Mobi|Android/i.test(navigator.userAgent);
+
+  // On mobile, try native share with file first
+  if (isMobileDevice && navigator.share) {
+    try {
+      // Try to share with file for better UX
+      const response = await fetch(photoUrl, { mode: "cors" });
+      const blob = await response.blob();
+      const fileToShare = new File([blob], filename, {
+        type: blob.type || "image/jpeg",
+      });
+
+      const dataWithFiles = {
+        files: [fileToShare],
+        title: "SnapRace Photo",
+        text: "Check out this race photo!",
+      } as unknown as ShareData;
+
+      if (navigator.canShare?.(dataWithFiles)) {
+        await navigator.share({
+          files: [fileToShare],
+          title: "SnapRace Photo",
+          text: "Check out this race photo!",
+        });
+        return { success: true, method: "native_file" };
+      }
+    } catch {
+      // Fall through to URL sharing
+    }
+
+    // Fallback to URL sharing
+    try {
+      await navigator.share({
+        title: "SnapRace Photo",
+        text: "Check out this race photo!",
+        url: shareableUrl,
+      });
+      return { success: true, method: "native_url" };
+    } catch (error) {
+      if ((error as Error).name === "AbortError") {
+        return { success: false, method: "cancelled" };
+      }
+      // Fall through to clipboard copy
+    }
+  }
+
+  // Fallback: copy shareable URL to clipboard
+  try {
+    await navigator.clipboard.writeText(shareableUrl);
+    return { success: true, method: "clipboard" };
+  } catch {
+    return { success: false, method: "failed" };
+  }
+}
+
+/**
+ * Enhanced photo download functionality
+ */
+export async function downloadPhotoEnhanced(
+  photoUrl: string,
+  filename: string,
+  isMobile = false
+): Promise<{ success: boolean; method: string }> {
+  const isMobileDevice = isMobile || /Mobi|Android/i.test(navigator.userAgent);
+
+  // On mobile, use native share with file to allow saving to device
+  if (isMobileDevice && navigator.share) {
+    try {
+      const response = await fetch(photoUrl, { mode: "cors" });
+      const blob = await response.blob();
+      const fileToShare = new File([blob], filename, {
+        type: blob.type || "image/jpeg",
+      });
+
+      const dataWithFiles = {
+        files: [fileToShare],
+        title: filename,
+      } as unknown as ShareData;
+
+      if (navigator.canShare?.(dataWithFiles)) {
+        await navigator.share({
+          files: [fileToShare],
+          title: filename,
+        });
+        return { success: true, method: "native_share" };
+      }
+    } catch {
+      // Fall through to next method
+    }
+
+    // Fallback: open in new tab for mobile save
+    try {
+      window.open(photoUrl, "_blank", "noopener,noreferrer");
+      return { success: true, method: "new_tab" };
+    } catch {
+      return { success: false, method: "failed" };
+    }
+  }
+
+  // Desktop: use existing download logic
+  return await downloadPhoto(photoUrl, filename);
+}

@@ -5,17 +5,9 @@ import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Share2, Download } from "lucide-react";
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  LinkedinShareButton,
-  WhatsappShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  LinkedinIcon,
-  WhatsappIcon,
-} from "react-share";
-import { generateShareablePhotoUrl } from "@/utils/photo";
+import { ShareDialog } from "@/components/ShareDialog";
+import { generatePhotoFilename, downloadPhotoEnhanced } from "@/utils/photo";
+import { toast } from "sonner";
 
 interface InfinitePhotoGridProps {
   photos: string[];
@@ -26,6 +18,8 @@ interface InfinitePhotoGridProps {
   onDownload: (url: string, index: number) => void;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
   selfieMatchedSet?: Set<string>;
+  event?: string;
+  bibNumber?: string;
 }
 
 export function InfinitePhotoGrid({
@@ -37,6 +31,8 @@ export function InfinitePhotoGrid({
   onDownload,
   photoRefs,
   selfieMatchedSet,
+  event,
+  bibNumber,
 }: InfinitePhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
@@ -199,55 +195,52 @@ export function InfinitePhotoGrid({
                   <Badge variant="selfie">Selfie match</Badge>
                 </div>
               )}
-              {!isMobile && (
-                <div className="absolute right-0 bottom-0 left-0 z-10 hidden translate-y-2 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex md:items-center md:justify-between">
-                  {/* Social Share Icons - Left Side */}
-                  <div
-                    className="flex items-center gap-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FacebookShareButton
-                      url={generateShareablePhotoUrl(url)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <FacebookIcon size={28} round />
-                    </FacebookShareButton>
-                    <TwitterShareButton
-                      url={generateShareablePhotoUrl(url)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <TwitterIcon size={28} round />
-                    </TwitterShareButton>
-                    <LinkedinShareButton
-                      url={generateShareablePhotoUrl(url)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <LinkedinIcon size={28} round />
-                    </LinkedinShareButton>
-                    <WhatsappShareButton
-                      url={generateShareablePhotoUrl(url)}
-                      className="transition-transform hover:scale-110"
-                    >
-                      <WhatsappIcon size={28} round />
-                    </WhatsappShareButton>
-                  </div>
-
+              <div className="absolute right-0 bottom-0 left-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 transition-all duration-300 hidden translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 md:flex items-center justify-end">
                   {/* Share & Download Icons - Right Side */}
                   <div className="flex items-center gap-2">
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ShareDialog
+                        photoUrl={url}
+                        filename={generatePhotoFilename(event || "", bibNumber, index)}
+                        isMobile={isMobile}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                          className="flex h-8 w-8 items-center justify-center bg-transparent text-white hover:scale-110"
+                          title="Share"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </button>
+                      </ShareDialog>
+                    </div>
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        onShare(url, index);
-                      }}
-                      className="flex h-8 w-8 items-center justify-center bg-transparent text-white hover:scale-110"
-                      title="Share"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDownload(url, index);
+                        const filename = generatePhotoFilename(event || "", bibNumber, index);
+                        const result = await downloadPhotoEnhanced(url, filename, isMobile);
+                        
+                        if (result.success) {
+                          switch (result.method) {
+                            case "native_share":
+                              toast.success("Shared to save on device!");
+                              break;
+                            case "new_tab":
+                              toast.info("Opened in new tab. Use browser save.");
+                              break;
+                            case "proxy":
+                            case "direct":
+                              toast.success("Photo download started!");
+                              break;
+                            case "newTab":
+                              toast.info("Photo opened in new tab. Right-click to save.");
+                              break;
+                          }
+                        } else {
+                          toast.error("Unable to download photo.");
+                        }
                       }}
                       className="flex h-8 w-8 items-center justify-center bg-transparent text-white hover:scale-110"
                       title="Download"
@@ -256,7 +249,6 @@ export function InfinitePhotoGrid({
                     </button>
                   </div>
                 </div>
-              )}
 
               <Image
                 src={url}
