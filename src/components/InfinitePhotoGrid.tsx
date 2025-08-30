@@ -30,6 +30,7 @@ export function InfinitePhotoGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const rafIdRef = useRef<number>(0);
 
   const [isGridReady, setIsGridReady] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -81,17 +82,35 @@ export function InfinitePhotoGrid({
     };
   }, [columnCount, gridGap]);
 
-  // Re-render grid when items change. Sync elements first so newly appended
-  // children are recognized by MasonryGrid, then render after DOM paint.
-  useEffect(() => {
-    if (!gridRef.current || !isGridReady) return;
-    const grid = gridRef.current;
-    const raf = requestAnimationFrame(() => {
+  // Debounced relayout helper for fast UI changes
+  const scheduleRelayout = useCallback(() => {
+    if (!gridRef.current) return;
+    cancelAnimationFrame(rafIdRef.current);
+    rafIdRef.current = requestAnimationFrame(() => {
+      const grid = gridRef.current;
+      if (!grid) return;
       grid.syncElements();
       grid.renderItems();
     });
-    return () => cancelAnimationFrame(raf);
-  }, [visibleCount, isGridReady, photos]);
+  }, []);
+
+  // Re-render grid when items change
+  useEffect(() => {
+    if (!isGridReady) return;
+    scheduleRelayout();
+  }, [visibleCount, isGridReady, photos, scheduleRelayout]);
+
+  // Observe container size for rapid resizes
+  useEffect(() => {
+    if (!containerRef.current || !isGridReady) return;
+    const el = containerRef.current;
+    const ro = new ResizeObserver(() => {
+      setContainerWidth(el.offsetWidth);
+      scheduleRelayout();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isGridReady, scheduleRelayout]);
 
   // Compute column width
   const columnWidth = useMemo(() => {
@@ -204,10 +223,8 @@ export function InfinitePhotoGrid({
                 priority={index < columnCount}
                 loading={index < columnCount ? "eager" : "lazy"}
                 onLoad={() => {
-                  if (!gridRef.current) return;
-                  // After image natural size is known, sync and render
-                  gridRef.current.syncElements();
-                  gridRef.current.renderItems();
+                  // After image natural size is known, reflow the grid
+                  scheduleRelayout();
                 }}
               />
 

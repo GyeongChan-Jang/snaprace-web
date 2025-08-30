@@ -152,8 +152,6 @@ export default function EventPhotoPage() {
   const hasError =
     eventQuery.error || galleryQuery.error || allPhotosQuery.error;
 
-  console.log("galleryQuery.data", galleryQuery.data);
-
   if (hasError) {
     return <ErrorState message="Failed to load event data" />;
   }

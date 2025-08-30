@@ -29,6 +29,7 @@ export function PhotoGrid({
 }: PhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
+  const rafIdRef = useRef<number>(0);
   const [isGridReady, setIsGridReady] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
 
@@ -73,11 +74,34 @@ export function PhotoGrid({
   }, [columnCount, photos.length, gridGap]);
 
   // Re-render grid when photos change
+  const scheduleRelayout = useCallback(() => {
+    if (!gridRef.current) return;
+    cancelAnimationFrame(rafIdRef.current);
+    rafIdRef.current = requestAnimationFrame(() => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      grid.syncElements();
+      grid.renderItems();
+    });
+  }, []);
+
   useEffect(() => {
-    if (gridRef.current && isGridReady) {
-      gridRef.current.renderItems();
+    if (isGridReady) {
+      scheduleRelayout();
     }
-  }, [photos, isGridReady]);
+  }, [photos, isGridReady, scheduleRelayout]);
+
+  // Observe container resize robustly (handles fast browser resizes)
+  useEffect(() => {
+    if (!containerRef.current || !isGridReady) return;
+    const el = containerRef.current;
+    const ro = new ResizeObserver(() => {
+      setContainerWidth(el.offsetWidth);
+      scheduleRelayout();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isGridReady, scheduleRelayout]);
 
   // Column width calculation for responsive images
   const columnWidth = useMemo(() => {
@@ -158,10 +182,8 @@ export function PhotoGrid({
               priority={index < columnCount}
               loading={index < columnCount ? "eager" : "lazy"}
               onLoad={() => {
-                // Re-render grid after image loads for proper masonry positioning
-                if (gridRef.current) {
-                  gridRef.current.renderItems();
-                }
+                // Re-layout after image natural size known
+                scheduleRelayout();
               }}
             />
           </div>
