@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import axios from "axios";
 
 interface SelfieUploadParams {
   eventId: string;
@@ -9,7 +10,7 @@ interface SelfieUploadParams {
 
 interface LambdaResponse {
   message: string;
-  images_by_selfie?: string[];
+  selfie_matched_photos: string[];
 }
 
 const LAMBDA_ENDPOINT_URL =
@@ -23,15 +24,7 @@ export function useSelfieUpload({
 }: SelfieUploadParams) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-
-  // if (!organizerId || !eventId || !bibNumber) {
-  //   toast.error("Organizer ID or Event ID or Bib Number is not available");
-  //   return {
-  //     uploadSelfie: () => Promise.resolve([]),
-  //     isProcessing: false,
-  //     uploadedFile: null,
-  //   };
-  // }
+  const [isProcessed, setIsProcessed] = useState(false);
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -50,7 +43,9 @@ export function useSelfieUpload({
     });
   };
 
-  const callLambdaFunction = async (base64Image: string): Promise<string[]> => {
+  const callLambdaFunction = async (
+    base64Image: string,
+  ): Promise<LambdaResponse> => {
     const payload = {
       image: base64Image,
       bib_number: bibNumber,
@@ -58,19 +53,22 @@ export function useSelfieUpload({
       event_id: eventId,
     };
 
-    const response = await fetch(LAMBDA_ENDPOINT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(LAMBDA_TIMEOUT_MS),
-    });
+    const response = await axios.post<LambdaResponse>(
+      LAMBDA_ENDPOINT_URL,
+      payload,
+      {
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(LAMBDA_TIMEOUT_MS),
+      },
+    );
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`Server responded with ${response.status}`);
     }
 
-    const result = (await response.json()) as LambdaResponse;
-    return result.images_by_selfie ?? [];
+    setIsProcessed(true);
+
+    return response.data;
   };
 
   const validateFile = (file: File): boolean => {
@@ -106,17 +104,19 @@ export function useSelfieUpload({
 
     try {
       const base64Image = await convertToBase64(file);
-      const matchedPhotos = await callLambdaFunction(base64Image);
-      // if (matchedPhotos.length > 0) {
-      //   toast.success(
-      //     `Found ${matchedPhotos.length} additional photo${matchedPhotos.length > 1 ? "s" : ""} using face matching!`,
-      //   );
-      // } else {
-      //   toast.info(
-      //     "No additional photos found. Try a different photo with clearer face visibility.",
-      //   );
-      // }
-      return matchedPhotos.length > 0;
+      const matchedResult = await callLambdaFunction(base64Image);
+
+      console.log("matchedResult", matchedResult);
+      if (matchedResult.selfie_matched_photos.length > 0) {
+        toast.success(matchedResult?.message ?? "Successfully matched photos!");
+      } else {
+        toast.info(
+          matchedResult.message ??
+            "No additional photos found. Try a different photo with clearer face visibility.",
+        );
+      }
+
+      return matchedResult.selfie_matched_photos.length > 0;
     } catch (error) {
       console.error("Selfie upload error:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -130,11 +130,13 @@ export function useSelfieUpload({
   const reset = () => {
     setUploadedFile(null);
     setIsProcessing(false);
+    setIsProcessed(false);
   };
 
   return {
     uploadSelfie,
     isProcessing,
+    isProcessed,
     uploadedFile,
     reset,
   };

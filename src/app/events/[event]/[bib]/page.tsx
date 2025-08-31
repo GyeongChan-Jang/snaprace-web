@@ -79,7 +79,6 @@ export default function EventPhotoPage() {
     isMobile,
     isModalOpen,
     currentPhotoIndex,
-    clickedPhotoRect,
     setClickedPhotoRect,
   } = usePhotoState(photos);
 
@@ -100,25 +99,19 @@ export default function EventPhotoPage() {
   });
 
   // Selfie upload hook
-  const {
-    isProcessing: isUploading,
-    uploadSelfie,
-    uploadedFile,
-    reset,
-  } = useSelfieUpload({
-    eventId: event,
-    bibNumber,
-    organizerId: eventQuery.data?.organization_id ?? "",
-  });
+  const { isProcessed, isProcessing, uploadSelfie, uploadedFile, reset } =
+    useSelfieUpload({
+      eventId: event,
+      bibNumber,
+      organizerId: eventQuery.data?.organization_id ?? "",
+    });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Upload selfie and then refetch gallery only on success
-      const success = await uploadSelfie(file);
-      if (success) {
-        await galleryQuery.refetch();
-      }
+      await uploadSelfie(file);
+      galleryQuery.refetch();
     }
     // Always clear input so selecting the same file triggers onChange again
     if (fileInputRef.current) {
@@ -161,6 +154,9 @@ export default function EventPhotoPage() {
   if (hasError) {
     return <ErrorState message="Failed to load event data" />;
   }
+
+  const isUploading =
+    isProcessing || galleryQuery.isLoading || galleryQuery.isFetching;
 
   return (
     <div className="min-h-screen bg-white">
@@ -417,10 +413,8 @@ export default function EventPhotoPage() {
             {/* No additional photos status (only after selfie processing is reflected in data) */}
             {uploadedFile &&
               !isUploading &&
-              galleryQuery.isFetched &&
-              !galleryQuery.isFetching &&
-              galleryQuery.data?.selfie_enhanced === true &&
-              (galleryQuery.data.selfie_matched_photos?.length ?? 0) === 0 && (
+              isProcessed &&
+              galleryQuery.data?.selfie_matched_photos?.length === 0 && (
                 <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-800 dark:bg-yellow-900/20">
                   <div className="flex items-center gap-2 text-sm">
                     <svg
