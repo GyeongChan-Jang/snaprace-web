@@ -111,7 +111,7 @@ export default function EventPhotoPage() {
     if (file) {
       // Upload selfie and then refetch gallery only on success
       await uploadSelfie(file);
-      galleryQuery.refetch();
+      await galleryQuery.refetch();
     }
     // Always clear input so selecting the same file triggers onChange again
     if (fileInputRef.current) {
