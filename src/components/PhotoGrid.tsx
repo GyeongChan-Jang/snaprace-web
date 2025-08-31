@@ -28,8 +28,6 @@ export function PhotoGrid({
   columnCount,
   isMobile,
   onPhotoClick,
-  onShare,
-  onDownload,
   photoRefs,
   selfieMatchedSet,
   event,

@@ -234,54 +234,33 @@ export default function EventPhotoPage() {
         </div>
       </div>
 
-      {/* Search and Upload Section */}
-      <div className="mx-1 my-8 max-w-3xl md:mx-auto">
-        <div className="bg-muted/50 rounded-lg p-6">
-          {/* Partners & Sponsors desktop */}
-          <div className="mx-auto mb-6 grid max-w-3xl gap-4 sm:grid-cols-2">
-            {/* Partners */}
-            <div className="border-border/60 bg-background/60 rounded-xl border p-4 shadow-sm">
-              <div className="mb-2 flex items-center gap-2">
-                <div className="bg-primary h-1.5 w-1.5 rounded-full" />
-                <p className="text-muted-foreground text-xs font-medium tracking-wide">
-                  Partners
-                </p>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative h-10 w-36 md:h-12 md:w-40">
-                  <Image
-                    src="/images/partners/partner-millennium-running.png"
-                    alt="Millennium Running"
-                    fill
-                    className="object-contain opacity-70 transition-opacity hover:opacity-100"
-                    sizes="(max-width: 768px) 144px, 160px"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Sponsors */}
-            <div className="border-border/60 bg-background/60 rounded-xl border p-4 shadow-sm">
-              <div className="mb-2 flex items-center gap-2">
-                <div className="bg-primary h-1.5 w-1.5 rounded-full" />
-                <p className="text-muted-foreground text-xs font-medium tracking-wide">
-                  Sponsors
-                </p>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="relative h-10 w-36 md:h-12 md:w-40">
-                  <Image
-                    src="/images/partners/partner-autofair.png"
-                    alt="AutoFair"
-                    fill
-                    className="object-contain opacity-70 transition-opacity hover:opacity-100"
-                    sizes="(max-width: 768px) 144px, 160px"
-                  />
-                </div>
-              </div>
-            </div>
+      {/* Partners & Sponsors banner under Header */}
+      {/* <div className="border-border/60 bg-background/60 top-16 z-10 w-full border-b">
+        <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
+          <div className="relative h-8 w-28 md:h-10 md:w-36">
+            <Image
+              src="/images/partners/partner-millennium-running.png"
+              alt="Millennium Running"
+              fill
+              className="object-contain opacity-80"
+              sizes="(max-width: 768px) 112px, 144px"
+            />
           </div>
+          <div className="relative h-8 w-28 md:h-10 md:w-36">
+            <Image
+              src="/images/partners/partner-autofair.png"
+              alt="AutoFair"
+              fill
+              className="object-contain opacity-80"
+              sizes="(max-width: 768px) 112px, 144px"
+            />
+          </div>
+        </div>
+      </div> */}
 
+      {/* Search and Upload Section */}
+      <div className="mx-1 mt-6 max-w-3xl md:mx-auto">
+        <div className="bg-muted/50 rounded-lg p-6">
           {/* Selfie Upload */}
           <div className="mx-auto max-w-md">
             <div className="mb-4 text-center">
@@ -320,10 +299,10 @@ export default function EventPhotoPage() {
                     <div className="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
                       <div className="flex flex-col items-center gap-3">
                         <div className="border-primary/30 border-t-primary h-10 w-10 animate-spin rounded-full border-4" />
-                        <p className="text-sm font-medium">Processing...</p>
+                        {/* <p className="text-sm font-medium">Processing...</p>
                         <p className="text-muted-foreground text-xs">
                           This may take a moment
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                   )}
@@ -450,6 +429,29 @@ export default function EventPhotoPage() {
                   </div>
                 </div>
               )}
+          </div>
+        </div>
+      </div>
+
+      <div className="border-border/60 bg-background/60 top-16 z-10 w-full border-b">
+        <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
+          <div className="relative h-8 w-28 md:h-10 md:w-36">
+            <Image
+              src="/images/partners/partner-millennium-running.png"
+              alt="Millennium Running"
+              fill
+              className="object-contain opacity-80"
+              sizes="(max-width: 768px) 112px, 144px"
+            />
+          </div>
+          <div className="relative h-8 w-28 md:h-10 md:w-36">
+            <Image
+              src="/images/partners/partner-autofair.png"
+              alt="AutoFair"
+              fill
+              className="object-contain opacity-80"
+              sizes="(max-width: 768px) 112px, 144px"
+            />
           </div>
         </div>
       </div>
