@@ -8,10 +8,10 @@ import "./src/env.js";
 const config = {
   images: {
     remotePatterns: [
-      // CloudFront domain (for future use)
+      // CloudFront custom domain
       {
         protocol: "https",
-        hostname: "*.cloudfront.net",
+        hostname: "images.snap-race.com",
         port: "",
         pathname: "/**",
       },
