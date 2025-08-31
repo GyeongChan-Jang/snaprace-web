@@ -214,7 +214,7 @@ export async function sharePhotoWithOptions(
   photoUrl: string,
   shareableUrl: string,
   filename: string,
-  isMobile = false
+  isMobile = false,
 ): Promise<{ success: boolean; method: string }> {
   const isMobileDevice = isMobile || /Mobi|Android/i.test(navigator.userAgent);
 
@@ -277,7 +277,7 @@ export async function sharePhotoWithOptions(
 export async function downloadPhotoEnhanced(
   photoUrl: string,
   filename: string,
-  isMobile = false
+  isMobile = false,
 ): Promise<{ success: boolean; method: string }> {
   const isMobileDevice = isMobile || /Mobi|Android/i.test(navigator.userAgent);
 
