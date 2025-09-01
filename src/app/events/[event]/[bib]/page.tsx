@@ -11,7 +11,6 @@ import { ErrorState } from "@/components/states/ErrorState";
 import { NoPhotosState } from "@/components/states/EmptyState";
 import { useSelfieUpload } from "@/hooks/useSelfieUpload";
 import { PhotoSingleView } from "@/components/PhotoSingleView";
-import { PhotoGrid } from "@/components/PhotoGrid";
 import { InfinitePhotoGrid } from "@/components/InfinitePhotoGrid";
 import { usePhotoState } from "@/hooks/usePhotoState";
 import { usePhotoHandlers } from "@/hooks/usePhotoHandlers";
@@ -545,7 +544,7 @@ export default function EventPhotoPage() {
 
       {/* Feedback Section - Only for specific bib */}
       {!isAllPhotos && bibNumber && photos.length > 0 && (
-        <section className="container mx-auto px-4 py-8">
+        <section className="container mx-auto px-1 py-8">
           <FeedbackSection
             eventId={event}
             bibNumber={bibNumber}

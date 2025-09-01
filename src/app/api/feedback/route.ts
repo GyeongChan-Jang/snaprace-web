@@ -4,7 +4,8 @@ import {
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { env } from "@/env";
 
 // DynamoDB 클라이언트 초기화
@@ -32,9 +33,37 @@ interface FeedbackItem {
   userAgent?: string;
 }
 
+// 요청 바디 타입 정의
+interface FeedbackRequestBody {
+  eventId: string;
+  bibNumber: string;
+  rating: number;
+  comment?: string;
+}
+
+// AWS SDK 에러 타입 정의
+interface AWSError extends Error {
+  name: string;
+  message: string;
+  $metadata?: {
+    httpStatusCode?: number;
+    requestId?: string;
+  };
+}
+
+// 에러 타입 가드 함수
+function isAWSError(error: unknown): error is AWSError {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "name" in error &&
+    typeof (error as { name: unknown }).name === "string"
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json() as FeedbackRequestBody;
     const { eventId, bibNumber, rating, comment } = body;
 
     // 입력 검증
@@ -45,14 +74,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (rating < 1 || rating > 5) {
+    if (typeof rating !== 'number' || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
       return NextResponse.json(
-        { error: "Rating must be between 1 and 5" },
+        { error: "Rating must be an integer between 1 and 5" },
         { status: 400 },
       );
     }
 
-    if (comment && comment.length > 500) {
+    if (comment && typeof comment === 'string' && comment.length > 500) {
       return NextResponse.json(
         { error: "Comment must be 500 characters or less" },
         { status: 400 },
@@ -80,7 +109,7 @@ export async function POST(request: NextRequest) {
       eventId,
       bibNumber,
       rating,
-      comment: comment?.trim() || undefined,
+      comment: typeof comment === 'string' ? comment.trim() || undefined : undefined,
       timestamp,
       createdAt: timestamp,
       userAgent: userAgent.substring(0, 200),
@@ -101,35 +130,29 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Feedback submitted successfully",
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error submitting feedback:", error);
 
-    // 중복 제출 에러 처리
-    if (
-      error &&
-      typeof error === "object" &&
-      "name" in error &&
-      error.name === "ConditionalCheckFailedException"
-    ) {
-      return NextResponse.json(
-        { error: "Feedback already submitted for this session" },
-        { status: 409 },
-      );
-    }
+    if (isAWSError(error)) {
+      // 중복 제출 에러 처리
+      if (error.name === "ConditionalCheckFailedException") {
+        return NextResponse.json(
+          { error: "Feedback already submitted for this session" },
+          { status: 409 },
+        );
+      }
 
-    // AWS 관련 에러 처리
-    if (
-      error &&
-      typeof error === "object" &&
-      "name" in error &&
-      (error.name === "ResourceNotFoundException" ||
-        error.name === "ValidationException")
-    ) {
-      console.error("AWS DynamoDB error:", error);
-      return NextResponse.json(
-        { error: "Database configuration error" },
-        { status: 503 },
-      );
+      // AWS 관련 에러 처리
+      if (
+        error.name === "ResourceNotFoundException" ||
+        error.name === "ValidationException"
+      ) {
+        console.error("AWS DynamoDB error:", error);
+        return NextResponse.json(
+          { error: "Database configuration error" },
+          { status: 503 },
+        );
+      }
     }
 
     return NextResponse.json(
@@ -187,7 +210,7 @@ export async function GET(request: NextRequest) {
       feedbacks,
       count: feedbacks.length,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error fetching feedback:", error);
     return NextResponse.json(
       { error: "Failed to fetch feedback" },

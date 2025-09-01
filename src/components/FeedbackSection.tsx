@@ -62,22 +62,26 @@ export function FeedbackSection({
   };
 
   return (
-    <Card className="border-muted">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <MessageSquare className="text-primary h-5 w-5 bg-white" />
-          How was your SnapRace experience?
+    <Card className="border-muted sm:mx-0">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <MessageSquare className="text-primary h-4 w-4 shrink-0 bg-white sm:h-5 sm:w-5" />
+          <span className="leading-tight">
+            How was your SnapRace experience?
+          </span>
         </CardTitle>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-xs leading-relaxed sm:text-sm">
           Help us improve our service for {eventName}
         </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <CardContent className="space-y-5 pt-0">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Star Rating */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Rate your experience</label>
-            <div className="mt-1 flex items-center gap-1">
+          <div className="space-y-3">
+            <label className="block text-sm font-medium">
+              Rate your experience
+            </label>
+            <div className="flex items-center justify-center gap-2 py-2 sm:justify-start">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -85,10 +89,10 @@ export function FeedbackSection({
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHoverRating(star)}
                   onMouseLeave={() => setHoverRating(0)}
-                  className="p-1 transition-colors hover:scale-110"
+                  className="touch-manipulation p-2 transition-all hover:scale-110 active:scale-95 sm:p-1"
                 >
                   <Star
-                    className={`h-6 w-6 transition-colors ${
+                    className={`h-8 w-8 transition-colors sm:h-6 sm:w-6 ${
                       star <= (hoverRating || rating)
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-gray-300 hover:text-yellow-300"
@@ -96,21 +100,23 @@ export function FeedbackSection({
                   />
                 </button>
               ))}
-              {rating > 0 && (
-                <span className="text-muted-foreground ml-2 text-sm">
+            </div>
+            {rating > 0 && (
+              <div className="text-center sm:text-left">
+                <span className="text-muted-foreground text-sm font-medium">
                   {rating === 1 && "Poor"}
                   {rating === 2 && "Fair"}
                   {rating === 3 && "Good"}
                   {rating === 4 && "Very Good"}
                   {rating === 5 && "Excellent"}
                 </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Optional Comment */}
-          <div className="space-y-2">
-            <label htmlFor="comment" className="text-sm font-medium">
+          <div className="space-y-3">
+            <label htmlFor="comment" className="block text-sm font-medium">
               Additional comments (optional)
             </label>
             <Textarea
@@ -118,7 +124,7 @@ export function FeedbackSection({
               placeholder="Tell us what you loved or what we could improve..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              className="mt-1 min-h-[80px] resize-none bg-white"
+              className="min-h-[100px] resize-none bg-white text-sm sm:min-h-[80px] sm:text-sm"
               maxLength={500}
             />
             <div className="text-muted-foreground text-right text-xs">
@@ -126,29 +132,31 @@ export function FeedbackSection({
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground text-xs">
+          {/* Submit Section */}
+          <div className="space-y-3 pt-2">
+            <p className="text-muted-foreground text-center text-xs sm:text-left">
               Your feedback helps us improve our service
             </p>
-            <Button
-              type="submit"
-              disabled={!rating || isSubmitting}
-              className="gap-2"
-              size="sm"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  Send Feedback
-                </>
-              )}
-            </Button>
+            <div className="flex justify-center sm:justify-end">
+              <Button
+                type="submit"
+                disabled={!rating || isSubmitting}
+                className="min-h-[44px] w-full gap-2 sm:min-h-auto sm:w-auto"
+                size="default"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Send Feedback
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </CardContent>
