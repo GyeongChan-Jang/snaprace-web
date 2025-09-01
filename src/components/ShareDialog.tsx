@@ -34,7 +34,12 @@ interface ShareDialogProps {
   children: React.ReactNode;
 }
 
-export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDialogProps) {
+export function ShareDialog({
+  photoUrl,
+  filename,
+  isMobile,
+  children,
+}: ShareDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const shareableUrl = generateShareablePhotoUrl(photoUrl);
 
@@ -81,21 +86,18 @@ export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDia
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent 
-        className="sm:max-w-md"
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent
+        className="max-w-sm sm:max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <DialogHeader>
-          <DialogTitle className="text-center font-medium text-gray-900">SHARE</DialogTitle>
+          <DialogTitle className="text-center font-medium text-gray-900">
+            SHARE
+          </DialogTitle>
         </DialogHeader>
-        
-        <div 
-          className="space-y-4"
-          onClick={(e) => e.stopPropagation()}
-        >
+
+        <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
           {/* Copy Link */}
           <div className="flex items-center gap-2">
             <input
@@ -119,7 +121,10 @@ export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDia
               <button
                 onClick={() => {
                   // Open messenger share (you can customize this URL)
-                  window.open(`https://www.messenger.com/t/?link=${encodeURIComponent(shareableUrl)}`, '_blank');
+                  window.open(
+                    `https://www.messenger.com/t/?link=${encodeURIComponent(shareableUrl)}`,
+                    "_blank",
+                  );
                   handleSocialShare();
                 }}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700"
@@ -129,7 +134,7 @@ export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDia
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M12 2C6.477 2 2 6.145 2 11.5c0 2.438.895 4.664 2.366 6.362V22l3.942-2.171C9.474 20.252 10.714 20.5 12 20.5c5.523 0 10-4.145 10-9.5S17.523 2 12 2zm1.2 12.8L11 12.4 8.8 14.8 6 11.5l2.2 2.4L11 11.5l2.2 2.4L16 11.5l-2.8 3.3z"/>
+                  <path d="M12 2C6.477 2 2 6.145 2 11.5c0 2.438.895 4.664 2.366 6.362V22l3.942-2.171C9.474 20.252 10.714 20.5 12 20.5c5.523 0 10-4.145 10-9.5S17.523 2 12 2zm1.2 12.8L11 12.4 8.8 14.8 6 11.5l2.2 2.4L11 11.5l2.2 2.4L16 11.5l-2.8 3.3z" />
                 </svg>
               </button>
               <span className="mt-1 text-xs text-gray-600">Messenger</span>
@@ -202,7 +207,7 @@ export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDia
               <button
                 onClick={() => {
                   const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareableUrl)}&media=${encodeURIComponent(photoUrl)}&description=Check out this race photo!`;
-                  window.open(pinterestUrl, '_blank');
+                  window.open(pinterestUrl, "_blank");
                   handleSocialShare();
                 }}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 hover:bg-red-700"
@@ -212,7 +217,7 @@ export function ShareDialog({ photoUrl, filename, isMobile, children }: ShareDia
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.181-.78 1.172-4.97 1.172-4.97s-.299-.598-.299-1.482c0-1.388.805-2.425 1.809-2.425.853 0 1.264.641 1.264 1.408 0 .858-.546 2.14-.828 3.33-.236.995.499 1.807 1.481 1.807 1.778 0 3.144-1.874 3.144-4.579 0-2.394-1.72-4.068-4.177-4.068-2.845 0-4.515 2.135-4.515 4.34 0 .859.331 1.781.744 2.281a.3.3 0 01.069.288l-.278 1.133c-.044.183-.145.223-.334.135-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.97-.527-2.297-1.155l-.624 2.378c-.226.869-.835 1.958-1.244 2.621.937.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.237 2.636 7.855 6.356 9.312-.088-.791-.167-2.005.035-2.868.181-.78 1.172-4.97 1.172-4.97s-.299-.598-.299-1.482c0-1.388.805-2.425 1.809-2.425.853 0 1.264.641 1.264 1.408 0 .858-.546 2.14-.828 3.33-.236.995.499 1.807 1.481 1.807 1.778 0 3.144-1.874 3.144-4.579 0-2.394-1.72-4.068-4.177-4.068-2.845 0-4.515 2.135-4.515 4.34 0 .859.331 1.781.744 2.281a.3.3 0 01.069.288l-.278 1.133c-.044.183-.145.223-.334.135-1.249-.581-2.03-2.407-2.03-3.874 0-3.154 2.292-6.052 6.608-6.052 3.469 0 6.165 2.473 6.165 5.776 0 3.447-2.173 6.22-5.19 6.22-1.013 0-1.97-.527-2.297-1.155l-.624 2.378c-.226.869-.835 1.958-1.244 2.621.937.29 1.931.446 2.962.446 5.523 0 10-4.477 10-10S17.523 2 12 2z" />
                 </svg>
               </button>
               <span className="mt-1 text-xs text-gray-600">Pinterest</span>

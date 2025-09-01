@@ -193,7 +193,7 @@ export function InfinitePhotoGrid({
                   <Badge variant="selfie">Selfie match</Badge>
                 </div>
               )}
-              <div className="absolute right-0 bottom-0 left-0 z-10 hidden translate-y-2 items-center justify-end bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex">
+              <div className="absolute right-0 bottom-0 left-0 z-10 hidden translate-y-2 items-center justify-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex">
                 {/* Share & Download Icons - Right Side */}
                 <div className="flex items-center gap-2">
                   <div onClick={(e) => e.stopPropagation()}>
@@ -207,10 +207,10 @@ export function InfinitePhotoGrid({
                       isMobile={isMobile}
                     >
                       <button
-                        className="flex h-8 w-8 cursor-pointer items-center justify-center bg-transparent text-white hover:scale-110"
+                        className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center bg-transparent text-white hover:scale-110"
                         title="Share"
                       >
-                        <Share2 className="h-4 w-4" />
+                        <Share2 size={20} />
                       </button>
                     </ShareDialog>
                   </div>
@@ -222,10 +222,10 @@ export function InfinitePhotoGrid({
                       index,
                       isMobile,
                     })}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center bg-transparent text-white hover:scale-110"
+                    className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center bg-transparent text-white hover:scale-110"
                     title="Download"
                   >
-                    <Download className="h-4 w-4" />
+                    <Download size={20} />
                   </button>
                 </div>
               </div>

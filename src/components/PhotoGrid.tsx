@@ -14,8 +14,6 @@ interface PhotoGridProps {
   columnCount: number;
   isMobile: boolean;
   onPhotoClick: (index: number) => void;
-  onShare: (url: string, index: number) => void;
-  onDownload: (url: string, index: number) => void;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
   selfieMatchedSet?: Set<string>;
   event?: string;

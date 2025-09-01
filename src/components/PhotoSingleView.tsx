@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useSwipeable } from "react-swipeable";
-import { X, ChevronLeft, ChevronRight, Download, Share } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -254,7 +254,7 @@ export function PhotoSingleView({
                 className="text-gray-700 hover:bg-gray-100"
                 title="Share"
               >
-                <Share className="h-5 w-5" />
+                <Share2 className="h-5 w-5" />
               </Button>
             </ShareDialog>
 
@@ -262,8 +262,12 @@ export function PhotoSingleView({
               variant="ghost"
               size="icon"
               onClick={async () => {
-                const result = await downloadPhotoEnhanced(currentPhoto, filename, isMobile);
-                
+                const result = await downloadPhotoEnhanced(
+                  currentPhoto,
+                  filename,
+                  isMobile,
+                );
+
                 if (result.success) {
                   switch (result.method) {
                     case "native_share":
@@ -277,7 +281,9 @@ export function PhotoSingleView({
                       toast.success("Photo download started!");
                       break;
                     case "newTab":
-                      toast.info("Photo opened in new tab. Right-click to save.");
+                      toast.info(
+                        "Photo opened in new tab. Right-click to save.",
+                      );
                       break;
                   }
                 } else {

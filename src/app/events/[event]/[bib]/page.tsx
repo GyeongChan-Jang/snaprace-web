@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useCallback, useState, useEffect } from "react";
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useMemo, useRef, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,6 @@ export default function EventPhotoPage() {
 
   // Get initial state without photos first
   const params = useParams();
-  const searchParams = useSearchParams();
   const event = params?.event as string;
   const bibParam = params?.bib as string;
   const isAllPhotos = bibParam === "null";
@@ -234,30 +233,6 @@ export default function EventPhotoPage() {
         </div>
       </div>
 
-      {/* Partners & Sponsors banner under Header */}
-      {/* <div className="border-border/60 bg-background/60 top-16 z-10 w-full border-b">
-        <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
-          <div className="relative h-8 w-28 md:h-10 md:w-36">
-            <Image
-              src="/images/partners/partner-millennium-running.png"
-              alt="Millennium Running"
-              fill
-              className="object-contain opacity-80"
-              sizes="(max-width: 768px) 112px, 144px"
-            />
-          </div>
-          <div className="relative h-8 w-28 md:h-10 md:w-36">
-            <Image
-              src="/images/partners/partner-autofair.png"
-              alt="AutoFair"
-              fill
-              className="object-contain opacity-80"
-              sizes="(max-width: 768px) 112px, 144px"
-            />
-          </div>
-        </div>
-      </div> */}
-
       {/* Search and Upload Section */}
       <div className="mx-1 mt-6 max-w-3xl md:mx-auto">
         <div className="bg-muted/50 rounded-lg p-6">
@@ -433,7 +408,7 @@ export default function EventPhotoPage() {
         </div>
       </div>
 
-      <div className="border-border/60 bg-background/60 top-16 z-10 w-full border-b">
+      <div className="bg-background/60 top-16 z-10 w-full">
         <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
           <div className="relative h-8 w-28 md:h-10 md:w-36">
             <Image
@@ -461,31 +436,39 @@ export default function EventPhotoPage() {
         {isLoading ? (
           <MasonryPhotoSkeleton />
         ) : photos.length > 0 ? (
-          isAllPhotos ? (
-            <InfinitePhotoGrid
-              photos={photos}
-              columnCount={columnCount}
-              isMobile={isMobile}
-              onPhotoClick={handlePhotoClick}
-              photoRefs={photoRefs}
-              event={event}
-              bibNumber={bibNumber}
-            />
-          ) : (
-            <PhotoGrid
-              photos={photos}
-              columnCount={columnCount}
-              isMobile={isMobile}
-              onPhotoClick={handlePhotoClick}
-              onShare={handleShare}
-              onDownload={handleDownload}
-              photoRefs={photoRefs}
-              selfieMatchedSet={selfieMatchedSet}
-              event={event}
-              bibNumber={bibNumber}
-            />
-          )
+          <InfinitePhotoGrid
+            photos={photos}
+            columnCount={columnCount}
+            isMobile={isMobile}
+            onPhotoClick={handlePhotoClick}
+            photoRefs={photoRefs}
+            selfieMatchedSet={selfieMatchedSet}
+            event={event}
+            bibNumber={bibNumber}
+          />
         ) : (
+          // isAllPhotos ? (
+          //   <InfinitePhotoGrid
+          //     photos={photos}
+          //     columnCount={columnCount}
+          //     isMobile={isMobile}
+          //     onPhotoClick={handlePhotoClick}
+          //     photoRefs={photoRefs}
+          //     event={event}
+          //     bibNumber={bibNumber}
+          //   />
+          // ) : (
+          //   <PhotoGrid
+          //     photos={photos}
+          //     columnCount={columnCount}
+          //     isMobile={isMobile}
+          //     onPhotoClick={handlePhotoClick}
+          //     photoRefs={photoRefs}
+          //     selfieMatchedSet={selfieMatchedSet}
+          //     event={event}
+          //     bibNumber={bibNumber}
+          //   />
+          // )
           <NoPhotosState
             isAllPhotos={isAllPhotos}
             bibNumber={bibNumber}
