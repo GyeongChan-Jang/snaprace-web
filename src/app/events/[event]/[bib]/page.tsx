@@ -467,8 +467,6 @@ export default function EventPhotoPage() {
               columnCount={columnCount}
               isMobile={isMobile}
               onPhotoClick={handlePhotoClick}
-              onShare={handleShare}
-              onDownload={handleDownload}
               photoRefs={photoRefs}
               event={event}
               bibNumber={bibNumber}

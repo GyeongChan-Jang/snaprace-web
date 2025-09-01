@@ -8,15 +8,12 @@ import { Share2, Download } from "lucide-react";
 import { ShareDialog } from "@/components/ShareDialog";
 import { generatePhotoFilename } from "@/utils/photo";
 import { createDownloadClickHandler } from "@/utils/downloadClickHandler";
-import { toast } from "sonner";
 
 interface InfinitePhotoGridProps {
   photos: string[];
   columnCount: number;
   isMobile: boolean;
   onPhotoClick: (index: number) => void;
-  onShare: (url: string, index: number) => void;
-  onDownload: (url: string, index: number) => void;
   photoRefs: React.MutableRefObject<Map<number, HTMLDivElement>>;
   selfieMatchedSet?: Set<string>;
   event?: string;
@@ -28,8 +25,6 @@ export function InfinitePhotoGrid({
   columnCount,
   isMobile,
   onPhotoClick,
-  onShare,
-  onDownload,
   photoRefs,
   selfieMatchedSet,
   event,
@@ -78,7 +73,7 @@ export function InfinitePhotoGrid({
       observeChildren: true,
       useResizeObserver: true,
       column: columnCount,
-      align: "justify",
+      align: "stretch",
     });
 
     gridRef.current = grid;
@@ -188,9 +183,11 @@ export function InfinitePhotoGrid({
             ref={(el) => setPhotoRef(el, index)}
             className="cursor-pointer"
             onClick={() => onPhotoClick(index)}
-            style={{ width: `${columnWidth}px` }}
           >
-            <div className="group relative overflow-hidden shadow-md transition-all duration-200 hover:shadow-2xl">
+            <div
+              className="group relative overflow-hidden shadow-md transition-all duration-200 hover:shadow-2xl"
+              style={{ width: `${columnWidth}px` }}
+            >
               {selfieMatchedSet?.has(url) && (
                 <div className="absolute top-2 left-2 z-20">
                   <Badge variant="selfie">Selfie match</Badge>
@@ -239,7 +236,7 @@ export function InfinitePhotoGrid({
                 width={columnWidth}
                 height={300}
                 className="h-auto w-full object-cover"
-                sizes={`${columnWidth}px`}
+                sizes="(min-width: 1550px) 20vw, (min-width: 1050px) 25vw, (min-width: 850px) 33vw, 50vw"
                 priority={index < columnCount}
                 loading={index < columnCount ? "eager" : "lazy"}
                 onLoad={scheduleRelayout}
