@@ -190,19 +190,16 @@ export default function HomePage() {
         </div>
       </section> */}
 
-      {/* Partners Section */}
-      <section className="bg-muted/30 mt-auto border-t px-4 py-8">
-        <div className="container mx-auto max-w-4xl">
-          <div className="mb-6 text-center">
-            <h2 className="text-foreground mb-4 text-2xl font-bold tracking-tight">
+      {/* Partners Section (footer) */}
+      <section className="bg-muted/20 mt-auto border-t px-4 py-4">
+        <div className="container mx-auto max-w-3xl">
+          <div className="mb-4 text-center">
+            <h2 className="text-foreground text-lg font-semibold tracking-tight">
               Partners
             </h2>
-            <p className="text-muted-foreground mx-auto max-w-2xl">
-              Trusted by leading event organizer
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
             {PARTNERS.filter(
               (partner) => partner.name === "Millennium Running",
             ).map((partner) => (
@@ -213,17 +210,21 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="group flex items-center justify-center transition-all hover:scale-105"
               >
-                <div className="relative h-12 w-32 md:h-16 md:w-40">
+                <div className="relative h-10 w-28 md:h-12 md:w-32">
                   <Image
                     src={partner.logo}
                     alt={partner.name}
                     fill
                     className="object-contain opacity-70 transition-opacity group-hover:opacity-100"
-                    sizes="(max-width: 768px) 128px, 160px"
+                    sizes="(max-width: 768px) 112px, 128px"
                   />
                 </div>
               </Link>
             ))}
+          </div>
+
+          <div className="text-muted-foreground mt-6 text-center text-xs">
+            <p>© {new Date().getFullYear()} SnapRace. All rights reserved.</p>
           </div>
         </div>
       </section>
