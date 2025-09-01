@@ -224,7 +224,9 @@ export function InfinitePhotoGrid({
               )}
               {selfieMatchedSet?.has(url) && (
                 <div className="absolute top-2 left-2 z-20">
-                  <Badge variant="selfie">Selfie match</Badge>
+                  <Badge variant="default">
+                    <span className="font-poppins text-xs">Selfie</span>
+                  </Badge>
                 </div>
               )}
               <div

@@ -176,7 +176,7 @@ export default function EventPhotoPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-20 flex h-16 items-center border-b backdrop-blur md:h-18">
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 flex h-16 items-center border-b backdrop-blur md:h-18">
         <div className="container mx-auto px-1 md:px-4">
           <div className="flex items-center">
             <div className="w-10 md:w-auto">
