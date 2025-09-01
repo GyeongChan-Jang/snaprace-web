@@ -75,7 +75,7 @@ export function generateShareablePhotoUrl(
   // Backward-compatible parameter handling
   const options =
     typeof optionsOrBase === "string"
-      ? { baseUrl: optionsOrBase as string }
+      ? { baseUrl: optionsOrBase }
       : (optionsOrBase as
           | {
               baseUrl?: string;
