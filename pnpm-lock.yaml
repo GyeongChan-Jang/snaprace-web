@@ -14,6 +14,9 @@ importers:
       '@aws-sdk/lib-dynamodb':
         specifier: ^3.873.0
         version: 3.873.0(@aws-sdk/client-dynamodb@3.873.0)
+      '@aws-sdk/util-dynamodb':
+        specifier: ^3.879.0
+        version: 3.879.0(@aws-sdk/client-dynamodb@3.873.0)
       '@egjs/grid':
         specifier: ^1.17.1
         version: 1.17.1
@@ -326,6 +329,12 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@aws-sdk/client-dynamodb': ^3.873.0
+
+  '@aws-sdk/util-dynamodb@3.879.0':
+    resolution: {integrity: sha512-KyzsV7mv6Kz9udz16AEeutYzl4++rg0oTeMJLiSZ9TcI7DiZYiJLr8oRWRKyvXpP4/30HQhhW2ycJPHQoTHprA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@aws-sdk/client-dynamodb': ^3.879.0
 
   '@aws-sdk/util-endpoints@3.873.0':
     resolution: {integrity: sha512-YByHrhjxYdjKRf/RQygRK1uh0As1FIi9+jXTcIEX/rBgN8mUByczr2u4QXBzw7ZdbdcOBMOkPnLRjNOWW1MkFg==}
@@ -3642,6 +3651,11 @@ snapshots:
       tslib: 2.8.1
 
   '@aws-sdk/util-dynamodb@3.873.0(@aws-sdk/client-dynamodb@3.873.0)':
+    dependencies:
+      '@aws-sdk/client-dynamodb': 3.873.0
+      tslib: 2.8.1
+
+  '@aws-sdk/util-dynamodb@3.879.0(@aws-sdk/client-dynamodb@3.873.0)':
     dependencies:
       '@aws-sdk/client-dynamodb': 3.873.0
       tslib: 2.8.1

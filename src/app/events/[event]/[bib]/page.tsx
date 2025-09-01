@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 import { PhotoSelectionControls } from "@/components/PhotoSelectionControls";
 import { usePhotoSelection } from "@/hooks/usePhotoSelection";
+import { FeedbackSection } from "@/components/FeedbackSection";
 
 export default function EventPhotoPage() {
   const router = useRouter();
@@ -541,6 +542,17 @@ export default function EventPhotoPage() {
           />
         )}
       </div>
+
+      {/* Feedback Section - Only for specific bib */}
+      {!isAllPhotos && bibNumber && photos.length > 0 && (
+        <section className="container mx-auto px-4 py-8">
+          <FeedbackSection
+            eventId={event}
+            bibNumber={bibNumber}
+            eventName={eventQuery.data?.event_name || ""}
+          />
+        </section>
+      )}
 
       <section className="bg-muted/20 mt-auto border-t px-4 py-4">
         <div className="text-muted-foreground text-center text-xs">
