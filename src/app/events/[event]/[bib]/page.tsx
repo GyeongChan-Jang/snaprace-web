@@ -17,6 +17,9 @@ import { usePhotoState } from "@/hooks/usePhotoState";
 import { usePhotoHandlers } from "@/hooks/usePhotoHandlers";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BulkDownloadButton } from "@/components/BulkDownloadButton";
+import { PhotoSelectionControls } from "@/components/PhotoSelectionControls";
+import { usePhotoSelection } from "@/hooks/usePhotoSelection";
 
 export default function EventPhotoPage() {
   const router = useRouter();
@@ -80,6 +83,19 @@ export default function EventPhotoPage() {
     currentPhotoIndex,
     setClickedPhotoRect,
   } = usePhotoState(photos);
+
+  // Use photo selection hook
+  const {
+    selectedPhotos,
+    selectedCount,
+    isSelectionMode,
+    togglePhotoSelection,
+    selectAll,
+    clearSelection,
+    toggleSelectionMode,
+    getSelectedPhotoUrls,
+    isPhotoSelected,
+  } = usePhotoSelection(photos);
 
   // Use custom hooks for handlers (now with photos)
   const {
@@ -431,6 +447,51 @@ export default function EventPhotoPage() {
         </div>
       </div>
 
+      {/* Photo Selection and Bulk Download Controls for PC - Only for specific bib */}
+      {!isMobile && photos.length > 0 && !isAllPhotos && (
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="text-muted-foreground text-sm">
+              {isSelectionMode && selectedCount > 0 ? (
+                selectedCount >= 10 ? (
+                  <span className="flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                    Selected photos will be downloaded as ZIP
+                  </span>
+                ) : (
+                  <span>Selected photos will be downloaded individually</span>
+                )
+              ) : photos.length >= 10 ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                  All photos will be downloaded as ZIP
+                </span>
+              ) : (
+                <span>All photos will be downloaded individually</span>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              <PhotoSelectionControls
+                isSelectionMode={isSelectionMode}
+                selectedCount={selectedCount}
+                totalCount={photos.length}
+                onToggleSelectionMode={toggleSelectionMode}
+                onSelectAll={selectAll}
+                onClearSelection={clearSelection}
+              />
+
+              <BulkDownloadButton
+                photos={photos}
+                selectedPhotos={getSelectedPhotoUrls}
+                event={eventQuery.data?.event_name || ""}
+                bibNumber={bibNumber}
+                isSelectionMode={isSelectionMode}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Full-width Photo Grid */}
       <div className="w-full px-[4px] sm:px-[20px]">
         {isLoading ? (
@@ -446,6 +507,9 @@ export default function EventPhotoPage() {
             event={event}
             bibNumber={bibNumber}
             organizerId={eventQuery.data?.organization_id}
+            isSelectionMode={isSelectionMode}
+            selectedPhotos={selectedPhotos}
+            onPhotoSelect={togglePhotoSelection}
           />
         ) : (
           // isAllPhotos ? (
@@ -477,6 +541,12 @@ export default function EventPhotoPage() {
           />
         )}
       </div>
+
+      <section className="bg-muted/20 mt-auto border-t px-4 py-4">
+        <div className="text-muted-foreground text-center text-xs">
+          <p>© {new Date().getFullYear()} SnapRace. All rights reserved.</p>
+        </div>
+      </section>
 
       {/* Photo Single View Modal */}
       <PhotoSingleView

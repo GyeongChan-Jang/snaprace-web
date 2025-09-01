@@ -4,7 +4,7 @@ import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { MasonryGrid } from "@egjs/grid";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Share2, Download } from "lucide-react";
+import { Share2, Download, Check } from "lucide-react";
 import { ShareDialog } from "@/components/ShareDialog";
 import { generatePhotoFilename } from "@/utils/photo";
 import { createDownloadClickHandler } from "@/utils/downloadClickHandler";
@@ -19,6 +19,9 @@ interface InfinitePhotoGridProps {
   event?: string;
   bibNumber?: string;
   organizerId?: string;
+  isSelectionMode?: boolean;
+  selectedPhotos?: Set<number>;
+  onPhotoSelect?: (index: number) => void;
 }
 
 export function InfinitePhotoGrid({
@@ -31,6 +34,9 @@ export function InfinitePhotoGrid({
   event,
   bibNumber,
   organizerId,
+  isSelectionMode = false,
+  selectedPhotos = new Set(),
+  onPhotoSelect,
 }: InfinitePhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
@@ -184,18 +190,46 @@ export function InfinitePhotoGrid({
             key={index}
             ref={(el) => setPhotoRef(el, index)}
             className="cursor-pointer"
-            onClick={() => onPhotoClick(index)}
+            onClick={() => {
+              if (isSelectionMode && onPhotoSelect) {
+                onPhotoSelect(index);
+              } else {
+                onPhotoClick(index);
+              }
+            }}
           >
             <div
               className="group relative overflow-hidden shadow-md transition-all duration-200 hover:shadow-2xl"
               style={{ width: `${columnWidth}px` }}
             >
+              {/* Selection Checkbox for PC */}
+              {!isMobile && isSelectionMode && (
+                <div className="absolute top-2 right-2 z-10">
+                  <div
+                    className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${
+                      selectedPhotos.has(index)
+                        ? "bg-blue-500 text-white"
+                        : "border-2 border-gray-300 bg-white/90 hover:border-blue-500"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onPhotoSelect) {
+                        onPhotoSelect(index);
+                      }
+                    }}
+                  >
+                    {selectedPhotos.has(index) && <Check className="h-5 w-5" />}
+                  </div>
+                </div>
+              )}
               {selfieMatchedSet?.has(url) && (
                 <div className="absolute top-2 left-2 z-20">
                   <Badge variant="selfie">Selfie match</Badge>
                 </div>
               )}
-              <div className="absolute right-0 bottom-0 left-0 z-10 hidden translate-y-2 items-center justify-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex">
+              <div
+                className={`absolute right-0 bottom-0 left-0 z-10 ${isSelectionMode ? "hidden" : "hidden"} translate-y-2 items-center justify-end bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:flex`}
+              >
                 {/* Share & Download Icons - Right Side */}
                 <div className="flex items-center gap-2">
                   <div onClick={(e) => e.stopPropagation()}>

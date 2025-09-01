@@ -165,6 +165,15 @@ export async function bulkDownloadPhotos(
 ): Promise<{ success: boolean; method: string; count: number }> {
   const photoCount = urls.length;
 
+  // Limit bulk download to prevent browser overload and network issues
+  const MAX_BULK_DOWNLOAD = 50;
+
+  if (photoCount > MAX_BULK_DOWNLOAD) {
+    throw new Error(
+      `Too many photos selected. Maximum ${MAX_BULK_DOWNLOAD} photos allowed for bulk download.`,
+    );
+  }
+
   // If less than 10 photos, download individually
   if (photoCount < 10) {
     let successCount = 0;
@@ -190,73 +199,41 @@ export async function bulkDownloadPhotos(
 
   // For 10+ photos, create and download as ZIP
   try {
-    // Dynamic import to reduce initial bundle size
     const JSZip = (await import("jszip")).default;
     const zip = new JSZip();
-
-    // Create a folder in the ZIP
     const folderName = `${eventName}${bibNumber ? `-${bibNumber}` : ""}-photos`;
     const folder = zip.folder(folderName);
 
-    if (!folder) {
-      throw new Error("Failed to create ZIP folder");
-    }
+    if (!folder) throw new Error("Failed to create ZIP folder");
 
     // Download all images and add to ZIP
     const downloadPromises = urls.map(async (url, index) => {
       try {
-        // Try to fetch the image
         const response = await fetch(url, { mode: "cors" });
-        if (!response.ok) throw new Error(`Failed to fetch ${url}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const blob = await response.blob();
-        const filename = generatePhotoFilename(
-          eventName,
-          bibNumber || undefined,
-          index,
-        );
-
-        // Add to ZIP folder
+        const filename = generatePhotoFilename(eventName, bibNumber, index);
         folder.file(filename, blob);
         return true;
       } catch (error) {
         console.error(`Failed to download image ${index + 1}:`, error);
-        // Try with proxy as fallback
-        try {
-          const proxyUrl = `/api/download-image?url=${encodeURIComponent(url)}`;
-          const proxyResponse = await fetch(proxyUrl);
-          if (proxyResponse.ok) {
-            const blob = await proxyResponse.blob();
-            const filename = generatePhotoFilename(
-              eventName,
-              bibNumber || undefined,
-              index,
-            );
-            folder.file(filename, blob);
-            return true;
-          }
-        } catch {
-          // Skip this image if both methods fail
-        }
         return false;
       }
     });
 
     const results = await Promise.all(downloadPromises);
-    const successCount = results.filter((r) => r).length;
+    const successCount = results.filter(Boolean).length;
 
-    if (successCount === 0) {
-      throw new Error("No images could be downloaded");
-    }
+    if (successCount === 0) throw new Error("No images could be downloaded");
 
-    // Generate ZIP file
+    // Generate and download ZIP file
     const zipBlob = await zip.generateAsync({
       type: "blob",
       compression: "DEFLATE",
-      compressionOptions: { level: 6 }, // Balanced compression
+      compressionOptions: { level: 6 },
     });
 
-    // Create download link
     const url = URL.createObjectURL(zipBlob);
     const link = document.createElement("a");
     link.href = url;
@@ -264,30 +241,23 @@ export async function bulkDownloadPhotos(
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Clean up
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    return {
-      success: true,
-      method: "zip",
-      count: successCount,
-    };
+    return { success: true, method: "zip", count: successCount };
   } catch (error) {
-    console.error("Bulk download failed:", error);
-
-    // Fallback to individual downloads
-    let successCount = 0;
-    for (let i = 0; i < Math.min(urls.length, 5); i++) {
-      const filename = generatePhotoFilename(
-        eventName,
-        bibNumber || undefined,
-        i,
-      );
-      const result = await downloadPhoto(urls[i]!, filename);
-      if (result.success) successCount++;
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
+    console.error("ZIP download failed:", error);
+    
+    // Fallback: download first 5 photos individually
+    const fallbackUrls = urls.slice(0, 5);
+    const results = await Promise.allSettled(
+      fallbackUrls.map((url, i) =>
+        downloadPhoto(url, generatePhotoFilename(eventName, bibNumber, i))
+      )
+    );
+    
+    const successCount = results.filter(
+      (r) => r.status === "fulfilled" && r.value.success
+    ).length;
 
     return {
       success: successCount > 0,
@@ -304,30 +274,8 @@ export async function downloadPhoto(
   url: string,
   filename: string,
 ): Promise<{ success: boolean; method: string }> {
-  // Try API proxy first
-  try {
-    const proxyUrl = `/api/download-image?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-    const testResponse = await fetch(proxyUrl, { method: "HEAD" });
-
-    if (testResponse.ok) {
-      const link = document.createElement("a");
-      link.href = proxyUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return { success: true, method: "proxy" };
-    }
-  } catch {
-    console.log("API proxy failed, trying direct download");
-  }
-
-  // Try direct fetch
-  try {
-    const response = await fetch(url, { mode: "no-cors" });
-    const blob = await response.blob();
+  const downloadWithBlob = (blob: Blob, method: string) => {
     const objectUrl = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = objectUrl;
     link.download = filename;
@@ -335,24 +283,33 @@ export async function downloadPhoto(
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
+    return { success: true, method };
+  };
 
-    return { success: true, method: "direct" };
+  // Try CORS fetch first
+  try {
+    const response = await fetch(url, { mode: "cors" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return downloadWithBlob(await response.blob(), "direct");
+  } catch (error) {
+    console.log("CORS fetch failed:", error);
+  }
+
+  // Fallback to no-cors mode
+  try {
+    const response = await fetch(url, { mode: "no-cors" });
+    return downloadWithBlob(await response.blob(), "no-cors");
   } catch {
     // Final fallback - open in new tab
-    try {
-      const link = document.createElement("a");
-      link.href = url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      return { success: true, method: "newTab" };
-    } catch {
-      return { success: false, method: "failed" };
-    }
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return { success: true, method: "newTab" };
   }
 }
 
