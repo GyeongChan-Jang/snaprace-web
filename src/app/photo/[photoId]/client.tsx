@@ -4,21 +4,38 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PhotoSingleView } from "@/components/PhotoSingleView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { encodePhotoId } from "@/utils/photo";
 
 interface PhotoShareClientProps {
   photoId: string;
   photoUrl: string;
+  organizerId?: string;
+  eventId?: string;
+  bibNumber?: string;
 }
 
-export function PhotoShareClient({ photoId, photoUrl }: PhotoShareClientProps) {
+export function PhotoShareClient({
+  photoId,
+  photoUrl,
+  organizerId,
+  eventId,
+  bibNumber,
+}: PhotoShareClientProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading for smooth transition
+    // If we have eventId, redirect to canonical events PhotoSingleView URL
+    if (eventId) {
+      const pid = encodePhotoId(photoId);
+      const bib = bibNumber && bibNumber.length > 0 ? bibNumber : "null";
+      router.replace(`/events/${eventId}/${bib}?pid=${pid}`);
+      return;
+    }
+    // Otherwise, keep lightweight fallback rendering
     const timer = setTimeout(() => setIsLoading(false), 100);
     return () => clearTimeout(timer);
-  }, []);
+  }, [router, eventId, bibNumber, photoId]);
 
   const handleIndexChange = () => {
     // Single photo view doesn't need index changes
@@ -45,8 +62,9 @@ export function PhotoShareClient({ photoId, photoUrl }: PhotoShareClientProps) {
         photos={[photoUrl]}
         currentIndex={0}
         onIndexChange={handleIndexChange}
-        event=""
-        bibNumber=""
+        event={eventId}
+        bibNumber={bibNumber}
+        organizerId={organizerId}
       />
     </div>
   );

@@ -34,6 +34,7 @@ interface PhotoSingleViewProps {
   bibNumber?: string;
   onPhotoChange?: (index: number) => void;
   selfieMatchedSet?: Set<string>;
+  organizerId?: string;
 }
 
 export function PhotoSingleView({
@@ -46,6 +47,7 @@ export function PhotoSingleView({
   bibNumber,
   onPhotoChange,
   selfieMatchedSet,
+  organizerId,
 }: PhotoSingleViewProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -117,7 +119,11 @@ export function PhotoSingleView({
     if (!currentPhoto) return;
 
     // Generate shareable URL for the photo
-    const shareableUrl = generateShareablePhotoUrl(currentPhoto);
+    const shareableUrl = generateShareablePhotoUrl(currentPhoto, {
+      organizerId,
+      eventId: event,
+      bibNumber,
+    });
 
     // Prefer native navigator.share on mobile
     if (isMobile && typeof navigator !== "undefined") {
@@ -247,6 +253,7 @@ export function PhotoSingleView({
               photoUrl={currentPhoto}
               filename={filename}
               isMobile={isMobile}
+              shareOptions={{ organizerId, eventId: event, bibNumber }}
             >
               <Button
                 variant="ghost"

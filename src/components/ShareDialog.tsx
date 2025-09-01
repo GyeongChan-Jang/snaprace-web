@@ -32,6 +32,12 @@ interface ShareDialogProps {
   filename: string;
   isMobile: boolean;
   children: React.ReactNode;
+  shareOptions?: {
+    organizerId?: string;
+    eventId?: string;
+    bibNumber?: string;
+    baseUrl?: string;
+  };
 }
 
 export function ShareDialog({
@@ -39,9 +45,10 @@ export function ShareDialog({
   filename,
   isMobile,
   children,
+  shareOptions,
 }: ShareDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const shareableUrl = generateShareablePhotoUrl(photoUrl);
+  const shareableUrl = generateShareablePhotoUrl(photoUrl, shareOptions);
 
   const handleCopyLink = async () => {
     try {

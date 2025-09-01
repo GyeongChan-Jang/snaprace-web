@@ -445,6 +445,7 @@ export default function EventPhotoPage() {
             selfieMatchedSet={selfieMatchedSet}
             event={event}
             bibNumber={bibNumber}
+            organizerId={eventQuery.data?.organization_id}
           />
         ) : (
           // isAllPhotos ? (
@@ -486,6 +487,7 @@ export default function EventPhotoPage() {
         onIndexChange={handlePhotoIndexChange}
         event={event}
         bibNumber={bibNumber}
+        organizerId={eventQuery.data?.organization_id}
         onPhotoChange={(index) => {
           // Update clicked photo rect when navigating
           const photoElement = photoRefs.current.get(index);

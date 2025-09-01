@@ -7,18 +7,27 @@ interface PhotoPageProps {
   params: Promise<{
     photoId: string;
   }>;
+  searchParams?: Promise<{
+    organizerId?: string;
+    eventId?: string;
+    bibNumber?: string;
+  }>;
 }
 
 // Generate metadata for social sharing
 export async function generateMetadata({
   params,
+  searchParams,
 }: PhotoPageProps): Promise<Metadata> {
   const { photoId } = await params;
+  const sp = (await searchParams) || {};
+  const organizerId = sp.organizerId || "";
+  const eventId = sp.eventId || "";
+  const bibNumber = sp.bibNumber || "";
+
   const decodedId = decodePhotoId(photoId);
 
-  // For now, we'll construct the image URL based on the pattern
-  // In production, you might want to fetch this from a database
-  const imageUrl = constructImageUrl(decodedId);
+  const imageUrl = constructImageUrl(decodedId, organizerId, eventId);
 
   if (!imageUrl) {
     return {
@@ -54,7 +63,11 @@ export async function generateMetadata({
 }
 
 // Helper function to construct image URL from photo ID
-function constructImageUrl(photoId: string): string | null {
+function constructImageUrl(
+  photoId: string,
+  organizerId: string,
+  eventId: string,
+): string | null {
   // Check if it's a valid CloudFront URL pattern
   // We'll need to determine the full path - this might need to be stored or fetched
   // For now, we'll try to reconstruct a basic CloudFront URL
@@ -63,16 +76,23 @@ function constructImageUrl(photoId: string): string | null {
   if (/^[A-Z]+-\d+-\d+$/.test(photoId)) {
     // This is a simplified example - in production, you'd need to know the full path
     // You might store this mapping in a database or derive it from the event
-    return `https://dlzt7slmb0gog.cloudfront.net/millennium-running/happy-hour-hustle-week4-2025/raw_photos/${photoId}.jpg`;
+    return `https://images.snap-race.com/${organizerId}/${eventId}/raw_photos/${photoId}.jpg`;
   }
 
   return null;
 }
 
-export default async function PhotoSharePage({ params }: PhotoPageProps) {
+export default async function PhotoSharePage({
+  params,
+  searchParams,
+}: PhotoPageProps) {
   const { photoId } = await params;
+  const sp = (await searchParams) || {};
+  const organizerId = sp.organizerId || "";
+  const eventId = sp.eventId || "";
+  const bibNumber = sp.bibNumber || "";
   const decodedId = decodePhotoId(photoId);
-  const imageUrl = constructImageUrl(decodedId);
+  const imageUrl = constructImageUrl(decodedId, organizerId, eventId);
 
   if (!imageUrl) {
     notFound();
@@ -80,5 +100,13 @@ export default async function PhotoSharePage({ params }: PhotoPageProps) {
 
   // Server component renders the page with metadata
   // Client component handles the interactive photo viewer
-  return <PhotoShareClient photoId={decodedId} photoUrl={imageUrl} />;
+  return (
+    <PhotoShareClient
+      photoId={decodedId}
+      photoUrl={imageUrl}
+      organizerId={organizerId}
+      eventId={eventId}
+      bibNumber={bibNumber}
+    />
+  );
 }

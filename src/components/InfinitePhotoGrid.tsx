@@ -18,6 +18,7 @@ interface InfinitePhotoGridProps {
   selfieMatchedSet?: Set<string>;
   event?: string;
   bibNumber?: string;
+  organizerId?: string;
 }
 
 export function InfinitePhotoGrid({
@@ -29,6 +30,7 @@ export function InfinitePhotoGrid({
   selfieMatchedSet,
   event,
   bibNumber,
+  organizerId,
 }: InfinitePhotoGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<MasonryGrid | null>(null);
@@ -205,6 +207,7 @@ export function InfinitePhotoGrid({
                         index,
                       )}
                       isMobile={isMobile}
+                      shareOptions={{ organizerId, eventId: event, bibNumber }}
                     >
                       <button
                         className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center bg-transparent text-white hover:scale-110"

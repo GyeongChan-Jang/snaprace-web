@@ -1,6 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/useMobile";
 
 export function EventCardSkeleton() {
   return (
@@ -70,12 +71,13 @@ export function PhotoGridSkeleton({ count = 8 }: { count?: number }) {
 
 // New Masonry-style skeleton for photo grid
 export function MasonryPhotoSkeleton({ count = 12 }: { count?: number }) {
+  const isMobile = useIsMobile();
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto">
       <div
         className="masonry-skeleton-grid gap-2"
         style={{
-          columnCount: 4,
+          columnCount: isMobile ? 2 : 4,
           columnGap: "8px",
         }}
       >

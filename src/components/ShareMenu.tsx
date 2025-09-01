@@ -25,6 +25,12 @@ interface ShareMenuProps {
   filename: string;
   isMobile: boolean;
   children: React.ReactNode;
+  shareOptions?: {
+    organizerId?: string;
+    eventId?: string;
+    bibNumber?: string;
+    baseUrl?: string;
+  };
 }
 
 export function ShareMenu({
@@ -32,10 +38,11 @@ export function ShareMenu({
   filename,
   isMobile,
   children,
+  shareOptions,
 }: ShareMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const shareableUrl = generateShareablePhotoUrl(photoUrl);
+  const shareableUrl = generateShareablePhotoUrl(photoUrl, shareOptions);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
