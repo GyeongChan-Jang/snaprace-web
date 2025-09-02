@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { formatEventDate } from "@/utils/date";
 
 interface EventCardProps {
   id: string;
@@ -49,11 +50,7 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
             {name}
           </h3>
           <p className="text-muted-foreground tablet:text-base text-sm">
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {formatEventDate(date)}
           </p>
         </div>
       </Link>
