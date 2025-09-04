@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { trackFeedbackView, trackFeedbackSubmit } from "@/lib/analytics";
+import { trackFeedbackSubmit } from "@/lib/analytics";
 
 interface FeedbackSectionProps {
   eventId: string;
@@ -26,7 +26,7 @@ export function FeedbackSection({
 
   // Track feedback section view
   useEffect(() => {
-    trackFeedbackView(eventId, bibNumber);
+    // Feedback section view tracking removed for simplicity
   }, [eventId, bibNumber]);
 
   const handleSubmit = async (e: React.FormEvent) => {

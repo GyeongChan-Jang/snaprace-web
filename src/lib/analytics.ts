@@ -35,14 +35,6 @@ interface FeedbackEvent extends EventParameters {
   has_comment?: boolean
 }
 
-interface PageViewEvent extends EventParameters {
-  event_id?: string
-  bib_number?: string
-  is_all_photos?: boolean
-  utm_source?: string
-  utm_medium?: string
-  utm_campaign?: string
-}
 
 interface PerformanceEvent extends EventParameters {
   name: string
@@ -107,68 +99,37 @@ export const trackBulkDownloadStart = (eventId: string, bibNumber: string, photo
   })
 }
 
-export const trackPhotoShare = (eventId: string, bibNumber: string, platform: string) => {
-  trackEvent('photo_share', {
+
+// SNS 공유 관련 상세 추적
+export const trackSocialShareClick = (eventId: string, bibNumber: string, platform: string) => {
+  trackEvent('social_share_click', {
     event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
+    event_label: platform,
     event_id: eventId,
     bib_number: bibNumber,
     share_platform: platform
   })
 }
 
-// SNS 공유 관련 상세 추적
-export const trackSocialShareClick = (eventId: string, bibNumber: string, platform: string, photoUrl?: string) => {
-  trackEvent('social_share_click', {
-    event_category: 'social_engagement',
-    event_label: platform,
-    event_id: eventId,
-    bib_number: bibNumber,
-    share_platform: platform,
-    photo_url: photoUrl
-  })
-}
 
-export const trackShareMenuOpen = (eventId: string, bibNumber: string, photoUrl?: string) => {
-  trackEvent('share_menu_open', {
-    event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
-    event_id: eventId,
-    bib_number: bibNumber,
-    photo_url: photoUrl
-  })
-}
-
-export const trackShareMenuClose = (eventId: string, bibNumber: string, interactionType: 'click_outside' | 'close_button' | 'share_complete') => {
-  trackEvent('share_menu_close', {
-    event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
-    event_id: eventId,
-    bib_number: bibNumber,
-    interaction_type: interactionType
-  })
-}
-
-export const trackShareComplete = (eventId: string, bibNumber: string, platform: string, success: boolean, photoUrl?: string) => {
+export const trackShareComplete = (eventId: string, bibNumber: string, platform: string, success: boolean) => {
   trackEvent('share_complete', {
     event_category: 'conversion',
     event_label: `${eventId}_${bibNumber}_${platform}`,
     event_id: eventId,
     bib_number: bibNumber,
     share_platform: platform,
-    success: success,
-    photo_url: photoUrl
+    success: success
   })
 }
 
-export const trackShareLinkCopy = (eventId: string, bibNumber: string, success: boolean, photoUrl?: string) => {
+export const trackShareLinkCopy = (eventId: string, bibNumber: string, success: boolean) => {
   trackEvent('share_link_copy', {
     event_category: 'engagement',
     event_label: `${eventId}_${bibNumber}`,
     event_id: eventId,
     bib_number: bibNumber,
-    success: success,
-    photo_url: photoUrl
+    success: success
   })
 }
 
@@ -181,14 +142,6 @@ export const trackSelfieUpload = (params: SelfieUploadEvent) => {
   })
 }
 
-export const trackSelfieProcessingStart = (eventId: string, bibNumber: string) => {
-  trackEvent('selfie_processing_start', {
-    event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
-    event_id: eventId,
-    bib_number: bibNumber
-  })
-}
 
 export const trackSelfieResults = (eventId: string, bibNumber: string, matchedCount: number) => {
   trackEvent('selfie_results', {
@@ -210,26 +163,11 @@ export const trackFeedbackSubmit = (params: FeedbackEvent) => {
   })
 }
 
-export const trackFeedbackView = (eventId: string, bibNumber: string) => {
-  trackEvent('feedback_view', {
-    event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
-    event_id: eventId,
-    bib_number: bibNumber
-  })
-}
 
-// Page visit tracking
-export const trackPageVisit = (params: PageViewEvent) => {
-  trackEvent('page_visit', {
-    event_category: 'navigation',
-    ...params
-  })
-}
 
 export const trackEventPageVisit = (eventId: string, bibNumber?: string, isAllPhotos = false) => {
   trackEvent('event_page_visit', {
-    event_category: 'navigation',
+    event_category: 'engagement',
     event_label: eventId,
     event_id: eventId,
     bib_number: bibNumber || undefined,
@@ -263,46 +201,6 @@ export const trackPerformance = (metric: PerformanceEvent) => {
   })
 }
 
-// Error tracking
-export const trackError = (error: string, context?: string) => {
-  trackEvent('error', {
-    event_category: 'error',
-    event_label: context || 'unknown',
-    error_message: error,
-    error_context: context
-  })
-}
-
-// Search tracking
-export const trackSearch = (eventId: string, searchTerm: string, resultCount: number) => {
-  trackEvent('search', {
-    event_category: 'engagement',
-    event_label: eventId,
-    event_id: eventId,
-    search_term: searchTerm,
-    result_count: resultCount
-  })
-}
-
-// Navigation tracking
-export const trackNavigation = (from: string, to: string) => {
-  trackEvent('navigation', {
-    event_category: 'navigation',
-    from_page: from,
-    to_page: to
-  })
-}
-
-// Photo selection tracking
-export const trackPhotoSelection = (eventId: string, bibNumber: string, selectedCount: number) => {
-  trackEvent('photo_selection', {
-    event_category: 'engagement',
-    event_label: `${eventId}_${bibNumber}`,
-    event_id: eventId,
-    bib_number: bibNumber,
-    selected_count: selectedCount
-  })
-}
 
 // Time tracking
 export const trackTimeSpent = (page: string, timeSeconds: number) => {

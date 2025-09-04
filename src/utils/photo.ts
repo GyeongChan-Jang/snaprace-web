@@ -2,6 +2,8 @@
  * Photo-related utility functions
  */
 
+import { toast } from "sonner";
+
 /**
  * Extract photo ID from CloudFront URL
  * Example: https://dlzt7slmb0gog.cloudfront.net/.../HHH-4-11655.jpg -> HHH-4-11655
@@ -246,17 +248,17 @@ export async function bulkDownloadPhotos(
     return { success: true, method: "zip", count: successCount };
   } catch (error) {
     console.error("ZIP download failed:", error);
-    
+
     // Fallback: download first 5 photos individually
     const fallbackUrls = urls.slice(0, 5);
     const results = await Promise.allSettled(
       fallbackUrls.map((url, i) =>
-        downloadPhoto(url, generatePhotoFilename(eventName, bibNumber, i))
-      )
+        downloadPhoto(url, generatePhotoFilename(eventName, bibNumber, i)),
+      ),
     );
-    
+
     const successCount = results.filter(
-      (r) => r.status === "fulfilled" && r.value.success
+      (r) => r.status === "fulfilled" && r.value.success,
     ).length;
 
     return {
@@ -292,7 +294,8 @@ export async function downloadPhoto(
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return downloadWithBlob(await response.blob(), "direct");
   } catch (error) {
-    console.log("CORS fetch failed:", error);
+    toast.error("Failed to download photo");
+    console.error("CORS fetch failed:", error);
   }
 
   // Fallback to no-cors mode

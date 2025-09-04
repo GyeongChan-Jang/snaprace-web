@@ -102,7 +102,7 @@ export function PhotoActions({
         });
         toast.success("Photo shared successfully!");
       } catch {
-        console.log("Native sharing cancelled or failed");
+        toast.error("Native sharing cancelled or failed");
       }
     }
   };

@@ -20,13 +20,10 @@ import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 import { PhotoSelectionControls } from "@/components/PhotoSelectionControls";
 import { usePhotoSelection } from "@/hooks/usePhotoSelection";
 import { FeedbackSection } from "@/components/FeedbackSection";
-import { useAnalyticsTracking, usePerformanceTracking, useInteractionTracking } from "@/hooks/useAnalyticsTracking";
+import { useAnalyticsTracking, usePerformanceTracking } from "@/hooks/useAnalyticsTracking";
 import {
   trackSelfieUpload,
-  trackSelfieProcessingStart,
-  trackSelfieResults,
-  trackPhotoSelection,
-  trackSearch
+  trackSelfieResults
 } from "@/lib/analytics";
 
 export default function EventPhotoPage() {
@@ -46,7 +43,7 @@ export default function EventPhotoPage() {
   const bibNumber = isAllPhotos ? "" : bibParam;
 
   // Initialize interaction tracking
-  const { trackClick } = useInteractionTracking(event, bibNumber);
+  // Detailed interaction tracking removed for simplicity
 
   // API queries
   const eventQuery = api.events.getById.useQuery(
@@ -119,7 +116,7 @@ export default function EventPhotoPage() {
     
     // Track selection event
     if (!wasSelected) {
-      trackPhotoSelection(event, bibNumber, selectedCount + 1);
+      // Photo selection tracking removed - bulk download tracking is sufficient
     }
   }, [togglePhotoSelection, event, bibNumber, selectedCount, isPhotoSelected]);
 
@@ -150,7 +147,7 @@ export default function EventPhotoPage() {
     if (file) {
       try {
         // Track selfie upload start
-        trackSelfieProcessingStart(event, bibNumber);
+        // Selfie processing start tracking removed - only result tracking needed
         
         // Upload selfie and then refetch gallery only on success
         await uploadSelfie(file);
@@ -197,8 +194,8 @@ export default function EventPhotoPage() {
     e.preventDefault();
     if (searchBib.trim()) {
       // Track search event
-      trackSearch(event, searchBib.trim(), 0); // Result count will be tracked on the next page
-      trackClick('bib_search_submit', 'header');
+      // Search tracking removed - page visit tracking is sufficient
+      // Click tracking removed for simplicity
       router.push(`/events/${event}/${searchBib.trim()}`);
     }
   };

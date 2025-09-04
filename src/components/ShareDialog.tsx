@@ -26,8 +26,6 @@ import {
 import { toast } from "sonner";
 import {
   trackSocialShareClick,
-  trackShareMenuOpen,
-  trackShareMenuClose,
   trackShareComplete,
   trackShareLinkCopy
 } from "@/lib/analytics";
@@ -64,14 +62,14 @@ export function ShareDialog({
       await navigator.clipboard.writeText(shareableUrl);
       // Track successful link copy
       if (eventId) {
-        trackShareLinkCopy(eventId, bibNumber, true, photoUrl);
+        trackShareLinkCopy(eventId, bibNumber, true);
       }
       toast.success("Link copied to clipboard!");
       setIsOpen(false);
     } catch {
       // Track failed link copy
       if (eventId) {
-        trackShareLinkCopy(eventId, bibNumber, false, photoUrl);
+        trackShareLinkCopy(eventId, bibNumber, false);
       }
       toast.error("Failed to copy link");
     }
@@ -80,7 +78,7 @@ export function ShareDialog({
   const handleMoreShare = async () => {
     // Track "More" button click
     if (eventId) {
-      trackSocialShareClick(eventId, bibNumber, 'more', photoUrl);
+      trackSocialShareClick(eventId, bibNumber, 'more');
     }
 
     const result = await sharePhotoWithOptions(
@@ -93,7 +91,7 @@ export function ShareDialog({
     if (result.success) {
       // Track successful share
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, result.method || 'more', true, photoUrl);
+        trackShareComplete(eventId, bibNumber, result.method || 'more', true);
       }
 
       switch (result.method) {
@@ -110,37 +108,24 @@ export function ShareDialog({
     } else if (result.method !== "cancelled") {
       // Track failed share (only if not cancelled)
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, 'more', false, photoUrl);
+        trackShareComplete(eventId, bibNumber, 'more', false);
       }
       toast.error("Failed to share");
     }
 
-    if (eventId && result.method !== "cancelled") {
-      trackShareMenuClose(eventId, bibNumber, 'share_complete');
-    }
     setIsOpen(false);
   };
 
   const handleSocialShare = (platform: string) => {
     // Track social platform click
     if (eventId) {
-      trackSocialShareClick(eventId, bibNumber, platform, photoUrl);
-      trackShareMenuClose(eventId, bibNumber, 'share_complete');
+      trackSocialShareClick(eventId, bibNumber, platform);
     }
     setIsOpen(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(newOpen) => {
-      if (newOpen && eventId) {
-        // Track menu open
-        trackShareMenuOpen(eventId, bibNumber, photoUrl);
-      } else if (!newOpen && isOpen && eventId) {
-        // Track menu close via dialog close
-        trackShareMenuClose(eventId, bibNumber, 'close_button');
-      }
-      setIsOpen(newOpen);
-    }}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         className="max-w-sm sm:max-w-md"

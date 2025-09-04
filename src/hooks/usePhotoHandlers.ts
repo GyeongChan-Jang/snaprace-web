@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { downloadPhoto, scrollPhotoIntoView, extractPhotoId, encodePhotoId, generateShareablePhotoUrl } from "@/utils/photo";
-import { trackPhotoView, trackPhotoDownload, trackPhotoShare } from "@/lib/analytics";
+import { trackPhotoView, trackPhotoDownload } from "@/lib/analytics";
 
 interface UsePhotoHandlersProps {
   event: string;
@@ -106,7 +106,7 @@ export function usePhotoHandlers({
             });
             
             // Track successful share
-            trackPhotoShare(event, bibParam !== 'null' ? bibParam : '', 'native');
+            // Photo share tracking removed - using SNS-specific tracking instead
             toast.success("Shared successfully!");
             return;
           } catch (error) {
@@ -121,7 +121,7 @@ export function usePhotoHandlers({
         await navigator.clipboard.writeText(shareableUrl);
         
         // Track successful clipboard share
-        trackPhotoShare(event, bibParam !== 'null' ? bibParam : '', 'clipboard');
+        // Photo share tracking removed - using SNS-specific tracking instead
         toast.success("Share link copied to clipboard!");
       } catch {
         toast.error("Failed to share photo");

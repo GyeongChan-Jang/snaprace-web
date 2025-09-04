@@ -29,8 +29,6 @@ export default function HomePage() {
   // Set default event when data loads
   const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
 
-  console.log("events", events);
-
   // Update selectedEventId when events are loaded and no event is selected
   useEffect(() => {
     if (events.length > 0 && !selectedEventId) {

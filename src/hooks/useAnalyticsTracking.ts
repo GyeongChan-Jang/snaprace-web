@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { 
-  trackPageVisit, 
   trackEventPageVisit, 
   trackCampaignVisit,
   trackTimeSpent 
@@ -54,16 +53,8 @@ export function useAnalyticsTracking() {
           )
         }
       }
-    } else {
-      // 일반 페이지 방문 추적
-      trackPageVisit({
-        page_path: pathname,
-        page_title: typeof document !== 'undefined' ? document.title : undefined,
-        utm_source: utmSource || undefined,
-        utm_medium: utmMedium || undefined,
-        utm_campaign: utmCampaign || undefined
-      })
     }
+    // 일반 페이지는 GA4 기본 페이지뷰로 충분
   }, [pathname, searchParams])
 
   // Cleanup: track time spent when component unmounts
@@ -105,36 +96,3 @@ export function usePerformanceTracking() {
   }, [])
 }
 
-// Hook for tracking user interactions
-export function useInteractionTracking(eventId?: string, bibNumber?: string) {
-  const trackClick = (element: string, context?: string) => {
-    if (typeof window !== 'undefined') {
-      void import('@/lib/analytics').then(({ trackEvent }) => {
-        trackEvent('click', {
-          event_category: 'engagement',
-          event_label: element,
-          element_clicked: element,
-          context: context,
-          event_id: eventId,
-          bib_number: bibNumber
-        })
-      })
-    }
-  }
-
-  const trackScroll = (percentage: number) => {
-    if (typeof window !== 'undefined') {
-      void import('@/lib/analytics').then(({ trackEvent }) => {
-        trackEvent('scroll', {
-          event_category: 'engagement',
-          event_label: `${percentage}%`,
-          scroll_percentage: percentage,
-          event_id: eventId,
-          bib_number: bibNumber
-        })
-      })
-    }
-  }
-
-  return { trackClick, trackScroll }
-}

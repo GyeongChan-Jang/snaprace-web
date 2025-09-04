@@ -106,7 +106,6 @@ export function useSelfieUpload({
       const base64Image = await convertToBase64(file);
       const matchedResult = await callLambdaFunction(base64Image);
 
-      console.log("matchedResult", matchedResult);
       if (matchedResult.selfie_matched_photos.length > 0) {
         toast.success(matchedResult?.message ?? "Successfully matched photos!");
       } else {

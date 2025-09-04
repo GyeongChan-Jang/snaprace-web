@@ -19,8 +19,6 @@ import {
 import { toast } from "sonner";
 import {
   trackSocialShareClick,
-  trackShareMenuOpen,
-  trackShareMenuClose,
   trackShareComplete,
   trackShareLinkCopy
 } from "@/lib/analytics";
@@ -56,10 +54,6 @@ export function ShareMenu({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        // Track menu close via click outside
-        if (isOpen && eventId) {
-          trackShareMenuClose(eventId, bibNumber, 'click_outside');
-        }
         setIsOpen(false);
       }
     };
@@ -71,21 +65,21 @@ export function ShareMenu({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, eventId, bibNumber]);
+  }, [isOpen]);
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareableUrl);
       // Track successful link copy
       if (eventId) {
-        trackShareLinkCopy(eventId, bibNumber, true, photoUrl);
+        trackShareLinkCopy(eventId, bibNumber, true);
       }
       toast.success("Link copied to clipboard!");
       setIsOpen(false);
     } catch {
       // Track failed link copy
       if (eventId) {
-        trackShareLinkCopy(eventId, bibNumber, false, photoUrl);
+        trackShareLinkCopy(eventId, bibNumber, false);
       }
       toast.error("Failed to copy link");
     }
@@ -94,7 +88,7 @@ export function ShareMenu({
   const handleMoreShare = async () => {
     // Track "More" button click
     if (eventId) {
-      trackSocialShareClick(eventId, bibNumber, 'more', photoUrl);
+      trackSocialShareClick(eventId, bibNumber, 'more');
     }
 
     const result = await sharePhotoWithOptions(
@@ -107,7 +101,7 @@ export function ShareMenu({
     if (result.success) {
       // Track successful share
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, result.method || 'more', true, photoUrl);
+        trackShareComplete(eventId, bibNumber, result.method || 'more', true);
       }
 
       switch (result.method) {
@@ -124,36 +118,25 @@ export function ShareMenu({
     } else if (result.method !== "cancelled") {
       // Track failed share (only if not cancelled)
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, 'more', false, photoUrl);
+        trackShareComplete(eventId, bibNumber, 'more', false);
       }
       toast.error("Failed to share");
     }
 
-    if (eventId && result.method !== "cancelled") {
-      trackShareMenuClose(eventId, bibNumber, 'share_complete');
-    }
     setIsOpen(false);
   };
 
   const handleSocialShare = (platform: string) => {
     // Track social platform click
     if (eventId) {
-      trackSocialShareClick(eventId, bibNumber, platform, photoUrl);
-      trackShareMenuClose(eventId, bibNumber, 'share_complete');
+      trackSocialShareClick(eventId, bibNumber, platform);
     }
     setIsOpen(false);
   };
 
   return (
     <div className="relative z-50" ref={menuRef}>
-      <div onClick={() => {
-        const newIsOpen = !isOpen;
-        if (newIsOpen && eventId) {
-          // Track menu open
-          trackShareMenuOpen(eventId, bibNumber, photoUrl);
-        }
-        setIsOpen(newIsOpen);
-      }}>{children}</div>
+      <div onClick={() => setIsOpen(!isOpen)}>{children}</div>
 
       {isOpen && (
         <div className="absolute right-0 bottom-full z-50 mb-2 w-64 rounded-lg border bg-white p-4 shadow-lg">
@@ -161,12 +144,7 @@ export function ShareMenu({
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-medium text-gray-900">SHARE</h3>
             <button
-              onClick={() => {
-                if (eventId) {
-                  trackShareMenuClose(eventId, bibNumber, 'close_button');
-                }
-                setIsOpen(false);
-              }}
+              onClick={() => setIsOpen(false)}
               className="text-gray-400 hover:text-gray-600"
             >
               <X className="h-4 w-4" />
