@@ -2,10 +2,12 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Poppins, Montserrat } from "next/font/google";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
+import ClarityInit from "@/components/analytics/ClarityInit";
 
 export const metadata: Metadata = {
   title: "SnapRace - Find Your Race Photos",
@@ -45,6 +47,10 @@ export default function RootLayout({
           </div>
           <Toaster />
         </TRPCReactProvider>
+        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
+        <ClarityInit />
       </body>
     </html>
   );

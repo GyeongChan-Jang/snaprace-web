@@ -6,8 +6,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import { calculateColumnCount, isMobileDevice, debounce } from "@/utils/device";
 import {
-  findPhotoIndexByUrl,
-  findPhotoUrlById,
   decodePhotoId,
 } from "@/utils/photo";
 

@@ -63,7 +63,7 @@ function isAWSError(error: unknown): error is AWSError {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as FeedbackRequestBody;
+    const body = (await request.json()) as FeedbackRequestBody;
     const { eventId, bibNumber, rating, comment } = body;
 
     // 입력 검증
@@ -74,14 +74,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof rating !== 'number' || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+    if (
+      typeof rating !== "number" ||
+      rating < 1 ||
+      rating > 5 ||
+      !Number.isInteger(rating)
+    ) {
       return NextResponse.json(
         { error: "Rating must be an integer between 1 and 5" },
         { status: 400 },
       );
     }
 
-    if (comment && typeof comment === 'string' && comment.length > 500) {
+    if (comment && typeof comment === "string" && comment.length > 500) {
       return NextResponse.json(
         { error: "Comment must be 500 characters or less" },
         { status: 400 },
@@ -109,7 +114,8 @@ export async function POST(request: NextRequest) {
       eventId,
       bibNumber,
       rating,
-      comment: typeof comment === 'string' ? comment.trim() || undefined : undefined,
+      comment:
+        typeof comment === "string" ? comment.trim() || undefined : undefined,
       timestamp,
       createdAt: timestamp,
       userAgent: userAgent.substring(0, 200),
@@ -123,8 +129,6 @@ export async function POST(request: NextRequest) {
         "attribute_not_exists(PK) AND attribute_not_exists(SK)", // 중복 방지
     });
     await dynamodb.send(command);
-
-    console.log("Feedback received:", feedbackItem);
 
     return NextResponse.json({
       success: true,

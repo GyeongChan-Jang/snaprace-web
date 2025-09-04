@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { trackFeedbackView, trackFeedbackSubmit } from "@/lib/analytics";
 
 interface FeedbackSectionProps {
   eventId: string;
@@ -22,6 +23,11 @@ export function FeedbackSection({
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Track feedback section view
+  useEffect(() => {
+    trackFeedbackView(eventId, bibNumber);
+  }, [eventId, bibNumber]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +47,14 @@ export function FeedbackSection({
       });
 
       if (response.ok) {
+        // Track successful feedback submission
+        trackFeedbackSubmit({
+          event_id: eventId,
+          bib_number: bibNumber,
+          rating,
+          has_comment: !!comment.trim()
+        });
+
         toast.success("Thank you for your feedback!", {
           description: "Your feedback helps us improve our service.",
         });

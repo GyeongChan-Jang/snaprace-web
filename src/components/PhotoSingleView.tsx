@@ -11,18 +11,11 @@ import { ShareDialog } from "@/components/ShareDialog";
 
 import {
   generatePhotoFilename,
-  downloadPhoto,
   getNextPhotoIndex,
   getPreviousPhotoIndex,
-  generateShareablePhotoUrl,
   downloadPhotoEnhanced,
 } from "@/utils/photo";
 import { isMobileDevice } from "@/utils/device";
-
-type NavigatorShare = Navigator & {
-  share?: (data: ShareData) => Promise<void>;
-  canShare?: (data?: ShareData) => boolean;
-};
 
 interface PhotoSingleViewProps {
   isOpen: boolean;
@@ -115,102 +108,6 @@ export function PhotoSingleView({
   const currentPhoto = photos[currentIndex];
   const filename = generatePhotoFilename(event ?? "", bibNumber, currentIndex);
 
-  const handleShare = async () => {
-    if (!currentPhoto) return;
-
-    // Generate shareable URL for the photo
-    const shareableUrl = generateShareablePhotoUrl(currentPhoto, {
-      organizerId,
-      eventId: event,
-      bibNumber,
-    });
-
-    // Prefer native navigator.share on mobile
-    if (isMobile && typeof navigator !== "undefined") {
-      const nav = navigator as NavigatorShare;
-      if (nav.share) {
-        try {
-          // Share the shareable URL instead of the image file
-          await nav.share({
-            title: event ?? "SnapRace Photo",
-            text: `Check out this race photo!`,
-            url: shareableUrl,
-          });
-          toast.success("Shared successfully!");
-          return;
-        } catch (error) {
-          // If user cancels, don't show error
-          if ((error as Error).name === "AbortError") {
-            return;
-          }
-          // Fall through to clipboard copy
-        }
-      }
-    }
-
-    // Fallback: copy shareable URL to clipboard
-    try {
-      await navigator.clipboard.writeText(shareableUrl);
-      toast.success("Share link copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy share link");
-    }
-  };
-
-  const handleDownload = async () => {
-    if (!currentPhoto) return;
-
-    // On mobile, use Web Share with file to allow saving to device
-    if (isMobile && typeof navigator !== "undefined") {
-      const nav = navigator as NavigatorShare;
-      if (nav.share) {
-        try {
-          const response = await fetch(currentPhoto, { mode: "cors" });
-          const blob = await response.blob();
-          const fileToShare = new File([blob], filename, {
-            type: blob.type || "image/jpeg",
-          });
-          const dataWithFiles = {
-            files: [fileToShare],
-            title: filename,
-          } as unknown as ShareData;
-          if (nav.canShare?.(dataWithFiles)) {
-            await nav.share({
-              files: [fileToShare],
-              title: filename,
-            });
-            toast.success("Shared to save/download on device");
-            return;
-          }
-        } catch {
-          // ignore and fallback
-        }
-
-        // Fallback on mobile: open the image URL in a new tab so user can save
-        try {
-          window.open(currentPhoto, "_blank", "noopener,noreferrer");
-          toast.info("Opened in new tab. Use browser save.");
-          return;
-        } catch {}
-      }
-    }
-
-    // Desktop or final fallback: use existing download helper
-    const result = await downloadPhoto(currentPhoto, filename);
-    if (result.success) {
-      switch (result.method) {
-        case "proxy":
-        case "direct":
-          toast.success("Photo download started!");
-          break;
-        case "newTab":
-          toast.info("Photo opened in new tab. Right-click to save.");
-          break;
-      }
-    } else {
-      toast.error("Unable to download photo.");
-    }
-  };
 
   const handleClose = useCallback(() => {
     onClose();

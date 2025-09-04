@@ -47,3 +47,6 @@ yarn-error.log*
 
 # test
 sample-sources
+
+# claude
+*.md

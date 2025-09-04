@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Download, FileArchive, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { bulkDownloadPhotos } from "@/utils/photo";
+import { trackBulkDownloadStart, trackPhotoDownload } from "@/lib/analytics";
 import {
   Tooltip,
   TooltipContent,
@@ -45,9 +46,20 @@ export function BulkDownloadButton({
     setDownloadComplete(false);
     setDownloadedCount(0);
 
+    // Track bulk download start
+    trackBulkDownloadStart(event, bibNumber || '', photoCount);
+
     try {
       const result = await bulkDownloadPhotos(photosToDownload, event, bibNumber);
       if (result.success) {
+        // Track successful bulk download
+        trackPhotoDownload({
+          event_id: event,
+          bib_number: bibNumber || '',
+          download_type: 'bulk',
+          photo_count: result.count
+        });
+
         setDownloadedCount(result.count);
         setDownloadComplete(true);
         // Reset success state after 3 seconds

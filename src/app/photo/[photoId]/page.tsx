@@ -23,7 +23,6 @@ export async function generateMetadata({
   const sp = (await searchParams) || {};
   const organizerId = sp.organizerId || "";
   const eventId = sp.eventId || "";
-  const bibNumber = sp.bibNumber || "";
 
   const decodedId = decodePhotoId(photoId);
 

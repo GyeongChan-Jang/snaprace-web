@@ -21,6 +21,7 @@
     "@aws-sdk/util-dynamodb": "^3.879.0",
     "@egjs/grid": "^1.17.1",
     "@egjs/react-infinitegrid": "^4.12.0",
+    "@next/third-parties": "^15.5.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -66,6 +67,7 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^3.3.1",
     "vaul": "^1.1.2",
+    "web-vitals": "^5.1.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

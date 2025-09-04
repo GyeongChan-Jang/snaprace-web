@@ -20,11 +20,23 @@ import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 import { PhotoSelectionControls } from "@/components/PhotoSelectionControls";
 import { usePhotoSelection } from "@/hooks/usePhotoSelection";
 import { FeedbackSection } from "@/components/FeedbackSection";
+import { useAnalyticsTracking, usePerformanceTracking, useInteractionTracking } from "@/hooks/useAnalyticsTracking";
+import {
+  trackSelfieUpload,
+  trackSelfieProcessingStart,
+  trackSelfieResults,
+  trackPhotoSelection,
+  trackSearch
+} from "@/lib/analytics";
 
 export default function EventPhotoPage() {
   const router = useRouter();
   const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Analytics tracking hooks
+  useAnalyticsTracking();
+  usePerformanceTracking();
 
   // Get initial state without photos first
   const params = useParams();
@@ -32,6 +44,9 @@ export default function EventPhotoPage() {
   const bibParam = params?.bib as string;
   const isAllPhotos = bibParam === "null";
   const bibNumber = isAllPhotos ? "" : bibParam;
+
+  // Initialize interaction tracking
+  const { trackClick } = useInteractionTracking(event, bibNumber);
 
   // API queries
   const eventQuery = api.events.getById.useQuery(
@@ -97,13 +112,22 @@ export default function EventPhotoPage() {
     isPhotoSelected,
   } = usePhotoSelection(photos);
 
+  // Track photo selection changes
+  const handlePhotoSelect = useCallback((index: number) => {
+    const wasSelected = isPhotoSelected(index);
+    togglePhotoSelection(index);
+    
+    // Track selection event
+    if (!wasSelected) {
+      trackPhotoSelection(event, bibNumber, selectedCount + 1);
+    }
+  }, [togglePhotoSelection, event, bibNumber, selectedCount, isPhotoSelected]);
+
   // Use custom hooks for handlers (now with photos)
   const {
     handlePhotoClick, // Handle photo click to open SingleView
     handlePhotoIndexChange,
     handleCloseSingleView,
-    handleShare,
-    handleDownload,
   } = usePhotoHandlers({
     event,
     bibParam,
@@ -124,9 +148,33 @@ export default function EventPhotoPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Upload selfie and then refetch gallery only on success
-      await uploadSelfie(file);
-      await galleryQuery.refetch();
+      try {
+        // Track selfie upload start
+        trackSelfieProcessingStart(event, bibNumber);
+        
+        // Upload selfie and then refetch gallery only on success
+        await uploadSelfie(file);
+        await galleryQuery.refetch();
+        
+        // Track selfie upload success with results
+        const matchedCount = galleryQuery.data?.selfie_matched_photos?.length || 0;
+        trackSelfieUpload({
+          event_id: event,
+          bib_number: bibNumber,
+          success: true,
+          matched_photos: matchedCount
+        });
+        
+        trackSelfieResults(event, bibNumber, matchedCount);
+      } catch (error) {
+        console.error('Selfie upload error:', error);
+        // Track selfie upload failure
+        trackSelfieUpload({
+          event_id: event,
+          bib_number: bibNumber,
+          success: false
+        });
+      }
     }
     // Always clear input so selecting the same file triggers onChange again
     if (fileInputRef.current) {
@@ -148,6 +196,9 @@ export default function EventPhotoPage() {
   const handleBibSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchBib.trim()) {
+      // Track search event
+      trackSearch(event, searchBib.trim(), 0); // Result count will be tracked on the next page
+      trackClick('bib_search_submit', 'header');
       router.push(`/events/${event}/${searchBib.trim()}`);
     }
   };
@@ -509,7 +560,7 @@ export default function EventPhotoPage() {
             organizerId={eventQuery.data?.organization_id}
             isSelectionMode={isSelectionMode}
             selectedPhotos={selectedPhotos}
-            onPhotoSelect={togglePhotoSelection}
+            onPhotoSelect={handlePhotoSelect}
           />
         ) : (
           // isAllPhotos ? (
