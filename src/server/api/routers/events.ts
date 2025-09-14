@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { dynamoClient, TABLES } from "@/lib/dynamodb";
-import { ScanCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 export const EventSchema = z.object({
   event_id: z.string(),

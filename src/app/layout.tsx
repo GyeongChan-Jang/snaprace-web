@@ -5,10 +5,12 @@ import { Poppins, Montserrat } from "next/font/google";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { headers } from 'next/headers';
 
-import { LayoutProviders } from "@/components/providers/LayoutProviders";
+import { OrganizationLoader } from "./organization-loader";
+import { OrganizationStyles } from "@/components/OrganizationStyles";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import ClarityInit from "@/components/analytics/ClarityInit";
+import { getOrganizationBySubdomain } from "@/lib/server-organization";
 
 export const metadata: Metadata = {
   title: "SnapRace - Find Your Race Photos",
@@ -38,20 +40,32 @@ const montserrat = Montserrat({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Get subdomain from headers (set by middleware)
+  // Get organization data on server for immediate style application
   const headersList = await headers();
   const subdomain = headersList.get('x-organization');
 
+  let organization = null;
+  if (subdomain) {
+    try {
+      organization = await getOrganizationBySubdomain(subdomain);
+    } catch (error) {
+      console.error('Failed to fetch organization for styles:', error);
+    }
+  }
+
   return (
     <html lang="en" className={`${poppins.variable} ${montserrat.variable}`}>
+      <head>
+        <OrganizationStyles organization={organization} />
+      </head>
       <body className="m-0 min-h-screen bg-background font-poppins antialiased">
-        <LayoutProviders subdomain={subdomain}>
+        <OrganizationLoader>
           <div className="relative flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
           </div>
           <Toaster />
-        </LayoutProviders>
+        </OrganizationLoader>
         {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}

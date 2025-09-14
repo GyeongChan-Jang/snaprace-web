@@ -26,29 +26,38 @@ const OrganizationContext = createContext<OrganizationContextType>({
 export function OrganizationProvider({
   children,
   subdomain,
+  initialOrganization,
 }: {
   children: ReactNode;
   subdomain: string | null;
+  initialOrganization?: Organization | null;
 }) {
-  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [organization, setOrganization] = useState<Organization | null>(
+    initialOrganization || null
+  );
 
-  // Fetch organization data by subdomain
+  // Fetch organization data by subdomain (skip if we have initial data)
   const { data, isLoading } = api.organizations.getBySubdomain.useQuery(
     { subdomain: subdomain || "" },
     {
-      enabled: !!subdomain,
+      enabled: !!subdomain && !initialOrganization,
       staleTime: 1000 * 60 * 60, // Cache for 1 hour
+      initialData: initialOrganization || undefined,
     },
   );
 
   useEffect(() => {
-    if (data) {
-      setOrganization(data);
+    // Use initial organization or fetched data
+    const orgData = initialOrganization || data;
 
-      // Apply custom theme colors if available
-      if (data.primary_color) {
+    if (orgData) {
+      setOrganization(orgData);
+
+      // Only apply styles if they're not already set (client-side navigation)
+      // Server-side styles are handled by OrganizationStyles component
+      if (!initialOrganization && orgData.primary_color) {
         // Convert hex to oklch using culori
-        const primaryOklchColor = oklch(data.primary_color);
+        const primaryOklchColor = oklch(orgData.primary_color);
         if (primaryOklchColor) {
           // Format oklch values for CSS
           const l = primaryOklchColor.l ?? 0;
@@ -67,13 +76,13 @@ export function OrganizationProvider({
         // Keep organization-specific variables for custom use
         document.documentElement.style.setProperty(
           "--organization-primary",
-          data.primary_color,
+          orgData.primary_color,
         );
       }
 
-      if (data.secondary_color) {
+      if (!initialOrganization && orgData.secondary_color) {
         // Also convert secondary color to oklch
-        const secondaryOklchColor = oklch(data.secondary_color);
+        const secondaryOklchColor = oklch(orgData.secondary_color);
         if (secondaryOklchColor) {
           const l = secondaryOklchColor.l ?? 0;
           const c = secondaryOklchColor.c ?? 0;
@@ -87,11 +96,11 @@ export function OrganizationProvider({
 
         document.documentElement.style.setProperty(
           "--organization-secondary",
-          data.secondary_color,
+          orgData.secondary_color,
         );
       }
-    } else {
-      // Reset to default colors when no organization
+    } else if (!initialOrganization) {
+      // Reset to default colors when no organization (only on client-side)
       document.documentElement.style.removeProperty("--primary");
       document.documentElement.style.removeProperty("--primary-foreground");
       document.documentElement.style.removeProperty("--secondary");
@@ -99,7 +108,7 @@ export function OrganizationProvider({
       document.documentElement.style.removeProperty("--organization-primary");
       document.documentElement.style.removeProperty("--organization-secondary");
     }
-  }, [data]);
+  }, [data, initialOrganization]);
 
   return (
     <OrganizationContext.Provider
