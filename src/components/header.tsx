@@ -3,13 +3,16 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
+  const { organization } = useOrganization();
 
   // Disable sticky on photo detail pages: /events/[event]/[bib]
   const isPhotoPage = /^\/events\/[^/]+\/[^/]+$/.test(pathname);
@@ -21,15 +24,27 @@ export function Header() {
 
   return (
     <header
-      className={`bg-background/80 ${isPhotoPage ? "" : "sticky top-0 z-50"} w-full border-b backdrop-blur-sm`}
+      className={`${isPhotoPage ? "" : "sticky top-0 z-50"} w-full border-b backdrop-blur-sm bg-background/80`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-foreground font-montserrat text-xl font-bold">
-              SnapRace
-            </span>
+            {organization?.logo_url ? (
+              <div className="relative h-10 w-32">
+                <Image
+                  src={organization.logo_url}
+                  alt={organization.name}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            ) : (
+              <span className="font-montserrat text-xl font-bold text-foreground">
+                {organization?.name || "SnapRace"}
+              </span>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
@@ -39,16 +54,14 @@ export function Header() {
                 pathname === item.href ||
                 (item.href !== "/" && pathname.startsWith(item.href));
 
+              const navLinkClass = `text-sm transition-colors ${
+                isActive
+                  ? "text-primary font-bold"
+                  : "text-muted-foreground hover:text-foreground font-medium"
+              }`;
+
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`text-sm transition-colors ${
-                    isActive
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground font-medium"
-                  }`}
-                >
+                <Link key={item.name} href={item.href} className={navLinkClass}>
                   {item.name}
                 </Link>
               );
@@ -104,9 +117,20 @@ export function Header() {
                     className="flex items-center space-x-2"
                     onClick={() => setIsSheetOpen(false)}
                   >
-                    <span className="font-montserrat text-xl font-bold">
-                      SnapRace
-                    </span>
+                    {organization?.logo_url ? (
+                      <div className="relative h-10 w-32">
+                        <Image
+                          src={organization.logo_url}
+                          alt={organization.name}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <span className="font-montserrat text-xl font-bold">
+                        {organization?.name || "SnapRace"}
+                      </span>
+                    )}
                   </Link>
 
                   <nav className="flex flex-col space-y-3">

@@ -5,15 +5,25 @@ import { api } from "@/trpc/react";
 import { EventsGridSkeleton } from "@/components/states/EventsSkeleton";
 import { ErrorState } from "@/components/states/ErrorState";
 import { NoEventsState } from "@/components/states/EmptyState";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export default function EventsPage() {
-  const eventsQuery = api.events.getAll.useQuery();
+  const { organization } = useOrganization();
+
+  // Fetch events filtered by organization if available
+  const eventsQuery = api.events.getAll.useQuery(
+    organization?.organization_id
+      ? { organizationId: organization.organization_id }
+      : undefined
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-12 text-center">
-        <h1 className="text-foreground mb-4 text-3xl font-bold">Events</h1>
+        <h1 className="text-foreground mb-4 text-3xl font-bold">
+          {organization ? `${organization.name} Events` : "Events"}
+        </h1>
       </div>
 
       {/* Events Grid */}

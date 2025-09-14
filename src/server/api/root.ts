@@ -1,6 +1,7 @@
 import { galleriesRouter } from "@/server/api/routers/galleries";
 import { eventsRouter } from "@/server/api/routers/events";
 import { photosRouter } from "@/server/api/routers/photos";
+import { organizationsRouter } from "@/server/api/routers/organizations";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
 /**
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   galleries: galleriesRouter,
   events: eventsRouter,
   photos: photosRouter,
+  organizations: organizationsRouter,
 });
 
 // export type definition of API

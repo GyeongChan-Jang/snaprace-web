@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { dynamoClient, TABLES } from "@/lib/dynamodb";
-import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { ScanCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 export const EventSchema = z.object({
   event_id: z.string(),
@@ -17,13 +17,45 @@ export const EventSchema = z.object({
 export type Event = z.infer<typeof EventSchema>;
 
 export const eventsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async () => {
-    const command = new ScanCommand({
-      TableName: TABLES.EVENTS,
-    });
-    const result = await dynamoClient.send(command);
-    return (result.Items ?? []) as Event[];
-  }),
+  getAll: publicProcedure
+    .input(z.object({ organizationId: z.string().optional() }).optional())
+    .query(async ({ input }) => {
+      // If organizationId is provided, filter events by organization
+      if (input?.organizationId) {
+        // Use Query with GSI if available, otherwise scan with filter
+        const command = new ScanCommand({
+          TableName: TABLES.EVENTS,
+          FilterExpression: "organization_id = :organizationId",
+          ExpressionAttributeValues: {
+            ":organizationId": input.organizationId,
+          },
+        });
+        const result = await dynamoClient.send(command);
+        return (result.Items ?? []) as Event[];
+      }
+
+      // No filter, return all events
+      const command = new ScanCommand({
+        TableName: TABLES.EVENTS,
+      });
+      const result = await dynamoClient.send(command);
+      return (result.Items ?? []) as Event[];
+    }),
+
+  getByOrganization: publicProcedure
+    .input(z.object({ organizationId: z.string() }))
+    .query(async ({ input }) => {
+      // Query events by organization_id
+      const command = new ScanCommand({
+        TableName: TABLES.EVENTS,
+        FilterExpression: "organization_id = :organizationId",
+        ExpressionAttributeValues: {
+          ":organizationId": input.organizationId,
+        },
+      });
+      const result = await dynamoClient.send(command);
+      return (result.Items ?? []) as Event[];
+    }),
 
   getById: publicProcedure
     .input(z.object({ eventId: z.string() }))
