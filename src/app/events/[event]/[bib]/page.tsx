@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useCallback } from "react";
+import { useMemo, useRef, useCallback, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,17 +20,25 @@ import { BulkDownloadButton } from "@/components/BulkDownloadButton";
 import { PhotoSelectionControls } from "@/components/PhotoSelectionControls";
 import { usePhotoSelection } from "@/hooks/usePhotoSelection";
 import { FeedbackSection } from "@/components/FeedbackSection";
-import { useAnalyticsTracking, usePerformanceTracking } from "@/hooks/useAnalyticsTracking";
 import {
-  trackSelfieUpload,
-  trackSelfieResults
-} from "@/lib/analytics";
+  useAnalyticsTracking,
+  usePerformanceTracking,
+} from "@/hooks/useAnalyticsTracking";
+import { trackSelfieUpload, trackSelfieResults } from "@/lib/analytics";
+import { FacialRecognitionConsentModal } from "@/components/modals/FacialRecognitionConsentModal";
+import {
+  storeFacialRecognitionConsent,
+  hasFacialRecognitionConsent,
+} from "@/lib/consent-storage";
 
 export default function EventPhotoPage() {
   const router = useRouter();
   const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Facial recognition consent state
+  const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
+
   // Analytics tracking hooks
   useAnalyticsTracking();
   usePerformanceTracking();
@@ -110,15 +118,18 @@ export default function EventPhotoPage() {
   } = usePhotoSelection(photos);
 
   // Track photo selection changes
-  const handlePhotoSelect = useCallback((index: number) => {
-    const wasSelected = isPhotoSelected(index);
-    togglePhotoSelection(index);
-    
-    // Track selection event
-    if (!wasSelected) {
-      // Photo selection tracking removed - bulk download tracking is sufficient
-    }
-  }, [togglePhotoSelection, event, bibNumber, selectedCount, isPhotoSelected]);
+  const handlePhotoSelect = useCallback(
+    (index: number) => {
+      const wasSelected = isPhotoSelected(index);
+      togglePhotoSelection(index);
+
+      // Track selection event
+      if (!wasSelected) {
+        // Photo selection tracking removed - bulk download tracking is sufficient
+      }
+    },
+    [togglePhotoSelection, event, bibNumber, selectedCount, isPhotoSelected],
+  );
 
   // Use custom hooks for handlers (now with photos)
   const {
@@ -142,34 +153,47 @@ export default function EventPhotoPage() {
       organizerId: eventQuery.data?.organization_id ?? "",
     });
 
+  const handleLabelClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!bibNumber || isUploading) return;
+
+    if (hasFacialRecognitionConsent(event)) {
+      fileInputRef.current?.click();
+    } else {
+      setIsConsentModalOpen(true);
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         // Track selfie upload start
         // Selfie processing start tracking removed - only result tracking needed
-        
+
         // Upload selfie and then refetch gallery only on success
         await uploadSelfie(file);
         await galleryQuery.refetch();
-        
+
         // Track selfie upload success with results
-        const matchedCount = galleryQuery.data?.selfie_matched_photos?.length || 0;
+        const matchedCount =
+          galleryQuery.data?.selfie_matched_photos?.length || 0;
         trackSelfieUpload({
           event_id: event,
           bib_number: bibNumber,
           success: true,
-          matched_photos: matchedCount
+          matched_photos: matchedCount,
         });
-        
+
         trackSelfieResults(event, bibNumber, matchedCount);
       } catch (error) {
-        console.error('Selfie upload error:', error);
+        console.error("Selfie upload error:", error);
         // Track selfie upload failure
         trackSelfieUpload({
           event_id: event,
           bib_number: bibNumber,
-          success: false
+          success: false,
         });
       }
     }
@@ -177,6 +201,23 @@ export default function EventPhotoPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
+  };
+
+  const handleConsentAgree = () => {
+    // Store consent
+    storeFacialRecognitionConsent(true, event);
+
+    // Close modal
+    setIsConsentModalOpen(false);
+
+    // Open file picker immediately after consent
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 100); // Small delay to ensure modal is closed first
+  };
+
+  const handleConsentDeny = () => {
+    setIsConsentModalOpen(false);
   };
 
   // Unified retry helper for both "Upload another" and "Try again"
@@ -323,7 +364,11 @@ export default function EventPhotoPage() {
                 disabled={isUploading || !bibNumber}
                 ref={fileInputRef}
               />
-              <label htmlFor="selfie-upload" className="block">
+              <label
+                htmlFor="selfie-upload"
+                className="block"
+                onClick={handleLabelClick}
+              >
                 <div
                   className={`${
                     !bibNumber || isUploading
@@ -625,6 +670,16 @@ export default function EventPhotoPage() {
           }
         }}
         selfieMatchedSet={selfieMatchedSet}
+      />
+
+      {/* Facial Recognition Consent Modal */}
+      <FacialRecognitionConsentModal
+        isOpen={isConsentModalOpen}
+        onClose={() => setIsConsentModalOpen(false)}
+        onAgree={handleConsentAgree}
+        onDeny={handleConsentDeny}
+        eventName={eventQuery.data?.event_name}
+        isRequired={true}
       />
     </div>
   );
