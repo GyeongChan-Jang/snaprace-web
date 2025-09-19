@@ -30,7 +30,7 @@ export default function HomePage() {
   const eventsQuery = api.events.getAll.useQuery(
     organization?.organization_id
       ? { organizationId: organization.organization_id }
-      : undefined
+      : undefined,
   );
 
   // Set default event when data loads
@@ -341,6 +341,15 @@ export default function HomePage() {
                 )}
               </div>
             )}
+            {/* Legal Links */}
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <Link
+                href="/privacy-policy"
+                className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-2 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </div>
             <p className="text-muted-foreground">
               © {new Date().getFullYear()} {organization?.name || "SnapRace"}.
               All rights reserved.
