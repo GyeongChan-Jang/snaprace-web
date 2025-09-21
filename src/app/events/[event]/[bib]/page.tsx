@@ -679,7 +679,6 @@ export default function EventPhotoPage() {
         onAgree={handleConsentAgree}
         onDeny={handleConsentDeny}
         eventName={eventQuery.data?.event_name}
-        isRequired={true}
       />
     </div>
   );
