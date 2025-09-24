@@ -2,8 +2,8 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Poppins, Montserrat } from "next/font/google";
-import { GoogleAnalytics } from '@next/third-parties/google';
-import { headers } from 'next/headers';
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { headers } from "next/headers";
 
 import { OrganizationLoader } from "./organization-loader";
 import { OrganizationStyles } from "@/components/OrganizationStyles";
@@ -14,12 +14,24 @@ import { getOrganizationBySubdomain } from "@/lib/server-organization";
 
 export const metadata: Metadata = {
   title: "SnapRace - Find Your Race Photos",
-  description: "Easily find and download your race photos using your bib number. Powered by Millennium Running.",
+  description:
+    "Easily find and download your race photos using your bib number. Powered by Millennium Running.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   openGraph: {
     title: "SnapRace - Find Your Race Photos",
-    description: "Easily find and download your race photos using your bib number.",
+    description:
+      "Easily find and download your race photos using your bib number.",
     type: "website",
+    images: [
+      {
+        url: "/images/og-landing.png",
+        alt: "SnapRace - Find Your Race Photos",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/images/og-landing.png"],
   },
 };
 
@@ -42,14 +54,14 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // Get organization data on server for immediate style application
   const headersList = await headers();
-  const subdomain = headersList.get('x-organization');
+  const subdomain = headersList.get("x-organization");
 
   let organization = null;
   if (subdomain) {
     try {
       organization = await getOrganizationBySubdomain(subdomain);
     } catch (error) {
-      console.error('Failed to fetch organization for styles:', error);
+      console.error("Failed to fetch organization for styles:", error);
     }
   }
 
@@ -58,7 +70,7 @@ export default async function RootLayout({
       <head>
         <OrganizationStyles organization={organization} />
       </head>
-      <body className="m-0 min-h-screen bg-background font-poppins antialiased">
+      <body className="bg-background font-poppins m-0 min-h-screen antialiased">
         <OrganizationLoader>
           <div className="relative flex min-h-screen flex-col">
             <Header />
@@ -66,9 +78,10 @@ export default async function RootLayout({
           </div>
           <Toaster />
         </OrganizationLoader>
-        {process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-        )}
+        {process.env.NODE_ENV === "production" &&
+          process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+            <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          )}
         <ClarityInit />
       </body>
     </html>
