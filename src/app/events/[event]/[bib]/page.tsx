@@ -521,7 +521,7 @@ export default function EventPhotoPage() {
         <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
           <div className="relative h-8 w-28 md:h-10 md:w-36">
             <Image
-              src="/images/partners/partner-millennium-running.png"
+              src="/images/partners/partner-millenniumrunning.png"
               alt="Millennium Running"
               fill
               className="object-contain opacity-80"

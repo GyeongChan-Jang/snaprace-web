@@ -47,6 +47,8 @@ export default function HomePage() {
     }
   };
 
+  console.log("organization", organization);
+
   return (
     <div className="flex min-h-[calc(100vh-64px)] flex-col">
       {/* Hero Section */}
@@ -237,7 +239,7 @@ export default function HomePage() {
                     >
                       <div className="relative h-6 w-20 sm:h-7 sm:w-24 md:h-8 md:w-28">
                         <Image
-                          src={partner.logo_url}
+                          src={`images/organizations/${organization.subdomain}/partners/${partner.name}.png`}
                           alt={partner.name}
                           fill
                           className="object-contain opacity-70 transition-opacity hover:opacity-100"
@@ -264,7 +266,7 @@ export default function HomePage() {
                     >
                       <div className="relative h-6 w-20 sm:h-7 sm:w-24 md:h-8 md:w-28">
                         <Image
-                          src={partner.logo}
+                          src={"images/partners/partner-millenniumrunning.png"}
                           alt={partner.name}
                           fill
                           className="object-contain opacity-70 transition-opacity hover:opacity-100"

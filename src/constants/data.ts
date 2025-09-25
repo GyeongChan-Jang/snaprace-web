@@ -10,7 +10,7 @@ export const PARTNERS = [
   },
   {
     name: "Millennium Running",
-    logo: "/images/partners/partner-millennium-running.png",
+    logo: "/images/partners/partner-millenniumrunning.png",
     url: "https://millenniumrunning.com",
   },
 ];

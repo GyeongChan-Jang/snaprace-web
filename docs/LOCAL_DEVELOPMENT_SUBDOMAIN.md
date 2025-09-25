@@ -56,6 +56,7 @@ http://localhost:3000/?org=millenniumrunning
    - Windows: `C:\Windows\System32\drivers\etc\hosts`
 
 2. 테스트 서브도메인 항목을 추가합니다:
+
    ```
    127.0.0.1 millenniumrunning.localhost
    127.0.0.1 anotherorg.localhost
@@ -75,7 +76,7 @@ http://localhost:3000/?org=millenniumrunning
   "organization_id": "org_millenniumrunning",
   "name": "Millennium Running",
   "subdomain": "millenniumrunning",
-  "logo_url": "/images/partners/partner-millennium-running.png",
+  "logo_url": "/images/partners/partner-millenniumrunning.png",
   "primary_color": "#111B11",
   "secondary_color": "#FFFFFF",
   "custom_settings": {
@@ -97,7 +98,7 @@ http://localhost:3000/?org=millenniumrunning
     "facebook": "https://www.facebook.com/MillenniumRunning",
     "instagram": "https://instagram.com/millenniumrunning",
     "twitter": "https://twitter.com/MillenniumRunning",
-    "linkedin": "https://linkedin.com/company/millennium-running",
+    "linkedin": "https://linkedin.com/company/millenniumrunning",
     "youtube": "https://youtube.com/@millenniumrunning"
   }
 }
@@ -116,6 +117,7 @@ http://localhost:3000/?org=millenniumrunning
 ### AWS CLI 사용
 
 1. 조직 테이블 생성 (이미 생성되지 않은 경우):
+
 ```bash
 aws dynamodb create-table \
   --table-name snaprace-organizations \
@@ -131,6 +133,7 @@ aws dynamodb create-table \
 ```
 
 2. 테스트 조직 데이터 삽입:
+
 ```bash
 aws dynamodb put-item \
   --table-name snaprace-organizations \
@@ -199,6 +202,7 @@ aws dynamodb put-item \
 변경사항이 반영되지 않는 경우:
 
 1. Next.js 캐시 정리:
+
    ```bash
    rm -rf .next
    pnpm dev

@@ -21,7 +21,7 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
             src={
               Boolean(image)
                 ? image
-                : "/images/partners/partner-millennium-running.png"
+                : "/images/partners/partner-millenniumrunning.png"
             }
             alt={name}
             fill
@@ -29,7 +29,7 @@ export default function EventCard({ id, name, image, date }: EventCardProps) {
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             onError={(e) => {
               e.currentTarget.src =
-                "/images/partners/partner-millennium-running.png";
+                "/images/partners/partner-millenniumrunning.png";
             }}
             priority
           />

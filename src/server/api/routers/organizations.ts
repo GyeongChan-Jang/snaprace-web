@@ -8,7 +8,6 @@ import { env } from "@/env";
 const PartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  logo_url: z.string(),
   website_url: z.string().optional(),
   description: z.string().optional(),
   display_order: z.number().optional(),
@@ -19,25 +18,28 @@ export const OrganizationSchema = z.object({
   organization_id: z.string(),
   name: z.string(),
   subdomain: z.string(),
-  logo_url: z.string().optional(),
   primary_color: z.string().optional(),
   secondary_color: z.string().optional(),
-  custom_settings: z.object({
-    show_partner_section: z.boolean().optional(),
-    welcome_message: z.string().optional(),
-    partners: z.array(PartnerSchema).optional(),
-    custom_footer_text: z.string().optional(),
-  }).optional(),
+  custom_settings: z
+    .object({
+      show_partner_section: z.boolean().optional(),
+      welcome_message: z.string().optional(),
+      partners: z.array(PartnerSchema).optional(),
+      custom_footer_text: z.string().optional(),
+    })
+    .optional(),
   contact_email: z.string().optional(),
   contact_phone: z.string().optional(),
   website_url: z.string().optional(),
-  social_links: z.object({
-    facebook: z.string().optional(),
-    instagram: z.string().optional(),
-    twitter: z.string().optional(),
-    linkedin: z.string().optional(),
-    youtube: z.string().optional(),
-  }).optional(),
+  social_links: z
+    .object({
+      facebook: z.string().optional(),
+      instagram: z.string().optional(),
+      twitter: z.string().optional(),
+      linkedin: z.string().optional(),
+      youtube: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type Organization = z.infer<typeof OrganizationSchema>;
@@ -54,10 +56,10 @@ export const organizationsRouter = createTRPCRouter({
         // Query using GSI subdomain-index
         const command = new QueryCommand({
           TableName: env.DYNAMO_ORGANIZATIONS_TABLE,
-          IndexName: 'subdomain-index',
-          KeyConditionExpression: 'subdomain = :subdomain',
+          IndexName: "subdomain-index",
+          KeyConditionExpression: "subdomain = :subdomain",
           ExpressionAttributeValues: {
-            ':subdomain': input.subdomain,
+            ":subdomain": input.subdomain,
           },
           Limit: 1,
         });
@@ -72,7 +74,7 @@ export const organizationsRouter = createTRPCRouter({
         // Parse and validate the organization data
         return OrganizationSchema.parse(item);
       } catch (error) {
-        console.error('Error fetching organization by subdomain:', error);
+        console.error("Error fetching organization by subdomain:", error);
         return null;
       }
     }),
@@ -101,7 +103,7 @@ export const organizationsRouter = createTRPCRouter({
         // Parse and validate the organization data
         return OrganizationSchema.parse(result.Item);
       } catch (error) {
-        console.error('Error fetching organization by ID:', error);
+        console.error("Error fetching organization by ID:", error);
         return null;
       }
     }),

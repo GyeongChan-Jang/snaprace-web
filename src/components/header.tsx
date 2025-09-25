@@ -24,16 +24,16 @@ export function Header() {
 
   return (
     <header
-      className={`${isPhotoPage ? "" : "sticky top-0 z-50"} w-full border-b backdrop-blur-sm bg-background/80`}
+      className={`${isPhotoPage ? "" : "sticky top-0 z-50"} bg-background/80 w-full border-b backdrop-blur-sm`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            {organization?.logo_url ? (
+            {organization?.name ? (
               <div className="relative h-10 w-32">
                 <Image
-                  src={organization.logo_url}
+                  src={`images/organizations/${organization.subdomain}/logo.png`}
                   alt={organization.name}
                   fill
                   className="object-contain"
@@ -41,7 +41,7 @@ export function Header() {
                 />
               </div>
             ) : (
-              <span className="font-montserrat text-xl font-bold text-foreground">
+              <span className="font-montserrat text-foreground text-xl font-bold">
                 {organization?.name || "SnapRace"}
               </span>
             )}
@@ -117,10 +117,10 @@ export function Header() {
                     className="flex items-center space-x-2"
                     onClick={() => setIsSheetOpen(false)}
                   >
-                    {organization?.logo_url ? (
+                    {organization?.name ? (
                       <div className="relative h-10 w-32">
                         <Image
-                          src={organization.logo_url}
+                          src={`images/organizations/${organization.subdomain}/logo.png`}
                           alt={organization.name}
                           fill
                           className="object-contain"
