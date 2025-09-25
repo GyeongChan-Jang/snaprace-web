@@ -3,46 +3,10 @@ import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { dynamoClient } from "@/lib/dynamodb";
 import { GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { env } from "@/env";
+import { OrganizationSchema } from "@/types/organization";
 
-// Partner schema
-const PartnerSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  website_url: z.string().optional(),
-  description: z.string().optional(),
-  display_order: z.number().optional(),
-});
-
-// Organization schema
-export const OrganizationSchema = z.object({
-  organization_id: z.string(),
-  name: z.string(),
-  subdomain: z.string(),
-  primary_color: z.string().optional(),
-  secondary_color: z.string().optional(),
-  custom_settings: z
-    .object({
-      show_partner_section: z.boolean().optional(),
-      welcome_message: z.string().optional(),
-      partners: z.array(PartnerSchema).optional(),
-      custom_footer_text: z.string().optional(),
-    })
-    .optional(),
-  contact_email: z.string().optional(),
-  contact_phone: z.string().optional(),
-  website_url: z.string().optional(),
-  social_links: z
-    .object({
-      facebook: z.string().optional(),
-      instagram: z.string().optional(),
-      twitter: z.string().optional(),
-      linkedin: z.string().optional(),
-      youtube: z.string().optional(),
-    })
-    .optional(),
-});
-
-export type Organization = z.infer<typeof OrganizationSchema>;
+// Re-export for backward compatibility
+export { OrganizationSchema, type Organization } from "@/types/organization";
 
 export const organizationsRouter = createTRPCRouter({
   getBySubdomain: publicProcedure

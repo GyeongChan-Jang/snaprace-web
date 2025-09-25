@@ -1,5 +1,6 @@
 import { oklch } from "culori";
-import type { Organization } from "@/server/api/routers/organizations";
+import type { Organization } from "@/types/organization";
+import { OrganizationHelper } from "@/lib/organization-helpers";
 
 interface OrganizationStylesProps {
   organization: Organization | null;
@@ -8,11 +9,12 @@ interface OrganizationStylesProps {
 export function OrganizationStyles({ organization }: OrganizationStylesProps) {
   if (!organization) return null;
 
+  const org = new OrganizationHelper(organization);
   let styleContent = "";
 
-  if (organization.primary_color) {
+  if (org.primaryColor) {
     // Convert hex to oklch using culori
-    const primaryOklchColor = oklch(organization.primary_color);
+    const primaryOklchColor = oklch(org.primaryColor);
     if (primaryOklchColor) {
       const l = primaryOklchColor.l ?? 0;
       const c = primaryOklchColor.c ?? 0;
@@ -23,13 +25,13 @@ export function OrganizationStyles({ organization }: OrganizationStylesProps) {
       styleContent += `
         --primary: ${primaryOklchString};
         --primary-foreground: ${foregroundColor};
-        --organization-primary: ${organization.primary_color};
+        --organization-primary: ${org.primaryColor};
       `;
     }
   }
 
-  if (organization.secondary_color) {
-    const secondaryOklchColor = oklch(organization.secondary_color);
+  if (org.secondaryColor) {
+    const secondaryOklchColor = oklch(org.secondaryColor);
     if (secondaryOklchColor) {
       const l = secondaryOklchColor.l ?? 0;
       const c = secondaryOklchColor.c ?? 0;
@@ -40,7 +42,7 @@ export function OrganizationStyles({ organization }: OrganizationStylesProps) {
       styleContent += `
         --secondary: ${secondaryOklchString};
         --secondary-foreground: ${secondaryForeground};
-        --organization-secondary: ${organization.secondary_color};
+        --organization-secondary: ${org.secondaryColor};
       `;
     }
   }

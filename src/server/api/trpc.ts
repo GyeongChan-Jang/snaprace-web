@@ -66,8 +66,6 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     }
   }
 
-  console.log("organizationContext", organizationContext);
-
   return {
     session,
     ...organizationContext,

@@ -7,12 +7,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
-import { useOrganization } from "@/contexts/OrganizationContext";
+import { useOrganizationHelper } from "@/hooks/useOrganizationHelper";
+import { getOrganizationAssets } from "@/utils/organization-assets";
 
 export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
-  const { organization } = useOrganization();
+  const org = useOrganizationHelper();
+  const assets = getOrganizationAssets(org.subdomain);
 
   // Disable sticky on photo detail pages: /events/[event]/[bib]
   const isPhotoPage = /^\/events\/[^/]+\/[^/]+$/.test(pathname);
@@ -30,11 +32,11 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            {organization?.name ? (
+            {org.subdomain ? (
               <div className="relative h-10 w-32">
                 <Image
-                  src={`images/organizations/${organization.subdomain}/logo.png`}
-                  alt={organization.name}
+                  src={assets.logo}
+                  alt={org.name}
                   fill
                   className="object-contain"
                   priority
@@ -42,7 +44,7 @@ export function Header() {
               </div>
             ) : (
               <span className="font-montserrat text-foreground text-xl font-bold">
-                {organization?.name || "SnapRace"}
+                {org.name}
               </span>
             )}
           </Link>
@@ -117,18 +119,18 @@ export function Header() {
                     className="flex items-center space-x-2"
                     onClick={() => setIsSheetOpen(false)}
                   >
-                    {organization?.name ? (
+                    {org.subdomain ? (
                       <div className="relative h-10 w-32">
                         <Image
-                          src={`images/organizations/${organization.subdomain}/logo.png`}
-                          alt={organization.name}
+                          src={assets.logo}
+                          alt={org.name}
                           fill
                           className="object-contain"
                         />
                       </div>
                     ) : (
                       <span className="font-montserrat text-xl font-bold">
-                        {organization?.name || "SnapRace"}
+                        {org.name}
                       </span>
                     )}
                   </Link>

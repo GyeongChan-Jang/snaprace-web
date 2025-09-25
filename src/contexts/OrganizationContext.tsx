@@ -55,9 +55,9 @@ export function OrganizationProvider({
 
       // Only apply styles if they're not already set (client-side navigation)
       // Server-side styles are handled by OrganizationStyles component
-      if (!initialOrganization && orgData.primary_color) {
+      if (!initialOrganization && orgData.branding?.primary_color) {
         // Convert hex to oklch using culori
-        const primaryOklchColor = oklch(orgData.primary_color);
+        const primaryOklchColor = oklch(orgData.branding.primary_color);
         if (primaryOklchColor) {
           // Format oklch values for CSS
           const l = primaryOklchColor.l ?? 0;
@@ -76,13 +76,13 @@ export function OrganizationProvider({
         // Keep organization-specific variables for custom use
         document.documentElement.style.setProperty(
           "--organization-primary",
-          orgData.primary_color,
+          orgData.branding.primary_color,
         );
       }
 
-      if (!initialOrganization && orgData.secondary_color) {
+      if (!initialOrganization && orgData.branding?.secondary_color) {
         // Also convert secondary color to oklch
-        const secondaryOklchColor = oklch(orgData.secondary_color);
+        const secondaryOklchColor = oklch(orgData.branding.secondary_color);
         if (secondaryOklchColor) {
           const l = secondaryOklchColor.l ?? 0;
           const c = secondaryOklchColor.c ?? 0;
@@ -96,7 +96,7 @@ export function OrganizationProvider({
 
         document.documentElement.style.setProperty(
           "--organization-secondary",
-          orgData.secondary_color,
+          orgData.branding.secondary_color,
         );
       }
     } else if (!initialOrganization) {

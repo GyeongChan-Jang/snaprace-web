@@ -13,27 +13,16 @@ interface EmptyStateProps {
   };
 }
 
-export function EmptyState({ 
-  icon,
-  title, 
-  message, 
-  action 
-}: EmptyStateProps) {
+export function EmptyState({ icon, title, message, action }: EmptyStateProps) {
   return (
     <div className="py-16 text-center">
       {icon && (
         <div className="mb-6 flex justify-center">
-          <div className="bg-muted p-4 rounded-full">
-            {icon}
-          </div>
+          <div className="bg-muted rounded-full p-4">{icon}</div>
         </div>
       )}
-      <h3 className="mb-2 text-xl font-semibold text-foreground">
-        {title}
-      </h3>
-      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-        {message}
-      </p>
+      <h3 className="text-foreground mb-2 text-xl font-semibold">{title}</h3>
+      <p className="text-muted-foreground mx-auto mb-6 max-w-md">{message}</p>
       {action && (
         <Button variant="outline" onClick={action.onClick}>
           {action.label}
@@ -46,26 +35,26 @@ export function EmptyState({
 export function NoEventsState() {
   return (
     <EmptyState
-      icon={<Calendar className="h-10 w-10 text-muted-foreground" />}
+      icon={<Calendar className="text-muted-foreground h-10 w-10" />}
       title="No Events Available"
       message="There are no events available at the moment. Please check back later."
     />
   );
 }
 
-export function NoPhotosState({ 
-  isAllPhotos = false, 
+export function NoPhotosState({
+  isAllPhotos = false,
   bibNumber = "",
-  onViewAllPhotos
-}: { 
-  isAllPhotos?: boolean; 
+  onViewAllPhotos,
+}: {
+  isAllPhotos?: boolean;
   bibNumber?: string;
   onViewAllPhotos?: () => void;
 }) {
   if (isAllPhotos) {
     return (
       <EmptyState
-        icon={<Camera className="h-10 w-10 text-muted-foreground" />}
+        icon={<Camera className="text-muted-foreground h-10 w-10" />}
         title="No Photos Available"
         message="Photos for this event haven't been uploaded yet. Please check back later."
       />
@@ -74,13 +63,17 @@ export function NoPhotosState({
 
   return (
     <EmptyState
-      icon={<User className="h-10 w-10 text-muted-foreground" />}
+      icon={<User className="text-muted-foreground h-10 w-10" />}
       title="No Photos Found"
       message={`No photos found for bib number #${bibNumber}. Please try a different bib number.`}
-      action={onViewAllPhotos ? {
-        label: "View All Event Photos",
-        onClick: onViewAllPhotos
-      } : undefined}
+      action={
+        onViewAllPhotos
+          ? {
+              label: "View All Event Photos",
+              onClick: onViewAllPhotos,
+            }
+          : undefined
+      }
     />
   );
 }

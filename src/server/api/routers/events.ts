@@ -18,28 +18,45 @@ export type Event = z.infer<typeof EventSchema>;
 
 export const eventsRouter = createTRPCRouter({
   getAll: publicProcedure
-    .input(z.object({ organizationId: z.string().optional() }).optional())
-    .query(async ({ input }) => {
-      // If organizationId is provided, filter events by organization
-      if (input?.organizationId) {
-        // Use Query with GSI if available, otherwise scan with filter
+    .input(
+      z
+        .object({
+          organizationId: z.string().optional(),
+          overrideOrganizationId: z.string().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      // Priority: overrideOrganizationId > input.organizationId > ctx.organizationId
+      const organizationId =
+        input?.overrideOrganizationId ??
+        input?.organizationId ??
+        ctx.organizationId;
+
+      // If organization context exists (subdomain site), filter by organization
+      if (organizationId) {
         const command = new ScanCommand({
           TableName: TABLES.EVENTS,
           FilterExpression: "organization_id = :organizationId",
           ExpressionAttributeValues: {
-            ":organizationId": input.organizationId,
+            ":organizationId": organizationId,
           },
         });
         const result = await dynamoClient.send(command);
         return (result.Items ?? []) as Event[];
       }
 
-      // No filter, return all events
-      const command = new ScanCommand({
-        TableName: TABLES.EVENTS,
-      });
-      const result = await dynamoClient.send(command);
-      return (result.Items ?? []) as Event[];
+      // Main site: return all public events
+      if (ctx.isMainSite) {
+        const command = new ScanCommand({
+          TableName: TABLES.EVENTS,
+        });
+        const result = await dynamoClient.send(command);
+        return (result.Items ?? []) as Event[];
+      }
+
+      // Fallback: return empty array if no organization context
+      return [];
     }),
 
   getByOrganization: publicProcedure
