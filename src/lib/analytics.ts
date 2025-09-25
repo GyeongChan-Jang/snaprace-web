@@ -45,17 +45,18 @@ interface PerformanceEvent extends EventParameters {
 export const trackEvent = (eventName: string, parameters?: EventParameters) => {
   if (typeof window !== 'undefined') {
     try {
+      // Skip tracking in development environment
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Analytics Event (dev):', eventName, parameters)
+        return
+      }
+
       // Use gtag function if available (from Google Analytics)
       if (window.gtag) {
         window.gtag('event', eventName, {
           custom_parameter: true,
           ...parameters
         })
-      }
-      
-      // Development logging
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Analytics Event:', eventName, parameters)
       }
     } catch (error) {
       console.warn('Analytics tracking error:', error)
