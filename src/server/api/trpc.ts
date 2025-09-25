@@ -27,8 +27,50 @@ import { auth } from "@/server/auth";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth();
 
+  // Extract organization subdomain from headers (set by middleware)
+  const subdomain = opts.headers.get("x-organization") || null;
+
+  // Initialize organization context
+  const organizationContext = {
+    subdomain,
+    organizationId: null as string | null,
+    isMainSite: !subdomain,
+  };
+
+  // If subdomain exists, fetch organization ID for automatic filtering
+  if (subdomain) {
+    try {
+      // Import dynamically to avoid circular dependency
+      const { dynamoClient } = await import("@/lib/dynamodb");
+      const { QueryCommand } = await import("@aws-sdk/lib-dynamodb");
+      const { env } = await import("@/env");
+
+      const command = new QueryCommand({
+        TableName: env.DYNAMO_ORGANIZATIONS_TABLE,
+        IndexName: "subdomain-index",
+        KeyConditionExpression: "subdomain = :subdomain",
+        ExpressionAttributeValues: {
+          ":subdomain": subdomain,
+        },
+        Limit: 1,
+      });
+
+      const result = await dynamoClient.send(command);
+      const item = result.Items?.[0];
+
+      if (item?.organization_id) {
+        organizationContext.organizationId = item.organization_id as string;
+      }
+    } catch (error) {
+      console.error("Failed to fetch organization in tRPC context:", error);
+    }
+  }
+
+  console.log("organizationContext", organizationContext);
+
   return {
     session,
+    ...organizationContext,
     ...opts,
   };
 };

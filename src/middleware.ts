@@ -41,12 +41,15 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - images, fonts (static assets)
+     * - api/auth (NextAuth routes don't need org context)
+     * - api/download-image (direct download routes)
+     * - api/feedback (feedback routes)
+     * But INCLUDE api/trpc for organization-aware tRPC requests
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|images|fonts).*)',
+    '/((?!api/auth|api/download-image|api/feedback|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|images|fonts).*)',
   ],
 };

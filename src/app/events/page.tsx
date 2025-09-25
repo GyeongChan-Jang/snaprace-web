@@ -10,12 +10,8 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 export default function EventsPage() {
   const { organization } = useOrganization();
 
-  // Fetch events filtered by organization if available
-  const eventsQuery = api.events.getAll.useQuery(
-    organization?.organization_id
-      ? { organizationId: organization.organization_id }
-      : undefined
-  );
+  // Fetch events - organization filtering now handled automatically in tRPC context
+  const eventsQuery = api.events.getAll.useQuery();
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
