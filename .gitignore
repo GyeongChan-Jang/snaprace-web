@@ -50,3 +50,6 @@ sample-sources
 
 # tasks
 tasks/
+
+# AGENTS
+AGENTS.md

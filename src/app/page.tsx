@@ -32,10 +32,8 @@ export default function HomePage() {
       : undefined,
   );
 
-  // Set default event when data loads
   const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
 
-  // Update selectedEventId when events are loaded and no event is selected
   useEffect(() => {
     if (events.length > 0 && !selectedEventId) {
       setSelectedEventId(events[0]?.event_id ?? "");
@@ -81,11 +79,20 @@ export default function HomePage() {
                     value={selectedEventId}
                     onValueChange={setSelectedEventId}
                   >
-                    <SelectTrigger className="bg-background border-border !h-14 w-full text-sm font-medium">
-                      <SelectValue placeholder="Select an event" />
+                    <SelectTrigger
+                      disabled={events.length === 0}
+                      className="bg-background border-border !h-14 w-full text-sm font-medium"
+                    >
+                      <SelectValue
+                        placeholder={
+                          events.length === 0
+                            ? "No events available"
+                            : "Select an event"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {events.length > 0 ? (
+                      {events.length > 0 &&
                         events.map((event) => (
                           <SelectItem
                             key={event.event_id}
@@ -94,12 +101,7 @@ export default function HomePage() {
                           >
                             {event.event_name}
                           </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="" disabled>
-                          No events available
-                        </SelectItem>
-                      )}
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -116,6 +118,7 @@ export default function HomePage() {
                   placeholder="Enter your bib number (e.g., 1234)"
                   value={bibNumber}
                   onChange={(e) => setBibNumber(e.target.value)}
+                  disabled={events.length === 0}
                   className="bg-background border-border h-14 text-sm font-medium md:text-lg"
                   style={{
                     fontSize: "14px",
