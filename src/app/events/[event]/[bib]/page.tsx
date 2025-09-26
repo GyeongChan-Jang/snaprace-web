@@ -30,36 +30,32 @@ import {
   storeFacialRecognitionConsent,
   hasFacialRecognitionConsent,
 } from "@/lib/consent-storage";
+import { useOrganizationHelper } from "@/hooks/useOrganizationHelper";
+import Link from "next/link";
 
 export default function EventPhotoPage() {
   const router = useRouter();
   const photoRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Facial recognition consent state
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
 
-  // Analytics tracking hooks
+  const org = useOrganizationHelper();
+
   useAnalyticsTracking();
   usePerformanceTracking();
 
-  // Get initial state without photos first
   const params = useParams();
   const event = params?.event as string;
   const bibParam = params?.bib as string;
   const isAllPhotos = bibParam === "null";
   const bibNumber = isAllPhotos ? "" : bibParam;
 
-  // Initialize interaction tracking
-  // Detailed interaction tracking removed for simplicity
-
-  // API queries
   const eventQuery = api.events.getById.useQuery(
     { eventId: event },
     { enabled: !!event },
   );
 
-  // if [bib] is not null, get the photos for the bib number
   const galleryQuery = api.galleries.getByBibNumber.useQuery(
     { eventId: event, bibNumber },
     { enabled: !!event && !isAllPhotos && !!bibNumber },
@@ -70,10 +66,8 @@ export default function EventPhotoPage() {
     { enabled: !!event && isAllPhotos },
   );
 
-  // Process photos data
   const photos = useMemo(() => {
     if (isAllPhotos && allPhotosQuery.data) {
-      // Flatten all photos from all gallery items
       const allPhotos: string[] = [];
       if (allPhotosQuery.data) {
         allPhotosQuery.data.forEach((photo) => {
@@ -93,7 +87,6 @@ export default function EventPhotoPage() {
     return [];
   }, [isAllPhotos, allPhotosQuery.data, galleryQuery.data]);
 
-  // Use custom hook for state management with photos
   const {
     searchBib,
     setSearchBib,
@@ -104,7 +97,6 @@ export default function EventPhotoPage() {
     setClickedPhotoRect,
   } = usePhotoState(photos);
 
-  // Use photo selection hook
   const {
     selectedPhotos,
     selectedCount,
@@ -117,35 +109,24 @@ export default function EventPhotoPage() {
     isPhotoSelected,
   } = usePhotoSelection(photos);
 
-  // Track photo selection changes
   const handlePhotoSelect = useCallback(
     (index: number) => {
       const wasSelected = isPhotoSelected(index);
       togglePhotoSelection(index);
-
-      // Track selection event
-      if (!wasSelected) {
-        // Photo selection tracking removed - bulk download tracking is sufficient
-      }
     },
     [togglePhotoSelection, event, bibNumber, selectedCount, isPhotoSelected],
   );
 
-  // Use custom hooks for handlers (now with photos)
-  const {
-    handlePhotoClick, // Handle photo click to open SingleView
-    handlePhotoIndexChange,
-    handleCloseSingleView,
-  } = usePhotoHandlers({
-    event,
-    bibParam,
-    isMobile,
-    photoRefs,
-    setClickedPhotoRect,
-    photos,
-  });
+  const { handlePhotoClick, handlePhotoIndexChange, handleCloseSingleView } =
+    usePhotoHandlers({
+      event,
+      bibParam,
+      isMobile,
+      photoRefs,
+      setClickedPhotoRect,
+      photos,
+    });
 
-  // Selfie upload hook
   const { isProcessed, isProcessing, uploadSelfie, uploadedFile, reset } =
     useSelfieUpload({
       eventId: event,
@@ -169,14 +150,10 @@ export default function EventPhotoPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
-        // Track selfie upload start
-        // Selfie processing start tracking removed - only result tracking needed
-
         // Upload selfie and then refetch gallery only on success
         await uploadSelfie(file);
         await galleryQuery.refetch();
 
-        // Track selfie upload success with results
         const matchedCount =
           galleryQuery.data?.selfie_matched_photos?.length || 0;
         trackSelfieUpload({
@@ -189,7 +166,6 @@ export default function EventPhotoPage() {
         trackSelfieResults(event, bibNumber, matchedCount);
       } catch (error) {
         console.error("Selfie upload error:", error);
-        // Track selfie upload failure
         trackSelfieUpload({
           event_id: event,
           bib_number: bibNumber,
@@ -197,51 +173,40 @@ export default function EventPhotoPage() {
         });
       }
     }
-    // Always clear input so selecting the same file triggers onChange again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
   const handleConsentAgree = () => {
-    // Store consent
     storeFacialRecognitionConsent(true, event);
 
-    // Close modal
     setIsConsentModalOpen(false);
 
-    // Open file picker immediately after consent
     setTimeout(() => {
       fileInputRef.current?.click();
-    }, 100); // Small delay to ensure modal is closed first
+    }, 100);
   };
 
   const handleConsentDeny = () => {
     setIsConsentModalOpen(false);
   };
 
-  // Unified retry helper for both "Upload another" and "Try again"
   const resetAndPromptSelfieUpload = useCallback(() => {
     reset();
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-      // Open the file picker immediately for a smooth retry flow
       fileInputRef.current.click();
     }
   }, [reset]);
 
-  // Bib search handler
   const handleBibSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchBib.trim()) {
-      // Track search event
-      // Search tracking removed - page visit tracking is sufficient
-      // Click tracking removed for simplicity
       router.push(`/events/${event}/${searchBib.trim()}`);
     }
   };
 
-  // selfie로 매칭된 사진 URL 집합 (상단 배지 표시에 사용)
   const selfieMatchedSet = useMemo(() => {
     if (!isAllPhotos && galleryQuery.data?.selfie_matched_photos?.length) {
       return new Set(galleryQuery.data.selfie_matched_photos);
@@ -517,28 +482,29 @@ export default function EventPhotoPage() {
         </div>
       </div>
 
-      <div className="bg-background/60 top-16 z-10 w-full">
-        <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
-          <div className="relative h-8 w-28 md:h-10 md:w-36">
-            <Image
-              src="/images/partners/partner-millenniumrunning.png"
-              alt="Millennium Running"
-              fill
-              className="object-contain opacity-80"
-              sizes="(max-width: 768px) 112px, 144px"
-            />
-          </div>
-          <div className="relative h-8 w-28 md:h-10 md:w-36">
-            <Image
-              src="/images/partners/partner-autofair.png"
-              alt="AutoFair"
-              fill
-              className="object-contain opacity-80"
-              sizes="(max-width: 768px) 112px, 144px"
-            />
+      {org.partners.length > 0 && (
+        <div className="bg-background/60 top-16 z-10 w-full">
+          <div className="container mx-auto flex items-center justify-center gap-8 py-3 md:gap-12">
+            {org.partners.map((partner) => (
+              <Link
+                key={partner.id}
+                href={partner.website_url || "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative h-8 w-28 md:h-10 md:w-36"
+              >
+                <Image
+                  src={org.getPartnerImageUrl(partner)}
+                  alt={partner.name}
+                  fill
+                  className="object-contain opacity-80 transition-all duration-200 group-hover:opacity-100 group-hover:scale-105"
+                  sizes="(max-width: 768px) 112px, 144px"
+                />
+              </Link>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Photo Selection and Bulk Download Controls for PC - Only for specific bib */}
       {!isMobile && photos.length > 0 && !isAllPhotos && (
