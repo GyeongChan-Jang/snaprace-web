@@ -304,7 +304,7 @@ export default function EventPhotoPage() {
       </div>
 
       {/* Search and Upload Section */}
-      <div className="mx-1 mt-6 max-w-3xl md:mx-auto">
+      <div className="mx-1 mt-6 w-fit md:mx-auto">
         <div className="bg-muted/50 rounded-lg p-6">
           {/* Selfie Upload */}
           <div className="mx-auto max-w-md">
@@ -497,7 +497,7 @@ export default function EventPhotoPage() {
                   src={org.getPartnerImageUrl(partner)}
                   alt={partner.name}
                   fill
-                  className="object-contain opacity-80 transition-all duration-200 group-hover:opacity-100 group-hover:scale-105"
+                  className="object-contain opacity-80 transition-all duration-200 group-hover:scale-105 group-hover:opacity-100"
                   sizes="(max-width: 768px) 112px, 144px"
                 />
               </Link>
@@ -508,9 +508,9 @@ export default function EventPhotoPage() {
 
       {/* Photo Selection and Bulk Download Controls for PC - Only for specific bib */}
       {!isMobile && photos.length > 0 && !isAllPhotos && (
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto mt-4 px-4">
           <div className="flex items-center justify-between">
-            <div className="text-muted-foreground text-sm">
+            <div className="text-muted-foreground text-xs">
               {isSelectionMode && selectedCount > 0 ? (
                 selectedCount >= 10 ? (
                   <span className="flex items-center gap-2">
@@ -552,7 +552,7 @@ export default function EventPhotoPage() {
       )}
 
       {/* Full-width Photo Grid */}
-      <div className="w-full px-[4px] sm:px-[20px]">
+      <div className="mt-4 w-full px-[4px] sm:px-[20px]">
         {isLoading ? (
           <MasonryPhotoSkeleton />
         ) : photos.length > 0 ? (
@@ -602,7 +602,7 @@ export default function EventPhotoPage() {
       </div>
 
       {/* Feedback Section - Only for specific bib */}
-      {!isAllPhotos && bibNumber && photos.length > 0 && (
+      {/* {!isAllPhotos && bibNumber && photos.length > 0 && (
         <section className="container mx-auto px-1 py-8">
           <FeedbackSection
             eventId={event}
@@ -610,7 +610,7 @@ export default function EventPhotoPage() {
             eventName={eventQuery.data?.event_name || ""}
           />
         </section>
-      )}
+      )} */}
 
       <section className="bg-muted/20 mt-auto border-t px-4 py-4">
         <div className="text-muted-foreground text-center text-xs">

@@ -46,7 +46,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="bg-background relative px-4 py-20 sm:py-32">
         <div className="container mx-auto max-w-4xl text-center">
-          <h1 className="text-foreground font-montserrat mb-6 text-4xl font-medium tracking-tight whitespace-pre-wrap sm:text-5xl md:text-6xl">
+          <h1 className="text-foreground font-montserrat mb-6 text-3xl font-medium tracking-tight whitespace-pre-wrap sm:text-4xl md:text-5xl">
             {org.subdomain
               ? `${org.name}\nEvent Photos`
               : "Find Your Event Photos"}

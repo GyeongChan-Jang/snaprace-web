@@ -73,7 +73,7 @@ export function PhotoGridSkeleton({ count = 8 }: { count?: number }) {
 export function MasonryPhotoSkeleton({ count = 12 }: { count?: number }) {
   const isMobile = useIsMobile();
   return (
-    <div className="mx-auto">
+    <div className="mx-auto mt-4">
       <div
         className="masonry-skeleton-grid gap-2"
         style={{

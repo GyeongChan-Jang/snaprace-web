@@ -35,13 +35,13 @@ export function PhotoSelectionControls({
         {isSelectionMode ? (
           <>
             <X className="h-4 w-4" />
-            <span className="hidden sm:inline">Exit Selection</span>
+            <span className="hidden text-xs sm:inline">Exit Selection</span>
             <span className="sm:hidden">Exit</span>
           </>
         ) : (
           <>
             <MousePointer2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Select Photos</span>
+            <span className="hidden text-xs sm:inline">Select Photos</span>
             <span className="sm:hidden">Select</span>
           </>
         )}
@@ -50,9 +50,13 @@ export function PhotoSelectionControls({
       {/* Selection Controls - Only shown when in selection mode */}
       {isSelectionMode && (
         <>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-sm">
             {selectedCount > 0 ? (
-              <span className={selectedCount > MAX_BULK_DOWNLOAD ? "text-orange-600" : ""}>
+              <span
+                className={
+                  selectedCount > MAX_BULK_DOWNLOAD ? "text-orange-600" : ""
+                }
+              >
                 {selectedCount} of {totalCount} selected
                 {selectedCount > MAX_BULK_DOWNLOAD && (
                   <span className="block text-xs">
@@ -75,13 +79,13 @@ export function PhotoSelectionControls({
               {allSelected ? (
                 <>
                   <CheckSquare className="h-4 w-4" />
-                  <span className="hidden sm:inline">Deselect All</span>
+                  <span className="hidden text-xs sm:inline">Deselect All</span>
                   <span className="sm:hidden">None</span>
                 </>
               ) : (
                 <>
                   <Square className="h-4 w-4" />
-                  <span className="hidden sm:inline">Select All</span>
+                  <span className="hidden text-xs sm:inline">Select All</span>
                   <span className="sm:hidden">All</span>
                 </>
               )}
@@ -95,7 +99,7 @@ export function PhotoSelectionControls({
                 className="gap-1 text-xs"
               >
                 <X className="h-4 w-4" />
-                <span className="hidden sm:inline">Clear</span>
+                <span className="hidden text-xs sm:inline">Clear</span>
               </Button>
             )}
           </div>
