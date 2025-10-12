@@ -21,6 +21,8 @@ export const env = createEnv({
     // Auth.js (NextAuth) configuration
     AUTH_SECRET: z.string(),
     AUTH_URL: z.string().url().optional(),
+    // Crisp
+    CRISP_WEBSITE_ID: z.string(),
   },
 
   /**
@@ -48,6 +50,8 @@ export const env = createEnv({
     DYNAMO_ORGANIZATIONS_TABLE: process.env.DYNAMO_ORGANIZATIONS_TABLE,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_URL: process.env.AUTH_URL,
+    // Crisp
+    CRISP_WEBSITE_ID: process.env.CRISP_WEBSITE_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

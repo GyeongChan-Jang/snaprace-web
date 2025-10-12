@@ -43,7 +43,7 @@ export function Header() {
                 />
               </div>
             ) : (
-              <span className="font-montserrat text-foreground text-xl font-bold">
+              <span className="text-foreground text-xl font-bold">
                 {org.name}
               </span>
             )}
@@ -129,9 +129,7 @@ export function Header() {
                         />
                       </div>
                     ) : (
-                      <span className="font-montserrat text-xl font-bold">
-                        {org.name}
-                      </span>
+                      <span className="text-xl font-bold">{org.name}</span>
                     )}
                   </Link>
 

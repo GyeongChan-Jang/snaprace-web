@@ -1,7 +1,7 @@
 import "@/styles/globals.css";
 
 import { type Metadata } from "next";
-import { Poppins, Montserrat } from "next/font/google";
+import { Raleway } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { headers } from "next/headers";
 
@@ -11,6 +11,7 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import ClarityInit from "@/components/analytics/ClarityInit";
 import { getOrganizationBySubdomain } from "@/lib/server-organization";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "SnapRace - Find Your Race Photos",
@@ -35,17 +36,24 @@ export const metadata: Metadata = {
   },
 };
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
-  display: "swap",
-});
+// const poppins = Poppins({
+//   subsets: ["latin"],
+//   weight: ["300", "400", "500", "600", "700"],
+//   variable: "--font-poppins",
+//   display: "swap",
+// });
 
-const montserrat = Montserrat({
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["400", "500", "600", "700", "800"],
+//   variable: "--font-montserrat",
+//   display: "swap",
+// });
+
+const raleway = Raleway({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-montserrat",
+  variable: "--font-raleway",
   display: "swap",
 });
 
@@ -55,6 +63,7 @@ export default async function RootLayout({
   // Get organization data on server for immediate style application
   const headersList = await headers();
   const subdomain = headersList.get("x-organization");
+  const CRISP_WEBSITE_ID = process.env.CRISP_WEBSITE_ID!;
 
   let organization = null;
   if (subdomain) {
@@ -66,11 +75,11 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" className={`${poppins.variable} ${montserrat.variable}`}>
+    <html lang="en" className={`${raleway.variable}`}>
       <head>
         <OrganizationStyles organization={organization} />
       </head>
-      <body className="bg-background font-poppins m-0 min-h-screen antialiased">
+      <body className="bg-background m-0 min-h-screen antialiased">
         <OrganizationLoader>
           <div className="relative flex min-h-screen flex-col">
             <Header />
@@ -83,6 +92,16 @@ export default async function RootLayout({
             <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
           )}
         <ClarityInit />
+        <Script id="crisp-widget" strategy="afterInteractive">
+          {`
+            window.$crisp=[]; window.CRISP_WEBSITE_ID="${CRISP_WEBSITE_ID}";
+            (function(){
+              const d=document,s=d.createElement("script");
+              s.src="https://client.crisp.chat/l.js"; s.async=1;
+              d.getElementsByTagName("head")[0].appendChild(s);
+            })();
+          `}
+        </Script>
       </body>
     </html>
   );

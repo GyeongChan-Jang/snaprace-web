@@ -147,7 +147,7 @@ export function PhotoGrid({
             {selfieMatchedSet?.has(url) && (
               <div className="absolute top-2 left-2 z-20">
                 <Badge variant="default">
-                  <span className="font-poppins text-xs">Selfie</span>
+                  <span className="text-xs">Selfie</span>
                 </Badge>
               </div>
             )}

@@ -108,7 +108,6 @@ export function PhotoSingleView({
   const currentPhoto = photos[currentIndex];
   const filename = generatePhotoFilename(event ?? "", bibNumber, currentIndex);
 
-
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
@@ -289,7 +288,7 @@ export function PhotoSingleView({
             {selfieMatchedSet?.has(currentPhoto) && (
               <div className="absolute top-2 left-2 z-20">
                 <Badge variant="default">
-                  <span className="font-poppins text-xs">Selfie</span>
+                  <span className="text-xs">Selfie</span>
                 </Badge>
               </div>
             )}
