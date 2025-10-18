@@ -1,29 +1,76 @@
-# Create T3 App
+# SnapRace
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+SnapRace helps race organizers deliver a branded photo discovery experience where athletes can quickly search, filter, and download their event shots. The app supports white-labeled subdomains, selfie-based matching, and direct integration with AWS data pipelines.
 
-## What's next? How do I make an app with this?
+## Core Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- **Bib & event search** – App Router pages let visitors pick an event, enter a bib number, or browse every photo in a responsive masonry layout.
+- **Selfie matching** – Participants can upload a selfie; an AWS Lambda endpoint enriches results with additional matches after collecting facial-recognition consent.
+- **Multi-tenant branding** – Middleware detects subdomains, loads organization colors, logos, and partner assets, and scopes tRPC queries by organization.
+- **Photo actions** – Bulk selection, download routing through Next.js, and share dialogs make it easy to save or publish images.
+- **Feedback & analytics** – DynamoDB-backed feedback API, Microsoft Clarity tagging, Google Analytics, and a Crisp chat widget capture insights and support.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Tech Stack
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- **Framework**: Next.js 15 (App Router) with React 19 and Turbopack dev server.
+- **Data & APIs**: tRPC + AWS SDK v3 hitting DynamoDB tables (`events`, `galleries`, `photos`, `organizations`, `feedbacks`).
+- **Media UX**: `@egjs/react-infinitegrid`, Tailwind CSS v4, shadcn/ui primitives, and lucide-react icons.
+- **Auth & telemetry**: NextAuth (Discord provider configured), Microsoft Clarity, Google Analytics, and Crisp chat.
 
-## Learn More
+## Directory Layout
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- `src/app` – App Router routes, API handlers (`api/download-image`, `api/feedback`), and layout providers.
+- `src/components` – Reusable UI, analytics hooks, gallery widgets, and modals.
+- `src/contexts`, `src/hooks` – Client state management (organization, photo selection, selfie upload, analytics tracking).
+- `src/server` – tRPC routers, NextAuth configuration, and server-only utilities.
+- `src/lib` – DynamoDB client, organization helpers, analytics utilities, consent storage.
+- `docs/` – Deep-dive guides (e.g., `LOCAL_DEVELOPMENT_SUBDOMAIN.md`).
+- `test-data/` – DynamoDB JSON fixtures for local seeding.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Getting Started
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+1. Install dependencies with `pnpm install` (Corepack recommended).
+2. Copy environment defaults: `cp .env.local.example .env.local`.
+3. Populate the variables below, then run `pnpm dev`.
 
-## How do I deploy this?
+## Local Development
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Start the dev server: `pnpm dev`.
+- Run linting + type checks: `pnpm check` (wraps `next lint` and `tsc --noEmit`).
+- Auto-fix issues: `pnpm lint:fix`, format with `pnpm format:write`.
+- Preview a production build locally: `pnpm preview` (runs `next build` then `next start`).
+
+### Testing Branded Subdomains
+
+The middleware emits an `x-organization` header so all tRPC calls and theming respect the selected tenant. During development you can:
+
+- Set `NEXT_PUBLIC_DEV_SUBDOMAIN` in `.env.local` (recommended).
+- Append `?org=millenniumrunning` to URLs.
+- Configure host aliases as described in `docs/LOCAL_DEVELOPMENT_SUBDOMAIN.md` for the most realistic setup.
+
+## Data & External Services
+
+- DynamoDB is the system of record. Make sure the tables referenced above exist and match the expected primary keys/indexes.
+- Seed sample data using the fixtures, for example:
+  ```bash
+  aws dynamodb put-item \
+    --table-name snaprace-organizations \
+    --item file://test-data/millennium-organization.json
+  ```
+- Selfie matching calls a deployed Lambda (`useSelfieUpload`); ensure the endpoint remains accessible or update the hook before launch.
+- The download route proxies CloudFront images so browsers receive proper headers for `Save As` flows.
+
+## Deployment Notes
+
+1. Run `pnpm build` and confirm it succeeds without type or lint errors.
+2. Provision environment variables (including analytics IDs and Crisp) in your hosting platform.
+3. Ensure IAM credentials allow read/write to DynamoDB tables in the target account.
+4. Configure DNS/subdomain routing so requests arrive with the correct hostname for middleware parsing.
+5. Monitor production with Clarity dashboards, Google Analytics, and Crisp conversations.
+
+## Additional Resources
+
+- `PROJECT_SPEC.md` – High-level product goals and constraints.
+- `AGENTS.md` – Contributor guidelines, coding standards, and PR expectations.
+- `tasks/` – Implementation briefs and context for in-flight work.
+- `docs/LOCAL_DEVELOPMENT_SUBDOMAIN.md` – Detailed instructions for subdomain testing, DynamoDB structure, and troubleshooting.
