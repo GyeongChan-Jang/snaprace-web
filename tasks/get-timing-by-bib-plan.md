@@ -21,7 +21,7 @@
    - `.env.local.example`에 기본값(예: `TimingResults`, `snap-race`)을 주석과 함께 추가한다.
 
 2. **AWS 클라이언트 유틸리티 확장**
-   - 기존 `@/lib/dynamodb`의 `TABLES`에 `TIMING_RESULTS: env.TIMING_TABLE`을 추가하거나 동등한 상수를 내보낸다.
+   - 기존 `@/lib/dynamodb`의 `TABLES`에 `TIMING_RESULTS: env.DYNAMO_TIMING_RESULTS_TABLE`을 추가하거나 동등한 상수를 내보낸다.
    - `src/server/aws/clients.ts` 파일을 새로 만들어 `DynamoDBClient`, `S3Client` 인스턴스를 생성하고 `DYNAMO_TIMING_RESULTS_TABLE`, `BUCKET` 상수를 함께 내보낸다.
    - 추후 다른 서버 유틸에서 재사용할 수 있도록 기본 자격 증명은 환경 변수에 위임한다.
 
