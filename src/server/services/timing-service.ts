@@ -192,7 +192,21 @@ function mapRow(headings: Array<{ key?: string; name?: string }>, row: unknown[]
   headings.forEach((heading) => {
     if (!heading?.key) return;
     const idx = columnIndex(heading.key);
-    mapped[heading.key] = idx === undefined ? undefined : row[idx];
+    const value = idx === undefined ? undefined : row[idx];
+
+    switch (heading.key) {
+      case "field_475547":
+        mapped.gender_place = value;
+        break;
+      case "field_475548":
+        mapped.halfway_split = value;
+        break;
+      case "age_performance_percentage":
+        mapped.age_performance_percentage = value;
+        break;
+      default:
+        mapped[heading.key] = value;
+    }
   });
 
   return mapped;

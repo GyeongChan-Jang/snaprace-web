@@ -128,7 +128,7 @@ function TimingSummaryCard({
     return null;
   }
 
-  if (status === "loading") {
+  if (status == "loading") {
     return <TimingSummarySkeleton />;
   }
 
@@ -190,6 +190,7 @@ function TimingSummaryCard({
   if (!detail) {
     return null;
   }
+
   console.log("detail", detail);
 
   const chipTime = getRowValue(detail.row, "chip_time");
@@ -254,18 +255,18 @@ function TimingSummaryCard({
 function TimingSummarySkeleton() {
   return (
     <article className="border-border/60 bg-background/95 rounded-2xl border p-5 shadow-sm md:p-6">
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-4 w-32" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-3 w-32" />
         <div className="mt-2 flex gap-2">
-          <Skeleton className="h-6 w-16" />
-          <Skeleton className="h-6 w-20" />
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-20" />
         </div>
       </div>
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
         {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-20 rounded-xl" />
+          <Skeleton key={index} className="h-18 rounded-xl" />
         ))}
       </div>
     </article>
