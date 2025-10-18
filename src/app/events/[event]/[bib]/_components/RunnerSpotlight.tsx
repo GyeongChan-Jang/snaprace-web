@@ -8,6 +8,7 @@ import { api } from "@/trpc/react";
 import type { BibDetailResponse } from "@/server/services/timing-service";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBadge";
 
 import { SelfieUploadCard } from "./SelfieUploadCard";
 
@@ -191,8 +192,6 @@ function TimingSummaryCard({
     return null;
   }
 
-  console.log("detail", detail);
-
   const chipTime = getRowValue(detail.row, "chip_time");
   const clockTime = getRowValue(detail.row, "clock_time");
   const averagePace = getRowValue(detail.row, "avg_pace");
@@ -203,12 +202,13 @@ function TimingSummaryCard({
   const state = getRowValue(detail.row, "state");
   const gender = getRowValue(detail.row, "gender");
   const age = getRowNumber(detail.row, "age");
+  const agePerformance = getRowNumber(detail.row, "age_performance_percentage");
 
   const location = [city, state].filter(Boolean).join(", ");
 
   return (
     <article className="border-border/60 bg-background/95 rounded-2xl border p-5 shadow-sm md:p-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">
             <Timer className="h-4 w-4" />
@@ -231,6 +231,10 @@ function TimingSummaryCard({
             ) : null}
           </div>
         </div>
+        <PerformanceTierBadge
+          value={agePerformance}
+          className="min-w-[180px] justify-between"
+        />
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-3 md:gap-4">
