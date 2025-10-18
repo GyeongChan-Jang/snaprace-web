@@ -18,6 +18,9 @@ export const env = createEnv({
     DYNAMO_PHOTOS_TABLE: z.string(),
     DYNAMO_FEEDBACKS_TABLE: z.string(),
     DYNAMO_ORGANIZATIONS_TABLE: z.string(),
+    DYNAMO_TIMING_RESULTS_TABLE: z.string(),
+
+    BUCKET: z.string(),
     // Auth.js (NextAuth) configuration
     AUTH_SECRET: z.string(),
     AUTH_URL: z.string().url().optional(),
@@ -48,6 +51,9 @@ export const env = createEnv({
     DYNAMO_PHOTOS_TABLE: process.env.DYNAMO_PHOTOS_TABLE,
     DYNAMO_FEEDBACKS_TABLE: process.env.DYNAMO_FEEDBACKS_TABLE,
     DYNAMO_ORGANIZATIONS_TABLE: process.env.DYNAMO_ORGANIZATIONS_TABLE,
+    DYNAMO_TIMING_RESULTS_TABLE: process.env.DYNAMO_TIMING_RESULTS_TABLE,
+
+    BUCKET: process.env.BUCKET,
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_URL: process.env.AUTH_URL,
     // Crisp

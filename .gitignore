@@ -48,9 +48,6 @@ yarn-error.log*
 # test
 sample-sources
 
-# tasks
-tasks/
-
 # AGENTS
 AGENTS.md
 

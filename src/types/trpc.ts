@@ -15,3 +15,13 @@ export type GalleriesList = RouterOutputs["galleries"]["getAllByEventId"];
 export type GalleryByBib = RouterOutputs["galleries"]["getByBibNumber"];
 export type GalleriesGetByBibInput = RouterInputs["galleries"]["getByBibNumber"];
 export type GalleriesGetAllInput = RouterInputs["galleries"]["getAllByEventId"];
+
+type TimingQueryOutput = RouterOutputs["results"]["getTimingByBib"];
+
+export type ResultsByBib = TimingQueryOutput;
+
+export type TimingDetail = TimingQueryOutput extends (infer Item)[]
+  ? Item
+  : TimingQueryOutput extends object
+    ? TimingQueryOutput
+    : never;
