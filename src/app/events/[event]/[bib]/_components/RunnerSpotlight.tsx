@@ -190,6 +190,7 @@ function TimingSummaryCard({
   if (!detail) {
     return null;
   }
+  console.log("detail", detail);
 
   const chipTime = getRowValue(detail.row, "chip_time");
   const clockTime = getRowValue(detail.row, "clock_time");
@@ -301,10 +302,13 @@ function TimingMetric({ label, value, highlight = false }: TimingMetricProps) {
 function getRowValue(
   row: BibDetailResponse["row"] | undefined,
   key: string,
-): string | undefined {
+): string | number | undefined {
   if (!row) return undefined;
   const value = row[key];
-  return typeof value === "string" ? value : undefined;
+  if (typeof value === "string" || typeof value === "number") {
+    return value;
+  }
+  return undefined;
 }
 
 function getRowNumber(
