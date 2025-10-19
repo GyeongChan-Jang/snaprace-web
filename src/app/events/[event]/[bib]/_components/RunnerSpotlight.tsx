@@ -231,10 +231,12 @@ function TimingSummaryCard({
             ) : null}
           </div>
         </div>
-        <PerformanceTierBadge
-          value={agePerformance}
-          className="min-w-[180px] justify-between"
-        />
+        {agePerformance !== 0 && (
+          <PerformanceTierBadge
+            value={agePerformance}
+            className="min-w-[180px] justify-between"
+          />
+        )}
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-3 md:gap-4">
