@@ -80,11 +80,7 @@ export function RunnerSpotlight({
   return (
     <div className="container mx-auto mt-8 px-1 md:px-4">
       <section className="border-border/60 bg-muted/30 rounded-3xl border p-4 shadow-sm md:p-6">
-        <div
-          className={`grid gap-4 ${
-            showTimingCard ? "md:grid-cols-[minmax(0,1fr)_minmax(0,340px)]" : ""
-          }`}
-        >
+        <div className={`grid gap-4`}>
           {showTimingCard ? (
             <TimingSummaryCard
               status={timingStatus}
