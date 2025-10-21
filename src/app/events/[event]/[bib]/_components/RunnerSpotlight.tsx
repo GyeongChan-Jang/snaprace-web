@@ -237,7 +237,10 @@ function TimingSummaryCard({
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm md:grid-cols-3 md:gap-4">
         <TimingMetric label="Chip Time" value={chipTime} highlight />
-        <TimingMetric label="Clock Time" value={clockTime} />
+        <TimingMetric
+          label="Clock Time"
+          value={clockTime === "" ? "-" : clockTime}
+        />
         <TimingMetric label="Average Pace" value={averagePace} />
         <TimingMetric label="Division Place" value={divisionPlace} />
         <TimingMetric label="Overall Place" value={racePlacement} />
@@ -282,7 +285,7 @@ interface TimingMetricProps {
 }
 
 function TimingMetric({ label, value, highlight = false }: TimingMetricProps) {
-  const displayValue = value ?? "—";
+  const displayValue = value === "" || !value ? "—" : value;
 
   return (
     <div
