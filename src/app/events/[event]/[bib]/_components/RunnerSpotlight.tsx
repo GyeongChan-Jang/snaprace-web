@@ -222,7 +222,7 @@ function TimingSummaryCard({
           </div>
           <div className="flex flex-wrap gap-2">
             {gender ? <Badge variant="secondary">{gender}</Badge> : null}
-            {typeof age === "number" ? (
+            {typeof age === "number" && age > 0 ? (
               <Badge variant="secondary">{age} yrs</Badge>
             ) : null}
           </div>
