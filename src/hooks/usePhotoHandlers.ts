@@ -133,7 +133,7 @@ export function usePhotoHandlers({
         toast.error("Failed to share photo");
       }
     },
-    [isMobile, event, bibParam],
+    [isMobile],
   );
 
   // Handle photo download
@@ -167,7 +167,7 @@ export function usePhotoHandlers({
         toast.error("Unable to download photo.");
       }
     },
-    [event, bibParam],
+    [event, bibParam, isMobile],
   );
 
   return {

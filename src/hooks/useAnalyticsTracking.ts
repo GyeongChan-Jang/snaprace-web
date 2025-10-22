@@ -83,7 +83,7 @@ export function useAnalyticsTracking() {
 export function usePerformanceTracking() {
   useEffect(() => {
     if (typeof window === "undefined") return; // Core Web Vitals (LCP, INP, CLS + FID/FCP/TTFB)
-    (async () => {
+    void (async () => {
       try {
         const { onCLS, onFCP, onINP, onLCP, onTTFB } = await import(
           "web-vitals"
