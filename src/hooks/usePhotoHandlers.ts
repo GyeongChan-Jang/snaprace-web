@@ -5,7 +5,13 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { downloadPhoto, scrollPhotoIntoView, extractPhotoId, encodePhotoId, generateShareablePhotoUrl } from "@/utils/photo";
+import {
+  downloadPhoto,
+  scrollPhotoIntoView,
+  extractPhotoId,
+  encodePhotoId,
+  generateShareablePhotoUrl,
+} from "@/utils/photo";
 import { trackPhotoView, trackPhotoDownload } from "@/lib/analytics";
 
 interface UsePhotoHandlersProps {
@@ -39,9 +45,9 @@ export function usePhotoHandlers({
       if (photos[index]) {
         trackPhotoView({
           event_id: event,
-          bib_number: bibParam !== 'null' ? bibParam : '',
+          bib_number: bibParam !== "null" ? bibParam : "",
           photo_url: photos[index],
-          photo_index: index
+          photo_index: index,
         });
       }
 
@@ -95,7 +101,7 @@ export function usePhotoHandlers({
     async (photoUrl: string, _index?: number) => {
       try {
         const shareableUrl = generateShareablePhotoUrl(photoUrl);
-        
+
         // On mobile, try native share first
         if (isMobile && typeof navigator !== "undefined" && navigator.share) {
           try {
@@ -104,7 +110,7 @@ export function usePhotoHandlers({
               text: "Check out this race photo!",
               url: shareableUrl,
             });
-            
+
             // Track successful share
             // Photo share tracking removed - using SNS-specific tracking instead
             toast.success("Shared successfully!");
@@ -116,10 +122,10 @@ export function usePhotoHandlers({
             // Fall through to clipboard copy
           }
         }
-        
+
         // Fallback to clipboard copy
         await navigator.clipboard.writeText(shareableUrl);
-        
+
         // Track successful clipboard share
         // Photo share tracking removed - using SNS-specific tracking instead
         toast.success("Share link copied to clipboard!");
@@ -131,33 +137,38 @@ export function usePhotoHandlers({
   );
 
   // Handle photo download
-  const handleDownload = useCallback(async (photoUrl: string, index?: number) => {
-    const filename = `photo-${event}-${index ? index + 1 : "unknown"}.jpg`;
-    
-    const result = await downloadPhoto(photoUrl, filename);
-    
-    if (result.success) {
-      // Track successful download
-      trackPhotoDownload({
-        event_id: event,
-        bib_number: bibParam !== 'null' ? bibParam : '',
-        download_type: 'single',
-        photo_count: 1
-      });
+  const handleDownload = useCallback(
+    async (photoUrl: string, index?: number) => {
+      const filename = `photo-${event}-${index ? index + 1 : "unknown"}.jpg`;
 
-      switch (result.method) {
-        case "proxy":
-        case "direct":
-          toast.success("Photo download started!");
-          break;
-        case "newTab":
-          toast.info("Photo opened in new tab. Right-click to save.");
-          break;
+      const result = await downloadPhoto(photoUrl, filename);
+
+      if (result.success) {
+        // Track successful download
+        trackPhotoDownload({
+          event_id: event,
+          bib_number: bibParam !== "null" ? bibParam : "",
+          download_type: "single",
+          photo_count: 1,
+          device_type: isMobile ? "mobile" : "desktop",
+          download_method: result.method,
+        });
+
+        switch (result.method) {
+          case "proxy":
+          case "direct":
+            toast.success("Photo download started!");
+            break;
+          case "newTab":
+            toast.info("Photo opened in new tab. Right-click to save.");
+            break;
+        }
+      } else {
+        toast.error("Unable to download photo.");
       }
-    } else {
-      toast.error("Unable to download photo.");
-    }
-  }, [event, bibParam]);
+    },
+    [event, bibParam],
+  );
 
   return {
     handlePhotoClick,

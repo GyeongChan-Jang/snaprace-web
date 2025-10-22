@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ShareDialog } from "@/components/ShareDialog";
+import { trackPhotoDownload } from "@/lib/analytics";
 
 import {
   generatePhotoFilename,
@@ -172,6 +173,14 @@ export function PhotoSingleView({
                 );
 
                 if (result.success) {
+                  trackPhotoDownload({
+                    event_id: event || "",
+                    bib_number: bibNumber || "",
+                    download_type: "single",
+                    photo_count: 1,
+                    device_type: isMobile ? "mobile" : "desktop",
+                    download_method: result.method,
+                  });
                   switch (result.method) {
                     case "native_share":
                       toast.success("Shared to save on device!");

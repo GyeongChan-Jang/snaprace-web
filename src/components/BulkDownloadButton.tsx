@@ -61,6 +61,11 @@ export function BulkDownloadButton({
           bib_number: bibNumber || "",
           download_type: "bulk",
           photo_count: result.count,
+          device_type:
+            typeof window !== "undefined" && window.innerWidth < 768
+              ? "mobile"
+              : "desktop",
+          download_method: result.method,
         });
 
         setDownloadedCount(result.count);

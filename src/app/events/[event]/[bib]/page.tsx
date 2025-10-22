@@ -23,7 +23,15 @@ import {
   useAnalyticsTracking,
   usePerformanceTracking,
 } from "@/hooks/useAnalyticsTracking";
-import { trackSelfieUpload, trackSelfieResults } from "@/lib/analytics";
+import {
+  trackSelfieUpload,
+  trackSelfieResults,
+  trackSelfieConsentOpen,
+  trackSelfieConsentDecision,
+  trackSelfieStart,
+  trackSelfieError,
+  trackSelfieRetry,
+} from "@/lib/analytics";
 import { FacialRecognitionConsentModal } from "@/components/modals/FacialRecognitionConsentModal";
 import {
   storeFacialRecognitionConsent,
@@ -66,7 +74,6 @@ export default function EventPhotoPage() {
     { eventId: event },
     { enabled: !!event && isAllPhotos },
   );
-
 
   const photos = useMemo(() => {
     if (isAllPhotos && allPhotosQuery.data) {
@@ -142,6 +149,8 @@ export default function EventPhotoPage() {
     if (hasFacialRecognitionConsent(event)) {
       fileInputRef.current?.click();
     } else {
+      // Track consent modal open
+      trackSelfieConsentOpen(event, bibNumber);
       setIsConsentModalOpen(true);
     }
   };
@@ -150,20 +159,35 @@ export default function EventPhotoPage() {
     const file = e.target.files?.[0];
     if (file) {
       try {
+        // Track start with file metadata
+        trackSelfieStart(
+          event,
+          bibNumber,
+          file.type,
+          Math.round(file.size / 1024),
+        );
+
+        const startedAt = performance.now();
+
         // Upload selfie and then refetch gallery only on success
         await uploadSelfie(file);
-        await galleryQuery.refetch();
+        const { data } = await galleryQuery.refetch();
 
-        const matchedCount =
-          galleryQuery.data?.selfie_matched_photos?.length || 0;
+        const matchedCount = data?.selfie_matched_photos?.length ?? 0;
+        const latencyMs = Math.round(performance.now() - startedAt);
         trackSelfieUpload({
           event_id: event,
           bib_number: bibNumber,
           success: true,
           matched_photos: matchedCount,
+          latency_ms: latencyMs,
+          file_type: file.type,
+          file_size_kb: Math.round(file.size / 1024),
         });
 
-        trackSelfieResults(event, bibNumber, matchedCount);
+        trackSelfieResults(event, bibNumber, matchedCount, {
+          latency_ms: latencyMs,
+        });
       } catch (error) {
         console.error("Selfie upload error:", error);
         trackSelfieUpload({
@@ -171,6 +195,11 @@ export default function EventPhotoPage() {
           bib_number: bibNumber,
           success: false,
         });
+        trackSelfieError(
+          event,
+          bibNumber,
+          error instanceof Error ? error.message : String(error),
+        );
       }
     }
     if (fileInputRef.current) {
@@ -186,10 +215,12 @@ export default function EventPhotoPage() {
     setTimeout(() => {
       fileInputRef.current?.click();
     }, 100);
+    trackSelfieConsentDecision(event, bibNumber, true);
   };
 
   const handleConsentDeny = () => {
     setIsConsentModalOpen(false);
+    trackSelfieConsentDecision(event, bibNumber, false);
   };
 
   const resetAndPromptSelfieUpload = useCallback(() => {
@@ -198,6 +229,7 @@ export default function EventPhotoPage() {
       fileInputRef.current.value = "";
       fileInputRef.current.click();
     }
+    trackSelfieRetry(event, bibNumber);
   }, [reset]);
 
   const handleBibSearch = (e: React.FormEvent) => {
