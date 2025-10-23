@@ -39,35 +39,36 @@ export function LeaderboardPagination({
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Rows per page */}
-      <div className="flex items-center gap-2">
-        <span className="text-muted-foreground text-sm">Rows per page:</span>
+      <div className="flex items-center gap-1.5 md:gap-2">
+        <span className="text-muted-foreground text-xs md:text-sm">Rows:</span>
         <Select
           value={pageSize.toString()}
           onValueChange={(value) => onPageSizeChange(parseInt(value))}
         >
-          <SelectTrigger className="w-20">
+          <SelectTrigger className="h-8 w-16 text-xs md:h-9 md:w-20 md:text-sm">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="30">30</SelectItem>
-            <SelectItem value="50">50</SelectItem>
+            <SelectItem value="10" className="text-xs md:text-sm">10</SelectItem>
+            <SelectItem value="30" className="text-xs md:text-sm">30</SelectItem>
+            <SelectItem value="50" className="text-xs md:text-sm">50</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Page navigation */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
           aria-label="First page"
+          className="h-8 w-8 p-0 md:h-9 md:w-9"
         >
-          <ChevronsLeft className="h-4 w-4" />
+          <ChevronsLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
         <Button
           variant="outline"
@@ -75,12 +76,13 @@ export function LeaderboardPagination({
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
           aria-label="Previous page"
+          className="h-8 w-8 p-0 md:h-9 md:w-9"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
 
-        <span className="text-muted-foreground min-w-[100px] text-center text-sm">
-          Page {currentPage} of {totalPages}
+        <span className="text-muted-foreground min-w-[70px] text-center text-xs md:min-w-[100px] md:text-sm">
+          {currentPage} / {totalPages}
         </span>
 
         <Button
@@ -89,8 +91,9 @@ export function LeaderboardPagination({
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           aria-label="Next page"
+          className="h-8 w-8 p-0 md:h-9 md:w-9"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
         <Button
           variant="outline"
@@ -98,14 +101,15 @@ export function LeaderboardPagination({
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
           aria-label="Last page"
+          className="h-8 w-8 p-0 md:h-9 md:w-9"
         >
-          <ChevronsRight className="h-4 w-4" />
+          <ChevronsRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
       </div>
 
       {/* Results info */}
-      <span className="text-muted-foreground text-sm">
-        Showing {startResult}-{endResult} of {totalResults}
+      <span className="text-muted-foreground text-xs md:text-sm">
+        {startResult}-{endResult} of {totalResults}
       </span>
     </div>
   );

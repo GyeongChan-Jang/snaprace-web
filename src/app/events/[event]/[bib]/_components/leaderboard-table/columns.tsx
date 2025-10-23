@@ -14,12 +14,14 @@ import type { EnhancedLeaderboardResult } from "./types";
 // 정렬 아이콘 헬퍼 컴포넌트
 function SortIcon({ isSorted }: { isSorted: false | "asc" | "desc" }) {
   if (isSorted === "asc") {
-    return <ChevronUp className="ml-2 h-4 w-4" />;
+    return <ChevronUp className="ml-1 h-3 w-3 md:ml-2 md:h-4 md:w-4" />;
   }
   if (isSorted === "desc") {
-    return <ChevronDown className="ml-2 h-4 w-4" />;
+    return <ChevronDown className="ml-1 h-3 w-3 md:ml-2 md:h-4 md:w-4" />;
   }
-  return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
+  return (
+    <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50 md:ml-2 md:h-4 md:w-4" />
+  );
 }
 
 // 정렬 클릭 핸들러 (기본 -> 내림차순 -> 오름차순 -> 기본)
@@ -43,7 +45,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-8 px-2"
+          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Rank
           <SortIcon isSorted={column.getIsSorted()} />
@@ -55,27 +57,36 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       const result = row.original;
 
       return (
-        <div className="flex items-center gap-2 px-2">
+        <div className="flex items-center gap-1 px-1 md:gap-2 md:px-2">
           {rank === 1 && (
-            <Medal className="h-5 w-5 text-yellow-500" aria-label="1st place" />
+            <Medal
+              className="h-3.5 w-3.5 text-yellow-500 md:h-5 md:w-5"
+              aria-label="1st place"
+            />
           )}
           {rank === 2 && (
-            <Medal className="h-5 w-5 text-gray-400" aria-label="2nd place" />
+            <Medal
+              className="h-3.5 w-3.5 text-gray-400 md:h-5 md:w-5"
+              aria-label="2nd place"
+            />
           )}
           {rank === 3 && (
-            <Medal className="h-5 w-5 text-orange-600" aria-label="3rd place" />
+            <Medal
+              className="h-3.5 w-3.5 text-orange-600 md:h-5 md:w-5"
+              aria-label="3rd place"
+            />
           )}
           {result.isDivisionWinner && rank > 3 && (
             <Award
-              className="h-4 w-4 text-blue-500"
+              className="h-3 w-3 text-blue-500 md:h-4 md:w-4"
               aria-label="Division winner"
             />
           )}
-          <span className="font-semibold">{rank}</span>
+          <span className="text-xs font-semibold md:text-sm">{rank}</span>
         </div>
       );
     },
-    size: 120,
+    size: 80,
     enableSorting: true,
   },
 
@@ -87,7 +98,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-8 px-2"
+          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Bib
           <SortIcon isSorted={column.getIsSorted()} />
@@ -95,11 +106,11 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       );
     },
     cell: ({ row }) => (
-      <Badge variant="outline" className="font-mono">
+      <Badge variant="outline" className="font-mono text-[10px] md:text-xs">
         {row.original.bib}
       </Badge>
     ),
-    size: 100,
+    size: 70,
     enableSorting: true,
   },
 
@@ -111,7 +122,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-8 px-2"
+          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Name
           <SortIcon isSorted={column.getIsSorted()} />
@@ -119,9 +130,11 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       );
     },
     cell: ({ row }) => (
-      <span className="font-medium">{row.original.name || "—"}</span>
+      <span className="text-xs font-medium md:text-sm">
+        {row.original.name || "—"}
+      </span>
     ),
-    size: 200,
+    size: 150,
     enableSorting: true,
   },
 
@@ -134,9 +147,9 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-8 px-2"
+            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
-            Chip Time
+            Time
             <SortIcon isSorted={column.getIsSorted()} />
           </Button>
         </div>
@@ -144,12 +157,12 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     },
     cell: ({ row }) => (
       <div className="text-center">
-        <span className="font-mono font-semibold">
+        <span className="font-mono text-[10px] font-semibold md:text-xs">
           {row.original.chipTime || "—"}
         </span>
       </div>
     ),
-    size: 130,
+    size: 90,
     enableSorting: true,
   },
 
@@ -162,7 +175,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-8 px-2"
+            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
             Pace
             <SortIcon isSorted={column.getIsSorted()} />
@@ -172,33 +185,39 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     },
     cell: ({ row }) => (
       <div className="text-center">
-        <span className="font-mono text-sm">{row.original.avgPace || "—"}</span>
+        <span className="font-mono text-[10px] md:text-xs">
+          {row.original.avgPace || "—"}
+        </span>
       </div>
     ),
-    size: 110,
+    size: 80,
     enableSorting: true,
   },
 
   // Division (Gender + Age)
   {
     accessorKey: "division",
-    header: "Division",
+    header: ({ column }) => (
+      <div className="text-xs font-semibold md:text-sm">Division</div>
+    ),
     cell: ({ row }) => {
       const result = row.original;
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           {result.gender && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[10px] md:text-xs">
               {result.gender}
             </Badge>
           )}
           {result.age && (
-            <span className="text-muted-foreground text-sm">{result.age}</span>
+            <span className="text-muted-foreground text-[10px] md:text-xs">
+              {result.age}
+            </span>
           )}
         </div>
       );
     },
-    size: 130,
+    size: 90,
     enableSorting: false,
   },
 
@@ -211,18 +230,20 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-8 px-2"
+            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
-            Div. Place
+            Div.
             <SortIcon isSorted={column.getIsSorted()} />
           </Button>
         </div>
       );
     },
     cell: ({ row }) => (
-      <div className="text-center">{row.original.divisionPlace || "—"}</div>
+      <div className="text-center text-xs md:text-sm">
+        {row.original.divisionPlace || "—"}
+      </div>
     ),
-    size: 120,
+    size: 70,
     enableSorting: true,
   },
 
@@ -234,9 +255,9 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-8 px-2"
+          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
-          Performance
+          Perf.
           <SortIcon isSorted={column.getIsSorted()} />
         </Button>
       );
@@ -244,12 +265,15 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     cell: ({ row }) => {
       const value = row.original.agePerformance;
       return value && value > 0 ? (
-        <PerformanceTierBadge value={value} className="text-xs" />
+        <PerformanceTierBadge
+          value={value}
+          className="text-[10px] md:text-xs"
+        />
       ) : (
-        <span className="text-muted-foreground">—</span>
+        <span className="text-muted-foreground text-xs">—</span>
       );
     },
-    size: 160,
+    size: 100,
     enableSorting: true,
   },
 ];

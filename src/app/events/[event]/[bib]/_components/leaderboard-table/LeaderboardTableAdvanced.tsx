@@ -155,14 +155,14 @@ export function LeaderboardTableAdvanced({
       <div className="border-border w-full max-w-full overflow-x-auto rounded-lg border">
         <table className="w-full">
           {/* 헤더 */}
-          <thead className="bg-muted/50 sticky top-0 z-10">
+          <thead className="bg-muted/50 border-muted/50 sticky top-0 z-20 border-l-4">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     style={{ width: `${header.getSize()}px` }}
-                    className="p-3 text-left text-sm font-semibold"
+                    className="p-1.5 text-left text-xs font-semibold md:p-3 md:text-sm"
                   >
                     {header.isPlaceholder
                       ? null
@@ -188,10 +188,10 @@ export function LeaderboardTableAdvanced({
                 const rowContent = (
                   <tr
                     key={row.id}
-                    className={`h-16 ${getRowClassName(row.original)}`}
+                    className={`h-12 md:h-16 ${getRowClassName(row.original)}`}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="p-3">
+                      <td key={cell.id} className="p-1.5 md:p-3">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
