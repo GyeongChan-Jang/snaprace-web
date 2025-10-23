@@ -40,7 +40,6 @@ import {
 import { useOrganizationHelper } from "@/hooks/useOrganizationHelper";
 import Link from "next/link";
 import { RunnerSpotlight } from "./_components/RunnerSpotlight";
-import { EventLeaderboard } from "./_components/EventLeaderboard";
 
 export default function EventPhotoPage() {
   const router = useRouter();
@@ -349,6 +348,8 @@ export default function EventPhotoPage() {
 
       <RunnerSpotlight
         eventId={event}
+        eventName={eventQuery.data?.event_name ?? ""}
+        organizationId={eventQuery.data?.organization_id ?? ""}
         bibNumber={bibNumber}
         isAllPhotos={isAllPhotos}
         isUploading={isUploading}
@@ -361,16 +362,6 @@ export default function EventPhotoPage() {
         onFileChange={handleFileUpload}
         onRetryUpload={resetAndPromptSelfieUpload}
       />
-
-      {/* Event Leaderboard - Show for all views */}
-      {eventQuery.data && (
-        <EventLeaderboard
-          eventId={event}
-          eventName={eventQuery.data.event_name}
-          organizationId={eventQuery.data.organization_id}
-          highlightBib={!isAllPhotos ? bibNumber : undefined}
-        />
-      )}
 
       {partners.length > 0 && (
         <div className="bg-background/60 top-16 z-10 w-full">

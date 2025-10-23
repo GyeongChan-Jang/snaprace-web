@@ -11,9 +11,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBadge";
 
 import { SelfieUploadCard } from "./SelfieUploadCard";
+import { EventLeaderboard } from "./EventLeaderboard";
 
 interface RunnerSpotlightProps {
   eventId: string;
+  eventName: string;
+  organizationId: string;
   bibNumber: string;
   isAllPhotos: boolean;
   isUploading: boolean;
@@ -29,6 +32,8 @@ interface RunnerSpotlightProps {
 
 export function RunnerSpotlight({
   eventId,
+  eventName,
+  organizationId,
   bibNumber,
   isAllPhotos,
   isUploading,
@@ -79,8 +84,8 @@ export function RunnerSpotlight({
 
   return (
     <div className="container mx-auto mt-8 px-1 md:px-4">
-      <section className="border-border/60 bg-muted/30 rounded-3xl border p-4 shadow-sm md:p-6">
-        <div className={`grid gap-4`}>
+      <section className="border-border/60 bg-muted/30 overflow-hidden rounded-3xl border p-4 shadow-sm md:p-6">
+        <div className="grid gap-4">
           {showTimingCard ? (
             <TimingSummaryCard
               status={timingStatus}
@@ -88,6 +93,14 @@ export function RunnerSpotlight({
               onRetry={() => timingQuery.refetch()}
             />
           ) : null}
+
+          <EventLeaderboard
+            eventId={eventId}
+            eventName={eventName}
+            organizationId={organizationId}
+            highlightBib={!isAllPhotos ? bibNumber : undefined}
+            embedded
+          />
 
           <SelfieUploadCard
             bibNumber={bibNumber}

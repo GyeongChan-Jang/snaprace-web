@@ -133,7 +133,7 @@ export function LeaderboardTableAdvanced({
   const totalResults = processedData.length;
 
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-full space-y-4 overflow-hidden">
       {/* 필터 및 검색 */}
       <LeaderboardFilters
         searchQuery={searchQuery}
@@ -144,96 +144,93 @@ export function LeaderboardTableAdvanced({
       />
 
       {/* 결과 카운트 */}
-      {showResultsCount && (
+      {/* {showResultsCount && (
         <div className="text-muted-foreground text-sm">
           {totalResults} result{totalResults !== 1 ? "s" : ""} found
           {debouncedSearch && ` for "${debouncedSearch}"`}
         </div>
-      )}
+      )} */}
 
       {/* 테이블 */}
-      <div className="border-border rounded-lg border">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px]">
-            {/* 헤더 */}
-            <thead className="bg-muted/50 sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      style={{ width: `${header.getSize()}px` }}
-                      className="p-3 text-left text-sm font-semibold"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-
-            {/* 데이터 행 */}
-            <tbody>
-              {/* Sticky User Row */}
-              {userRow && <StickyUserRow row={userRow} />}
-
-              {table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row) => {
-                  const tooltipMessage = getTooltipMessage(row.original);
-
-                  const rowContent = (
-                    <tr
-                      key={row.id}
-                      className={`h-16 ${getRowClassName(row.original)}`}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="p-3">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  );
-
-                  if (tooltipMessage) {
-                    return (
-                      <TooltipProvider key={row.id}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>{rowContent}</TooltipTrigger>
-                          <TooltipContent
-                            align="start"
-                            className="bg-foreground text-background font-medium"
-                          >
-                            <p>{tooltipMessage}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    );
-                  }
-
-                  return rowContent;
-                })
-              ) : (
-                <tr>
-                  <td
-                    colSpan={visibleColumns.length}
-                    className="text-muted-foreground p-8 text-center text-sm"
+      <div className="border-border w-full max-w-full overflow-x-auto rounded-lg border">
+        <table className="w-full">
+          {/* 헤더 */}
+          <thead className="bg-muted/50 sticky top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    style={{ width: `${header.getSize()}px` }}
+                    className="p-3 text-left text-sm font-semibold"
                   >
-                    No results found. Try adjusting your filters or search
-                    query.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+
+          {/* 데이터 행 */}
+          <tbody>
+            {/* Sticky User Row */}
+            {userRow && <StickyUserRow row={userRow} />}
+
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => {
+                const tooltipMessage = getTooltipMessage(row.original);
+
+                const rowContent = (
+                  <tr
+                    key={row.id}
+                    className={`h-16 ${getRowClassName(row.original)}`}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="p-3">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+
+                if (tooltipMessage) {
+                  return (
+                    <TooltipProvider key={row.id}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>{rowContent}</TooltipTrigger>
+                        <TooltipContent
+                          align="start"
+                          className="bg-foreground text-background font-medium"
+                        >
+                          <p>{tooltipMessage}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  );
+                }
+
+                return rowContent;
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={visibleColumns.length}
+                  className="text-muted-foreground p-8 text-center text-sm"
+                >
+                  No results found. Try adjusting your filters or search query.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* 페이지네이션 */}

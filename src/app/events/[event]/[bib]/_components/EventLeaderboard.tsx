@@ -11,13 +11,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { LeaderboardTableAdvanced } from "./leaderboard-table/LeaderboardTableAdvanced";
-import type { EventResultsResponse } from "@/server/services/timing-service";
 
 interface EventLeaderboardProps {
   eventId: string;
   eventName: string; // Reserved for future use (analytics, etc.)
   organizationId: string;
   highlightBib?: string;
+  embedded?: boolean;
 }
 
 export function EventLeaderboard({
@@ -25,6 +25,7 @@ export function EventLeaderboard({
   eventName,
   organizationId,
   highlightBib,
+  embedded = false,
 }: EventLeaderboardProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -61,7 +62,8 @@ export function EventLeaderboard({
   // Get current result set
   const currentResults = useMemo(() => {
     if (!resultsQuery.data?.resultSets) return [];
-    if (!selectedCategory) return resultsQuery.data.resultSets[0]?.results ?? [];
+    if (!selectedCategory)
+      return resultsQuery.data.resultSets[0]?.results ?? [];
     const resultSet = resultsQuery.data.resultSets.find(
       (rs) => rs.id === selectedCategory,
     );
@@ -69,7 +71,11 @@ export function EventLeaderboard({
   }, [resultsQuery.data, selectedCategory]);
 
   if (resultsQuery.isLoading) {
-    return <EventLeaderboardSkeleton />;
+    return embedded ? (
+      <EventLeaderboardInlineSkeleton />
+    ) : (
+      <EventLeaderboardSkeleton />
+    );
   }
 
   if (resultsQuery.error || !resultsQuery.data) {
@@ -80,20 +86,20 @@ export function EventLeaderboard({
     return null;
   }
 
-  return (
-    <div className="container mx-auto mt-8 px-1 md:px-4">
-      <section className="border-border/60 bg-muted/30 rounded-3xl border p-4 shadow-sm md:p-6">
-        {/* Leaderboard Table with Accordion */}
-        <Accordion type="single" collapsible defaultValue="leaderboard">
-          <AccordionItem value="leaderboard" className="border-0">
-            <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center gap-2">
-                <Trophy className="text-primary h-5 w-5" />
-                <h2 className="text-lg font-semibold md:text-xl">Event Leaderboard</h2>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="pt-4">
-              {/* Category Tabs and Results Count */}
+  return embedded ? (
+    <article className="border-border/60 bg-background/95 overflow-hidden rounded-2xl border p-5 shadow-sm md:p-6">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="leaderboard" className="border-0">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Trophy className="text-primary h-5 w-5" />
+              <h2 className="text-lg font-semibold md:text-xl">
+                Event Leaderboard
+              </h2>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="overflow-hidden pt-4">
+            <div className="w-full max-w-full">
               {categories.length > 1 && (
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <div className="flex gap-2 overflow-x-auto">
@@ -101,7 +107,7 @@ export function EventLeaderboard({
                       <button
                         key={category.id}
                         onClick={() => setSelectedCategory(category.id)}
-                        className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                        className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
                           selectedCategory === category.id
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted hover:bg-muted/80"
@@ -115,7 +121,8 @@ export function EventLeaderboard({
                     ))}
                   </div>
                   <div className="text-muted-foreground shrink-0 text-sm">
-                    {currentResults.length} result{currentResults.length !== 1 ? "s" : ""} found
+                    {currentResults.length} result
+                    {currentResults.length !== 1 ? "s" : ""} found
                   </div>
                 </div>
               )}
@@ -125,6 +132,59 @@ export function EventLeaderboard({
                 highlightBib={highlightBib}
                 showResultsCount={categories.length === 1}
               />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </article>
+  ) : (
+    <div className="container mx-auto mt-8 px-1 md:px-4">
+      <section className="border-border/60 bg-muted/30 rounded-3xl border p-4 shadow-sm md:p-6">
+        <Accordion type="single" collapsible>
+          <AccordionItem value="leaderboard" className="border-0">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Trophy className="text-primary h-5 w-5" />
+                <h2 className="text-lg font-semibold md:text-xl">
+                  Event Leaderboard
+                </h2>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="overflow-hidden pt-4">
+              <div className="w-full max-w-full">
+                {categories.length > 1 && (
+                  <div className="mb-4 flex items-center justify-between gap-4">
+                    <div className="flex gap-2">
+                      {categories.map((category) => (
+                        <button
+                          key={category.id}
+                          onClick={() => setSelectedCategory(category.id)}
+                          className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+                            selectedCategory === category.id
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted hover:bg-muted/80"
+                          }`}
+                        >
+                          {category.name}
+                          <span className="ml-2 text-xs opacity-70">
+                            ({category.count})
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="text-muted-foreground shrink-0 text-sm">
+                      {currentResults.length} result
+                      {currentResults.length !== 1 ? "s" : ""} found
+                    </div>
+                  </div>
+                )}
+
+                <LeaderboardTableAdvanced
+                  results={currentResults}
+                  highlightBib={highlightBib}
+                  showResultsCount={categories.length === 1}
+                />
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
@@ -137,25 +197,23 @@ export function EventLeaderboardSkeleton() {
   return (
     <div className="container mx-auto mt-8 px-1 md:px-4">
       <section className="border-border/60 bg-muted/30 rounded-3xl border p-4 shadow-sm md:p-6">
-        {/* Header Skeleton */}
-        <div className="mb-4 flex items-center gap-2">
+        {/* Collapsed accordion hint */}
+        <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-5 rounded-full" />
-          <Skeleton className="h-6 w-48" />
-        </div>
-
-        {/* Tabs Skeleton */}
-        <div className="mb-4 flex gap-2">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-
-        {/* Table/Cards Skeleton */}
-        <div className="space-y-2">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
-          ))}
+          <Skeleton className="h-6 w-40" />
         </div>
       </section>
     </div>
+  );
+}
+
+function EventLeaderboardInlineSkeleton() {
+  return (
+    <article className="border-border/60 bg-background/95 rounded-2xl border p-5 shadow-sm md:p-6">
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-5 w-5 rounded-full" />
+        <Skeleton className="h-6 w-40" />
+      </div>
+    </article>
   );
 }

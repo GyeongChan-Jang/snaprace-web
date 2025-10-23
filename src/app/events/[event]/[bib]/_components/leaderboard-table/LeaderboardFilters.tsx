@@ -27,9 +27,9 @@ export function LeaderboardFilters({
   divisions,
 }: LeaderboardFiltersProps) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-3 md:flex-row md:items-center">
       {/* 검색 */}
-      <div className="relative">
+      <div className="relative flex-1">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           type="text"
@@ -41,16 +41,15 @@ export function LeaderboardFilters({
       </div>
 
       {/* 필터들 */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex gap-2">
         {/* Division 필터 */}
-
         <Select
           value={filters.division}
           onValueChange={(value) =>
             onFiltersChange({ ...filters, division: value })
           }
         >
-          <SelectTrigger className="border-secondary border bg-white">
+          <SelectTrigger className="border-secondary w-[140px] border bg-white">
             <SelectValue placeholder="All Divisions" />
           </SelectTrigger>
           <SelectContent>
@@ -73,7 +72,7 @@ export function LeaderboardFilters({
             })
           }
         >
-          <SelectTrigger className="border-secondary border bg-white">
+          <SelectTrigger className="border-secondary w-[120px] border bg-white">
             <SelectValue placeholder="All Genders" />
           </SelectTrigger>
           <SelectContent>
