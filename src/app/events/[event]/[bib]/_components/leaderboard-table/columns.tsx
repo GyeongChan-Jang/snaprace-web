@@ -1,7 +1,13 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Column } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBadge";
-import { Medal, Award, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Medal,
+  Award,
+  ChevronsUpDown,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EnhancedLeaderboardResult } from "./types";
 
@@ -17,7 +23,7 @@ function SortIcon({ isSorted }: { isSorted: false | "asc" | "desc" }) {
 }
 
 // 정렬 클릭 핸들러 (기본 -> 내림차순 -> 오름차순 -> 기본)
-function handleSortClick(column: any) {
+function handleSortClick<TData, TValue>(column: Column<TData, TValue>) {
   const current = column.getIsSorted();
   if (current === false) {
     column.toggleSorting(true); // desc
@@ -57,13 +63,13 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
             <Medal className="h-5 w-5 text-gray-400" aria-label="2nd place" />
           )}
           {rank === 3 && (
-            <Medal
-              className="h-5 w-5 text-orange-600"
-              aria-label="3rd place"
-            />
+            <Medal className="h-5 w-5 text-orange-600" aria-label="3rd place" />
           )}
           {result.isDivisionWinner && rank > 3 && (
-            <Award className="h-4 w-4 text-blue-500" aria-label="Division winner" />
+            <Award
+              className="h-4 w-4 text-blue-500"
+              aria-label="Division winner"
+            />
           )}
           <span className="font-semibold">{rank}</span>
         </div>
@@ -214,9 +220,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="text-center">
-        {row.original.divisionPlace || "—"}
-      </div>
+      <div className="text-center">{row.original.divisionPlace || "—"}</div>
     ),
     size: 120,
     enableSorting: true,
