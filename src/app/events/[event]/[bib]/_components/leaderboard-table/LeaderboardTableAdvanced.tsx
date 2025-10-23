@@ -58,7 +58,7 @@ export function LeaderboardTableAdvanced({
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 50,
+    pageSize: 10,
   });
 
   // Division 목록 추출
