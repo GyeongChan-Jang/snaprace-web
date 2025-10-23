@@ -58,6 +58,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
 
       return (
         <div className="flex items-center gap-1 px-1 md:gap-2 md:px-2">
+          <span className="text-xs font-semibold md:text-sm">{rank}</span>
           {rank === 1 && (
             <Medal
               className="h-3.5 w-3.5 text-yellow-500 md:h-5 md:w-5"
@@ -82,7 +83,6 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
               aria-label="Division winner"
             />
           )}
-          <span className="text-xs font-semibold md:text-sm">{rank}</span>
         </div>
       );
     },
@@ -107,7 +107,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     },
     cell: ({ row }) => (
       <Badge variant="outline" className="font-mono text-[10px] md:text-xs">
-        {row.original.bib}
+        {row.original.bib || "-"}
       </Badge>
     ),
     size: 70,
@@ -131,7 +131,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     },
     cell: ({ row }) => (
       <span className="text-xs font-medium md:text-sm">
-        {row.original.name || "—"}
+        {row.original.name || "-"}
       </span>
     ),
     size: 150,
@@ -158,7 +158,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     cell: ({ row }) => (
       <div className="text-center">
         <span className="font-mono text-[10px] font-semibold md:text-xs">
-          {row.original.chipTime || "—"}
+          {row.original.chipTime || "-"}
         </span>
       </div>
     ),
@@ -186,7 +186,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     cell: ({ row }) => (
       <div className="text-center">
         <span className="font-mono text-[10px] md:text-xs">
-          {row.original.avgPace || "—"}
+          {row.original.avgPace || "-"}
         </span>
       </div>
     ),
@@ -194,30 +194,30 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     enableSorting: true,
   },
 
-  // Division (Gender + Age)
+  // Division
   {
     accessorKey: "division",
-    header: ({ column }) => (
+    header: () => (
       <div className="text-xs font-semibold md:text-sm">Division</div>
     ),
     cell: ({ row }) => {
-      const result = row.original;
-      return (
-        <div className="flex items-center gap-1 md:gap-2">
-          {result.gender && (
-            <Badge variant="secondary" className="text-[10px] md:text-xs">
-              {result.gender}
-            </Badge>
-          )}
-          {result.age && (
-            <span className="text-muted-foreground text-[10px] md:text-xs">
-              {result.age}
-            </span>
-          )}
-        </div>
-      );
+      const division = row.original.division;
+      // division 값이 없거나 빈 문자열이면 "—" 표시
+      if (!division || division.trim() === "") {
+        return (
+          <span className="text-muted-foreground text-xs md:text-sm">-</span>
+        );
+      }
+      // 불완전한 division 패턴 (5K_F, 5K_M, 10K_F, 10K_M 등) 체크
+      // 정규식: 숫자K_단일문자 패턴
+      if (/^\d+K_[MF]$/i.test(division)) {
+        return (
+          <span className="text-muted-foreground text-xs md:text-sm">-</span>
+        );
+      }
+      return <div className="text-xs md:text-sm">{division}</div>;
     },
-    size: 90,
+    size: 120,
     enableSorting: false,
   },
 
@@ -238,11 +238,29 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         </div>
       );
     },
-    cell: ({ row }) => (
-      <div className="text-center text-xs md:text-sm">
-        {row.original.divisionPlace || "—"}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const division = row.original.division;
+      const divisionPlace = row.original.divisionPlace;
+
+      // division이 없거나 불완전한 패턴이면 Division Place도 "—" 표시
+      if (
+        !division ||
+        division.trim() === "" ||
+        /^\d+K_[MF]$/i.test(division)
+      ) {
+        return (
+          <div className="text-center text-xs md:text-sm">
+            <span className="text-muted-foreground">-</span>
+          </div>
+        );
+      }
+
+      return (
+        <div className="text-center text-xs md:text-sm">
+          {divisionPlace || "-"}
+        </div>
+      );
+    },
     size: 70,
     enableSorting: true,
   },
@@ -270,7 +288,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           className="text-[10px] md:text-xs"
         />
       ) : (
-        <span className="text-muted-foreground text-xs">—</span>
+        <span className="text-muted-foreground text-xs">-</span>
       );
     },
     size: 100,

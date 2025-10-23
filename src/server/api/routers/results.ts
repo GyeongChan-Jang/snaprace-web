@@ -30,7 +30,6 @@ export const resultsRouter = createTRPCRouter({
   getTimingByBib: publicProcedure
     .input(BibDetailInput)
     .query(async ({ input }) => {
-      console.log("input", input);
       const { eventId } = input;
       const bib = String(input.bib).trim();
 

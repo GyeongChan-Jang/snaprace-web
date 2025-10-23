@@ -70,12 +70,23 @@ export function applyFilters(
 
 /**
  * 고유 Division 목록 추출 (정렬됨)
+ * 불완전한 division 값(5K_F, 5K_M, 10K_F, 10K_M 등)은 제외
  */
 export function getUniqueDivisions(
   results: LeaderboardResult[],
 ): string[] {
   const divisions = new Set<string>(
-    results.map((r) => r.division).filter((d): d is string => Boolean(d)),
+    results
+      .map((r) => r.division)
+      .filter((d): d is string => {
+        if (!d) return false;
+        // 빈 문자열 제외
+        if (d.trim() === "") return false;
+        // 5K_F, 5K_M, 10K_F, 10K_M 같은 불완전한 패턴 제외
+        // 정규식: 숫자K_단일문자 패턴 (예: 5K_F, 10K_M)
+        if (/^\d+K_[MF]$/i.test(d)) return false;
+        return true;
+      }),
   );
   return Array.from(divisions).sort();
 }
