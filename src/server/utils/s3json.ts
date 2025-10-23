@@ -62,6 +62,7 @@ async function streamToString(
 }
 
 export async function getJsonFromS3<T = unknown>(key: string): Promise<T> {
+  console.log("key", key);
   const input: GetObjectCommandInput = {
     Bucket: BUCKET,
     Key: key,

@@ -222,3 +222,160 @@ function buildColumnIndex(headings: Array<{ key?: string }>) {
 
   return (key: string) => index.get(key);
 }
+
+// Event-wide results types and functions
+
+export type EventMetadataJSON = {
+  event_id: string;
+  event_name: string;
+  organization_id: string;
+  result_sets: Array<{
+    id: string;
+    category: string;
+    s3_key: string;
+  }>;
+  updated_at?: string;
+};
+
+export type LeaderboardResult = {
+  rank: number;
+  bib: string;
+  name?: string;
+  chipTime?: string;
+  clockTime?: string;
+  division?: string;
+  gender?: string;
+  age?: number;
+  divisionPlace?: string | number;
+  racePlacement?: string | number;
+  agePerformance?: number;
+  avgPace?: string;
+  city?: string;
+  state?: string;
+};
+
+export type EventResultsResponse = {
+  resultSets: Array<{
+    id: string;
+    category: string;
+    results: LeaderboardResult[];
+    totalResults: number;
+  }>;
+  meta: {
+    eventId: string;
+    eventName?: string;
+    totalResults: number;
+  };
+};
+
+export async function getAllEventResults(options: {
+  eventId: string;
+  organizationId: string;
+  loadDataset: LoadDatasetFn;
+  loadMetadata: (key: string) => Promise<EventMetadataJSON>;
+}): Promise<EventResultsResponse> {
+  const { eventId, organizationId, loadDataset, loadMetadata } = options;
+
+  // Load event metadata (index.json)
+  // Note: index.json is located in results/ folder
+  const metadataKey = `${organizationId}/${eventId}/results/index.json`;
+  let metadata: EventMetadataJSON;
+
+  try {
+    metadata = await loadMetadata(metadataKey);
+  } catch (error) {
+    throw new TimingServiceError(
+      TimingServiceErrorReason.DatasetLoadFailed,
+      "Failed to load event metadata",
+      error,
+    );
+  }
+
+  // Load all result sets in parallel
+  const resultSetsPromises = metadata.result_sets.map(async (resultSet) => {
+    const dataset = await loadTimingDataset(loadDataset, resultSet.s3_key);
+    const headings = Array.isArray(dataset.headings) ? dataset.headings : [];
+    const results = dataset.resultSet?.results;
+
+    if (!Array.isArray(results)) {
+      return {
+        id: resultSet.id,
+        category: resultSet.category,
+        results: [],
+        totalResults: 0,
+      };
+    }
+
+    // Parse all results
+    const parsedResults: LeaderboardResult[] = results.map((row) => {
+      const rowObject = mapRow(headings, row);
+      return parseLeaderboardResult(rowObject);
+    });
+
+    return {
+      id: resultSet.id,
+      category: resultSet.category,
+      results: parsedResults,
+      totalResults: parsedResults.length,
+    };
+  });
+
+  const resultSets = await Promise.all(resultSetsPromises);
+  const totalResults = resultSets.reduce(
+    (sum, rs) => sum + rs.totalResults,
+    0,
+  );
+
+  return {
+    resultSets,
+    meta: {
+      eventId,
+      eventName: metadata.event_name,
+      totalResults,
+    },
+  };
+}
+
+function parseLeaderboardResult(row: ResultRow): LeaderboardResult {
+  const getNumber = (key: string): number | undefined => {
+    const value = row[key];
+    if (typeof value === "number") return value;
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+    return undefined;
+  };
+
+  const getValue = (key: string): string | number | undefined => {
+    const value = row[key];
+    if (typeof value === "string" || typeof value === "number") {
+      return value;
+    }
+    return undefined;
+  };
+
+  const getBibString = (): string => {
+    const bibNum = row.bib_num ?? row.bib;
+    if (typeof bibNum === "string") return bibNum;
+    if (typeof bibNum === "number") return String(bibNum);
+    return "";
+  };
+
+  return {
+    rank: getNumber("race_placement") ?? 0,
+    bib: getBibString(),
+    name: getValue("name") as string | undefined,
+    chipTime: getValue("chip_time") as string | undefined,
+    clockTime: getValue("clock_time") as string | undefined,
+    division: getValue("division") as string | undefined,
+    gender: getValue("gender") as string | undefined,
+    age: getNumber("age"),
+    divisionPlace: getValue("division_place"),
+    racePlacement: getValue("race_placement"),
+    agePerformance: getNumber("age_performance_percentage"),
+    avgPace: getValue("avg_pace") as string | undefined,
+    city: getValue("city") as string | undefined,
+    state: getValue("state") as string | undefined,
+  };
+}
