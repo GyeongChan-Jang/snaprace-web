@@ -134,8 +134,6 @@ export function LeaderboardTableAdvanced({
 
   const totalResults = processedData.length;
 
-  console.log("table", table.getHeaderGroups());
-
   return (
     <div className="w-full max-w-full space-y-4 overflow-hidden md:px-6">
       {/* 필터 및 검색 */}
@@ -185,7 +183,7 @@ export function LeaderboardTableAdvanced({
                         width: `${getMobileWidth(columnId)}px`,
                         minWidth: `${getMobileWidth(columnId)}px`,
                       }}
-                      className="p-1 text-left text-[10px] font-semibold md:p-3 md:text-sm"
+                      className="p-[2px] text-left text-[10px] font-semibold md:p-3 md:text-sm"
                     >
                       {header.isPlaceholder
                         ? null
@@ -234,11 +232,10 @@ export function LeaderboardTableAdvanced({
                       return (
                         <td
                           key={cell.id}
-                          className="p-1 md:p-3"
+                          className="p-[2px] md:p-3"
                           style={{
                             width: `${getMobileWidth(columnId)}px`,
                             minWidth: `${getMobileWidth(columnId)}px`,
-                            fontSize: "9px",
                           }}
                         >
                           {flexRender(

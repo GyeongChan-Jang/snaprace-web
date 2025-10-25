@@ -46,7 +46,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+          className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
         >
           Rank
           {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -99,7 +99,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+          className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
         >
           Bib
           {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -128,7 +128,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+          className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
         >
           Name
           {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -136,7 +136,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       );
     },
     cell: ({ row }) => (
-      <span className="text-[10px] font-medium md:text-sm">
+      <span className="text-[9px] font-medium md:text-sm">
         {row.original.name || "-"}
       </span>
     ),
@@ -153,7 +153,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+            className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
           >
             Time
             {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -181,7 +181,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+            className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
           >
             Pace
             {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -204,24 +204,24 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
   {
     accessorKey: "division",
     header: () => (
-      <div className="text-xs font-semibold md:text-sm">Division</div>
+      <div className="text-[9px] font-semibold md:text-sm">Division</div>
     ),
     cell: ({ row }) => {
       const division = row.original.division;
       // division 값이 없거나 빈 문자열이면 "—" 표시
       if (!division || division.trim() === "") {
         return (
-          <span className="text-muted-foreground text-xs md:text-sm">-</span>
+          <span className="text-muted-foreground text-[9px] md:text-sm">-</span>
         );
       }
       // 불완전한 division 패턴 (5K_F, 5K_M, 10K_F, 10K_M 등) 체크
       // 정규식: 숫자K_단일문자 패턴
       if (/^\d+K_[MF]$/i.test(division)) {
         return (
-          <span className="text-muted-foreground text-xs md:text-sm">-</span>
+          <span className="text-muted-foreground text-[9px] md:text-sm">-</span>
         );
       }
-      return <div className="text-xs md:text-sm">{division}</div>;
+      return <div className="text-[9px] md:text-sm">{division}</div>;
     },
     size: 70,
     enableSorting: false,
@@ -236,7 +236,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           <Button
             variant="ghost"
             onClick={() => handleSortClick(column)}
-            className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+            className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
           >
             Div.
             {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -255,14 +255,14 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         /^\d+K_[MF]$/i.test(division)
       ) {
         return (
-          <div className="text-center text-xs md:text-sm">
+          <div className="text-center text-[9px] md:text-sm">
             <span className="text-muted-foreground">-</span>
           </div>
         );
       }
 
       return (
-        <div className="text-center text-xs md:text-sm">
+        <div className="text-center text-[9px] md:text-sm">
           {divisionPlace || "-"}
         </div>
       );
@@ -279,7 +279,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <Button
           variant="ghost"
           onClick={() => handleSortClick(column)}
-          className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
+          className="h-6 px-1 text-[9px] md:h-8 md:px-2 md:text-sm"
         >
           Perf.
           {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
@@ -289,12 +289,9 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     cell: ({ row }) => {
       const value = row.original.agePerformance;
       return value && value > 0 ? (
-        <PerformanceTierBadge
-          value={value}
-          className="text-[10px] md:text-xs"
-        />
+        <PerformanceTierBadge value={value} className="text-[9px] md:text-xs" />
       ) : (
-        <span className="text-muted-foreground text-xs">-</span>
+        <span className="text-muted-foreground text-[9px]">-</span>
       );
     },
     size: 60,

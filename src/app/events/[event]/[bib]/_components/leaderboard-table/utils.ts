@@ -72,9 +72,7 @@ export function applyFilters(
  * 고유 Division 목록 추출 (정렬됨)
  * 불완전한 division 값(5K_F, 5K_M, 10K_F, 10K_M 등)은 제외
  */
-export function getUniqueDivisions(
-  results: LeaderboardResult[],
-): string[] {
+export function getUniqueDivisions(results: LeaderboardResult[]): string[] {
   const divisions = new Set<string>(
     results
       .map((r) => r.division)
@@ -105,29 +103,26 @@ export function findUserResult(
  * Row 스타일 클래스 생성
  */
 export function getRowClassName(result: EnhancedLeaderboardResult): string {
-  const classes: string[] = [
-    "transition-colors",
-    "hover:bg-muted/50",
-  ];
+  const classes: string[] = ["transition-colors", "hover:bg-muted/50"];
 
   // Overall 1등 (금색 배경)
   if (result.isOverallWinner && result.rank === 1) {
     classes.push(
       "bg-yellow-50/30",
-      "border-l-4",
+      " border-l-3 md:border-l-4",
       "border-yellow-400",
       "font-semibold",
     );
   }
   // Division 1등 (파란 보더)
   else if (result.isDivisionWinner && result.rank > 3) {
-    classes.push("border-l-4", "border-blue-400");
+    classes.push("border-l-3 md:border-l-4", "border-blue-400");
   }
   // 사용자 행
   else if (result.isUserRow) {
     classes.push(
       "bg-primary/10",
-      "border-l-4",
+      "border-l-3 md:border-l-4",
       "border-primary",
       "font-semibold",
     );
@@ -139,7 +134,9 @@ export function getRowClassName(result: EnhancedLeaderboardResult): string {
 /**
  * Tooltip 메시지 생성
  */
-export function getTooltipMessage(result: EnhancedLeaderboardResult): string | null {
+export function getTooltipMessage(
+  result: EnhancedLeaderboardResult,
+): string | null {
   if (result.isUserRow) {
     return "Your Result";
   }
