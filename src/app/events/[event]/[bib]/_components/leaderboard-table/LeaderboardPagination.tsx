@@ -39,7 +39,7 @@ export function LeaderboardPagination({
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Rows per page */}
       <div className="flex items-center gap-1.5 md:gap-2">
         <span className="text-muted-foreground text-xs md:text-sm">Rows:</span>
@@ -51,9 +51,15 @@ export function LeaderboardPagination({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="10" className="text-xs md:text-sm">10</SelectItem>
-            <SelectItem value="30" className="text-xs md:text-sm">30</SelectItem>
-            <SelectItem value="50" className="text-xs md:text-sm">50</SelectItem>
+            <SelectItem value="10" className="text-xs md:text-sm">
+              10
+            </SelectItem>
+            <SelectItem value="30" className="text-xs md:text-sm">
+              30
+            </SelectItem>
+            <SelectItem value="50" className="text-xs md:text-sm">
+              50
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

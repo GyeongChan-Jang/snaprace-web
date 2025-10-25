@@ -133,7 +133,7 @@ export function LeaderboardTableAdvanced({
   const totalResults = processedData.length;
 
   return (
-    <div className="w-full max-w-full space-y-4 overflow-hidden">
+    <div className="w-full max-w-full space-y-4 overflow-hidden md:px-6">
       {/* 필터 및 검색 */}
       <LeaderboardFilters
         searchQuery={searchQuery}
@@ -152,7 +152,7 @@ export function LeaderboardTableAdvanced({
       )} */}
 
       {/* 테이블 */}
-      <div className="border-border w-full max-w-full overflow-x-auto rounded-lg border">
+      <div className="border-border w-full max-w-full overflow-x-auto md:rounded-lg md:border">
         <table className="w-full">
           {/* 헤더 */}
           <thead className="bg-muted/50 border-muted/50 sticky top-0 z-20 border-l-4">

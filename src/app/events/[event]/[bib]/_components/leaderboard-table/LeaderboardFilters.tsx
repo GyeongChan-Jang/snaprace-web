@@ -27,10 +27,10 @@ export function LeaderboardFilters({
   divisions,
 }: LeaderboardFiltersProps) {
   return (
-    <div className="flex flex-col gap-2 md:gap-3 md:flex-row md:items-center">
+    <div className="flex flex-col gap-2 px-3 md:flex-row md:items-center md:gap-3 md:px-0">
       {/* 검색 */}
       <div className="relative flex-1">
-        <Search className="text-muted-foreground absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 md:left-3 md:h-4 md:w-4" />
+        <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 md:left-3 md:h-4 md:w-4" />
         <Input
           type="text"
           placeholder="Search by name or bib..."
@@ -53,7 +53,9 @@ export function LeaderboardFilters({
             <SelectValue placeholder="All Divisions" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs md:text-sm">All Divisions</SelectItem>
+            <SelectItem value="all" className="text-xs md:text-sm">
+              All Divisions
+            </SelectItem>
             {divisions.map((div) => (
               <SelectItem key={div} value={div} className="text-xs md:text-sm">
                 {div}
@@ -76,9 +78,15 @@ export function LeaderboardFilters({
             <SelectValue placeholder="All Genders" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs md:text-sm">All Genders</SelectItem>
-            <SelectItem value="M" className="text-xs md:text-sm">Male</SelectItem>
-            <SelectItem value="F" className="text-xs md:text-sm">Female</SelectItem>
+            <SelectItem value="all" className="text-xs md:text-sm">
+              All Genders
+            </SelectItem>
+            <SelectItem value="M" className="text-xs md:text-sm">
+              Male
+            </SelectItem>
+            <SelectItem value="F" className="text-xs md:text-sm">
+              Female
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

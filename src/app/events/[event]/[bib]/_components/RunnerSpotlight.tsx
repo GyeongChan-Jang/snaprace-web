@@ -99,7 +99,6 @@ export function RunnerSpotlight({
             eventName={eventName}
             organizationId={organizationId}
             highlightBib={!isAllPhotos ? bibNumber : undefined}
-            embedded
           />
 
           <SelfieUploadCard
