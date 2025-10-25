@@ -117,6 +117,8 @@ export function LeaderboardTableAdvanced({
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     manualPagination: false,
+    enableColumnResizing: false, // 명시적으로 비활성화하지만 size는 적용되도록 설정
+    columnResizeMode: undefined,
   });
 
   // 사용자 Row 찾기 (Sticky Row용) - 현재 카테고리 데이터에서만 찾음
@@ -132,6 +134,8 @@ export function LeaderboardTableAdvanced({
 
   const totalResults = processedData.length;
 
+  console.log("table", table.getHeaderGroups());
+
   return (
     <div className="w-full max-w-full space-y-4 overflow-hidden md:px-6">
       {/* 필터 및 검색 */}
@@ -142,7 +146,6 @@ export function LeaderboardTableAdvanced({
         onFiltersChange={setFilters}
         divisions={divisions}
       />
-
       {/* 결과 카운트 */}
       {/* {showResultsCount && (
         <div className="text-muted-foreground text-sm">
@@ -153,25 +156,46 @@ export function LeaderboardTableAdvanced({
 
       {/* 테이블 */}
       <div className="border-border w-full max-w-full overflow-x-auto md:rounded-lg md:border">
-        <table className="w-full">
+        <table className="w-full" style={{ tableLayout: "fixed" }}>
           {/* 헤더 */}
           <thead className="bg-muted/50 border-muted/50 sticky top-0 z-20 border-l-4">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    style={{ width: `${header.getSize()}px` }}
-                    className="p-1.5 text-left text-xs font-semibold md:p-3 md:text-sm"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </th>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const columnId = header.column.id;
+                  // 모바일 너비 설정
+                  const getMobileWidth = (id: string) => {
+                    const widths: Record<string, number> = {
+                      rank: 35,
+                      bib: 40,
+                      name: 70,
+                      chipTime: 55,
+                      avgPace: 45,
+                      division: 50,
+                      divisionPlace: 40,
+                      agePerformance: 40,
+                    };
+                    return widths[id] || 40;
+                  };
+
+                  return (
+                    <th
+                      key={header.id}
+                      style={{
+                        width: `${getMobileWidth(columnId)}px`,
+                        minWidth: `${getMobileWidth(columnId)}px`,
+                      }}
+                      className="p-1 text-left text-[10px] font-semibold md:p-3 md:text-sm"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -190,14 +214,40 @@ export function LeaderboardTableAdvanced({
                     key={row.id}
                     className={`h-12 md:h-16 ${getRowClassName(row.original)}`}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="p-1.5 md:p-3">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
+                    {row.getVisibleCells().map((cell) => {
+                      const columnId = cell.column.id;
+                      // 모바일 너비 설정 (헤더와 동일)
+                      const getMobileWidth = (id: string) => {
+                        const widths: Record<string, number> = {
+                          rank: 35,
+                          bib: 40,
+                          name: 70,
+                          chipTime: 55,
+                          avgPace: 45,
+                          division: 50,
+                          divisionPlace: 40,
+                          agePerformance: 40,
+                        };
+                        return widths[id] || 40;
+                      };
+
+                      return (
+                        <td
+                          key={cell.id}
+                          className="p-1 md:p-3"
+                          style={{
+                            width: `${getMobileWidth(columnId)}px`,
+                            minWidth: `${getMobileWidth(columnId)}px`,
+                            fontSize: "9px",
+                          }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
 
@@ -232,7 +282,6 @@ export function LeaderboardTableAdvanced({
           </tbody>
         </table>
       </div>
-
       {/* 페이지네이션 */}
       {totalResults > 0 && (
         <LeaderboardPagination

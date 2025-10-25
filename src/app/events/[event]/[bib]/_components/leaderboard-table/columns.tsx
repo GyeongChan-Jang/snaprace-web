@@ -10,17 +10,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EnhancedLeaderboardResult } from "./types";
+import { isMobileDevice } from "@/utils/device";
 
 // 정렬 아이콘 헬퍼 컴포넌트
 function SortIcon({ isSorted }: { isSorted: false | "asc" | "desc" }) {
   if (isSorted === "asc") {
-    return <ChevronUp className="ml-1 h-3 w-3 md:ml-2 md:h-4 md:w-4" />;
+    return <ChevronUp className="ml-1 h-2.5 w-2.5 md:ml-2 md:h-4 md:w-4" />;
   }
   if (isSorted === "desc") {
-    return <ChevronDown className="ml-1 h-3 w-3 md:ml-2 md:h-4 md:w-4" />;
+    return <ChevronDown className="ml-1 h-2.5 w-2.5 md:ml-2 md:h-4 md:w-4" />;
   }
   return (
-    <ChevronsUpDown className="ml-1 h-3 w-3 opacity-50 md:ml-2 md:h-4 md:w-4" />
+    <ChevronsUpDown className="ml-1 h-2.5 w-2.5 opacity-50 md:ml-2 md:h-4 md:w-4" />
   );
 }
 
@@ -48,7 +49,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Rank
-          <SortIcon isSorted={column.getIsSorted()} />
+          {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
         </Button>
       );
     },
@@ -58,22 +59,22 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
 
       return (
         <div className="flex items-center gap-1 px-1 md:gap-2 md:px-2">
-          <span className="text-xs font-semibold md:text-sm">{rank}</span>
+          <span className="text-[10px] font-semibold md:text-sm">{rank}</span>
           {rank === 1 && (
             <Medal
-              className="h-3.5 w-3.5 text-yellow-500 md:h-5 md:w-5"
+              className="h-3 w-3 text-yellow-500 md:h-5 md:w-5"
               aria-label="1st place"
             />
           )}
           {rank === 2 && (
             <Medal
-              className="h-3.5 w-3.5 text-gray-400 md:h-5 md:w-5"
+              className="h-3 w-3 text-gray-400 md:h-5 md:w-5"
               aria-label="2nd place"
             />
           )}
           {rank === 3 && (
             <Medal
-              className="h-3.5 w-3.5 text-orange-600 md:h-5 md:w-5"
+              className="h-3 w-3 text-orange-600 md:h-5 md:w-5"
               aria-label="3rd place"
             />
           )}
@@ -86,7 +87,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         </div>
       );
     },
-    size: 80,
+    size: 45,
     enableSorting: true,
   },
 
@@ -101,16 +102,21 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Bib
-          <SortIcon isSorted={column.getIsSorted()} />
+          {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
         </Button>
       );
     },
-    cell: ({ row }) => (
-      <Badge variant="outline" className="font-mono text-[10px] md:text-xs">
-        {row.original.bib || "-"}
-      </Badge>
-    ),
-    size: 70,
+    cell: ({ row }) =>
+      isMobileDevice() ? (
+        <span className="flex items-center justify-center text-[9px] font-semibold">
+          {row.original.bib || "-"}
+        </span>
+      ) : (
+        <Badge variant="outline" className="text-xs">
+          {row.original.bib || "-"}
+        </Badge>
+      ),
+    size: 50,
     enableSorting: true,
   },
 
@@ -125,16 +131,16 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Name
-          <SortIcon isSorted={column.getIsSorted()} />
+          {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
         </Button>
       );
     },
     cell: ({ row }) => (
-      <span className="text-xs font-medium md:text-sm">
+      <span className="text-[10px] font-medium md:text-sm">
         {row.original.name || "-"}
       </span>
     ),
-    size: 150,
+    size: 90,
     enableSorting: true,
   },
 
@@ -150,19 +156,19 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
             className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
             Time
-            <SortIcon isSorted={column.getIsSorted()} />
+            {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
           </Button>
         </div>
       );
     },
     cell: ({ row }) => (
       <div className="text-center">
-        <span className="font-mono text-[10px] font-semibold md:text-xs">
+        <span className="font-mono text-[9px] font-semibold md:text-xs">
           {row.original.chipTime || "-"}
         </span>
       </div>
     ),
-    size: 90,
+    size: 65,
     enableSorting: true,
   },
 
@@ -178,19 +184,19 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
             className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
             Pace
-            <SortIcon isSorted={column.getIsSorted()} />
+            {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
           </Button>
         </div>
       );
     },
     cell: ({ row }) => (
       <div className="text-center">
-        <span className="font-mono text-[10px] md:text-xs">
+        <span className="font-mono text-[9px] md:text-xs">
           {row.original.avgPace || "-"}
         </span>
       </div>
     ),
-    size: 80,
+    size: 55,
     enableSorting: true,
   },
 
@@ -217,7 +223,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
       }
       return <div className="text-xs md:text-sm">{division}</div>;
     },
-    size: 120,
+    size: 70,
     enableSorting: false,
   },
 
@@ -233,7 +239,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
             className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
           >
             Div.
-            <SortIcon isSorted={column.getIsSorted()} />
+            {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
           </Button>
         </div>
       );
@@ -261,7 +267,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         </div>
       );
     },
-    size: 70,
+    size: 50,
     enableSorting: true,
   },
 
@@ -276,7 +282,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
           className="h-6 px-1 text-xs md:h-8 md:px-2 md:text-sm"
         >
           Perf.
-          <SortIcon isSorted={column.getIsSorted()} />
+          {!isMobileDevice && <SortIcon isSorted={column.getIsSorted()} />}
         </Button>
       );
     },
@@ -291,7 +297,7 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
         <span className="text-muted-foreground text-xs">-</span>
       );
     },
-    size: 100,
+    size: 60,
     enableSorting: true,
   },
 ];
