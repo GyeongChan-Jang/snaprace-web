@@ -1,5 +1,5 @@
-import type { Organization } from '@/types/organization';
-import { getOrganizationAssets } from '@/utils/organization-assets';
+import type { Organization } from "@/types/organization";
+import { getOrganizationAssets } from "@/utils/organization-assets";
 
 export class OrganizationHelper {
   constructor(private org: Organization | null) {}
@@ -10,7 +10,7 @@ export class OrganizationHelper {
   }
 
   get name() {
-    return this.org?.name || 'SnapRace';
+    return this.org?.name || "SnapRace";
   }
 
   get subdomain() {
@@ -18,7 +18,7 @@ export class OrganizationHelper {
   }
 
   get isActive() {
-    return this.org?.status === 'active';
+    return this.org?.status === "active";
   }
 
   // Branding
@@ -41,7 +41,7 @@ export class OrganizationHelper {
       return `/images/organizations/${this.subdomain}/logo.png`;
     }
 
-    return '/images/default-logo.png';
+    return "/images/default-logo.png";
   }
 
   get faviconUrl() {
@@ -49,30 +49,30 @@ export class OrganizationHelper {
       return `/images/organizations/${this.subdomain}/favicon.ico`;
     }
 
-    return '/favicon.ico';
+    return "/favicon.ico";
   }
 
   // Content
   get welcomeMessage() {
-    return this.org?.content?.welcome_message ||
-           'Enter your bib number to discover all your photos.';
+    return (
+      this.org?.content?.welcome_message ||
+      "Enter your bib number to discover all your photos."
+    );
   }
 
   get footerText() {
     return `© ${new Date().getFullYear()} ${this.name}. All rights reserved.`;
   }
 
-
   // Partners
   get partners() {
     const partners = this.org?.partners || [];
 
     // Sort by display_order
-    return [...partners].sort((a, b) =>
-      (a.display_order ?? 0) - (b.display_order ?? 0)
+    return [...partners].sort(
+      (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
     );
   }
-
 
   getPartnerImageUrl(partner: { name: string }): string {
     const assets = getOrganizationAssets(this.subdomain);
@@ -80,23 +80,24 @@ export class OrganizationHelper {
   }
 
   // Features
-  isFeatureEnabled(feature: keyof Organization['features']): boolean {
+  isFeatureEnabled(feature: keyof Organization["features"]): boolean {
     return this.org?.features?.[feature] ?? false;
   }
 
   get enableFacialRecognition() {
-    return this.isFeatureEnabled('enable_facial_recognition');
+    return this.isFeatureEnabled("enable_facial_recognition");
   }
-
 
   get enableBulkDownload() {
-    return this.isFeatureEnabled('enable_bulk_download');
+    return this.isFeatureEnabled("enable_bulk_download");
   }
-
 
   // Contact
   get contactEmail() {
-    return this.org?.contact?.email;
+    if (this.subdomain) {
+      return this.org?.contact?.email;
+    }
+    return "snaprace.info@gmail.com";
   }
 
   get contactPhone() {
@@ -112,27 +113,29 @@ export class OrganizationHelper {
   }
 
   // Social Media
-  getSocialUrl(platform: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'youtube'): string | undefined {
+  getSocialUrl(
+    platform: "facebook" | "instagram" | "twitter" | "linkedin" | "youtube",
+  ): string | undefined {
     return this.org?.social?.[platform];
   }
 
   get socialLinks() {
     return {
-      facebook: this.getSocialUrl('facebook'),
-      instagram: this.getSocialUrl('instagram'),
-      twitter: this.getSocialUrl('twitter'),
-      linkedin: this.getSocialUrl('linkedin'),
-      youtube: this.getSocialUrl('youtube'),
+      facebook: this.getSocialUrl("facebook"),
+      instagram: this.getSocialUrl("instagram"),
+      twitter: this.getSocialUrl("twitter"),
+      linkedin: this.getSocialUrl("linkedin"),
+      youtube: this.getSocialUrl("youtube"),
     };
   }
 
   get hasSocialLinks() {
-    return Object.values(this.socialLinks).some(url => !!url);
+    return Object.values(this.socialLinks).some((url) => !!url);
   }
 
   // Metadata
   get status() {
-    return this.org?.status || 'active';
+    return this.org?.status || "active";
   }
 
   get createdAt() {

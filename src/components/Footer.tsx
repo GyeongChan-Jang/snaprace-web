@@ -22,6 +22,17 @@ export function Footer() {
             <span>
               © {new Date().getFullYear()} {org.name}. All rights reserved.
             </span>
+            {org.contactEmail && (
+              <>
+                <span className="hidden sm:inline">•</span>
+                <a
+                  href={`mailto:${org.contactEmail}`}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {org.contactEmail}
+                </a>
+              </>
+            )}
           </div>
 
           {org.partners.length > 0 && (
