@@ -2,10 +2,70 @@
 
 import Image from "next/image";
 import Link from "next/link";
+
+import { landingContent } from "@/content/landing";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrganizationHelper } from "@/hooks/useOrganizationHelper";
 
 export function Footer() {
   const org = useOrganizationHelper();
+  const { isDefaultSite } = useOrganization();
+
+  if (isDefaultSite) {
+    const { footer, hero } = landingContent;
+
+    return (
+      <footer className="bg-slate-950 text-slate-100">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="space-y-4">
+              <Link href="/" className="text-2xl font-semibold tracking-tight">
+                SnapRace
+              </Link>
+              <p className="text-sm text-slate-300">
+                Mobile-first race photo delivery and monetization.
+              </p>
+              <div className="flex flex-col gap-3 text-sm text-slate-200">
+                <Link href={hero.secondaryCta.href} className="hover:text-white">
+                  Book a demo
+                </Link>
+                <Link href={hero.primaryCta.href} className="hover:text-white">
+                  Start free trial
+                </Link>
+              </div>
+            </div>
+            {[footer.company, footer.product, footer.resources].map((column) => (
+              <div key={column.headline} className="space-y-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  {column.headline}
+                </p>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  {column.links.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="hover:text-white">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="mt-12 flex items-center justify-between border-t border-white/10 pt-6 text-xs text-slate-400">
+            <span>© {new Date().getFullYear()} SnapRace. All rights reserved.</span>
+            <div className="flex items-center gap-4">
+              <Link href="/privacy-policy" className="hover:text-white">
+                Privacy Policy
+              </Link>
+              <Link href="mailto:support@snap-race.com" className="hover:text-white">
+                Support
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
 
   return (
     <section className="bg-muted/10 mt-auto border-t">

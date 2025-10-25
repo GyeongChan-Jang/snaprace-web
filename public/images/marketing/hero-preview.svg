@@ -1,0 +1,47 @@
+<svg width="720" height="512" viewBox="0 0 720 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroGradient" x1="0" y1="0" x2="720" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0EA5E9" />
+      <stop offset="45%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#F472B6" />
+    </linearGradient>
+    <linearGradient id="screenGradient" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#1F2937" />
+    </linearGradient>
+    <clipPath id="phoneClip">
+      <rect x="0" y="0" width="320" height="460" rx="32" />
+    </clipPath>
+  </defs>
+  <rect width="720" height="512" rx="32" fill="url(#heroGradient)" opacity="0.85" />
+  <g transform="translate(200 26)">
+    <rect x="-12" y="-12" width="344" height="484" rx="44" fill="rgba(255,255,255,0.25)" />
+    <rect width="320" height="460" rx="32" fill="white" />
+    <g clip-path="url(#phoneClip)">
+      <rect width="320" height="460" fill="url(#screenGradient)" />
+      <g transform="translate(36 48)">
+        <rect width="248" height="144" rx="18" fill="rgba(14,197,240,0.15)" stroke="#38BDF8" stroke-width="2" />
+        <rect x="16" y="16" width="120" height="16" rx="8" fill="#F8FAFC" opacity="0.85" />
+        <rect x="16" y="44" width="184" height="12" rx="6" fill="#E2E8F0" opacity="0.8" />
+        <rect x="16" y="64" width="156" height="12" rx="6" fill="#334155" opacity="0.65" />
+        <rect x="16" y="96" width="96" height="32" rx="16" fill="#38BDF8" />
+      </g>
+      <g transform="translate(36 216)">
+        <rect width="248" height="184" rx="18" fill="rgba(236,72,153,0.12)" stroke="#EC4899" stroke-width="2" />
+        <rect x="20" y="24" width="96" height="96" rx="22" fill="#FDF2F8" />
+        <path d="M56 48a20 20 0 1 1 0 40 20 20 0 0 1 0-40z" fill="#EC4899" opacity="0.75" />
+        <rect x="132" y="36" width="92" height="12" rx="6" fill="#F9A8D4" opacity="0.75" />
+        <rect x="132" y="60" width="72" height="12" rx="6" fill="#FBCFE8" />
+        <rect x="36" y="136" width="176" height="12" rx="6" fill="#FDF2F8" opacity="0.9" />
+        <rect x="36" y="156" width="148" height="12" rx="6" fill="#FDF2F8" opacity="0.7" />
+      </g>
+    </g>
+  </g>
+  <g transform="translate(520 72)" opacity="0.4">
+    <circle cx="0" cy="0" r="88" fill="white" />
+    <circle cx="64" cy="160" r="48" fill="white" />
+    <circle cx="-32" cy="220" r="64" fill="white" />
+  </g>
+  <text x="72" y="112" fill="#F8FAFC" font-size="40" font-weight="600">SnapRace Demo</text>
+  <text x="72" y="160" fill="#E0F2FE" font-size="20" opacity="0.9">Branded mobile gallery preview</text>
+</svg>

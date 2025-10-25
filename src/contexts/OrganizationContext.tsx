@@ -15,12 +15,14 @@ interface OrganizationContextType {
   organization: Organization | null;
   isLoading: boolean;
   subdomain: string | null;
+  isDefaultSite: boolean;
 }
 
 const OrganizationContext = createContext<OrganizationContextType>({
   organization: null,
   isLoading: true,
   subdomain: null,
+  isDefaultSite: true,
 });
 
 export function OrganizationProvider({
@@ -35,6 +37,7 @@ export function OrganizationProvider({
   const [organization, setOrganization] = useState<Organization | null>(
     initialOrganization || null
   );
+  const isDefaultSite = !subdomain;
 
   // Fetch organization data by subdomain (skip if we have initial data)
   const { data, isLoading } = api.organizations.getBySubdomain.useQuery(
@@ -112,7 +115,7 @@ export function OrganizationProvider({
 
   return (
     <OrganizationContext.Provider
-      value={{ organization, isLoading, subdomain }}
+      value={{ organization, isLoading, subdomain, isDefaultSite }}
     >
       {children}
     </OrganizationContext.Provider>

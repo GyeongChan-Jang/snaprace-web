@@ -1,0 +1,6 @@
+<svg width="220" height="72" viewBox="0 0 220 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="220" height="72" rx="18" fill="#0F172A" />
+  <path d="M32 50L54 22l18 24 14-18 22 22H32z" fill="#38BDF8" opacity="0.9" />
+  <text x="116" y="44" fill="#E2E8F0" font-size="24" font-weight="600" letter-spacing="4">SUMMIT</text>
+  <text x="116" y="60" fill="#94A3B8" font-size="12" letter-spacing="6">TIMING</text>
+</svg>

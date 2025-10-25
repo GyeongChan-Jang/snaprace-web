@@ -1,0 +1,6 @@
+<svg width="220" height="72" viewBox="0 0 220 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="220" height="72" rx="18" fill="#111827" />
+  <path d="M24 46h16l6-22 10 32 12-20 8 10h20" stroke="#F472B6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="110" y="40" fill="#FDF2F8" font-size="24" font-weight="700" letter-spacing="8">PULSE</text>
+  <text x="110" y="58" fill="#FBCFE8" font-size="12" letter-spacing="6">EVENTS</text>
+</svg>

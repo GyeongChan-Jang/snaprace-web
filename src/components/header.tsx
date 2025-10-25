@@ -1,64 +1,82 @@
 "use client";
 
-import { Menu } from "lucide-react";
-import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { ArrowRight, Menu } from "lucide-react";
+
+import { landingContent } from "@/content/landing";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrganizationHelper } from "@/hooks/useOrganizationHelper";
 import { getOrganizationAssets } from "@/utils/organization-assets";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Header() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const pathname = usePathname();
   const org = useOrganizationHelper();
+  const { isDefaultSite, subdomain } = useOrganization();
   const assets = getOrganizationAssets(org.subdomain);
 
   // Disable sticky on photo detail pages: /events/[event]/[bib]
   const isPhotoPage = /^\/events\/[^/]+\/[^/]+$/.test(pathname);
 
-  const navigation = [
+  const marketingNavigation = [
+    { name: "Product", href: "#features" },
+    { name: "How it works", href: "#process" },
+    { name: "Pricing", href: "#pricing" },
+    { name: "FAQ", href: "#faq" },
+  ];
+
+  const portalNavigation = [
     { name: "Search", href: "/" },
     { name: "Events", href: "/events" },
   ];
+
+  const navigation = isDefaultSite ? marketingNavigation : portalNavigation;
+  const primaryCta = isDefaultSite
+    ? { label: landingContent.hero.primaryCta.label, href: "#cta" }
+    : null;
+
+  const renderLogo = (
+    <div className="flex items-center space-x-2">
+      {subdomain ? (
+        <div className="relative h-10 w-32">
+          <Image
+            src={assets.logo}
+            alt={org.name}
+            fill
+            className="object-contain"
+            priority
+          />
+        </div>
+      ) : (
+        <span className="text-foreground text-xl font-bold">SnapRace</span>
+      )}
+    </div>
+  );
 
   return (
     <header
       className={`${isPhotoPage ? "" : "sticky top-0 z-50"} bg-background/80 w-full border-b backdrop-blur-sm`}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            {org.subdomain ? (
-              <div className="relative h-10 w-32">
-                <Image
-                  src={assets.logo}
-                  alt={org.name}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            ) : (
-              <span className="text-foreground text-xl font-bold">
-                {org.name}
-              </span>
-            )}
-          </Link>
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link href="/">{renderLogo}</Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden items-center space-x-8 md:flex">
+          <nav className="hidden items-center gap-8 md:flex">
             {navigation.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+              const isAnchor = item.href.startsWith("#");
+              const isActive = isAnchor
+                ? pathname === "/"
+                : pathname === item.href ||
+                  (item.href !== "/" && pathname.startsWith(item.href));
 
               const navLinkClass = `text-sm transition-colors ${
                 isActive
-                  ? "text-primary font-bold"
+                  ? "text-primary font-semibold"
                   : "text-muted-foreground hover:text-foreground font-medium"
               }`;
 
@@ -70,74 +88,33 @@ export function Header() {
             })}
           </nav>
 
-          {/* Desktop Search - Disabled */}
-          {/* <div className="hidden items-center space-x-2 md:flex">
-            <form onSubmit={handleSearch} className="relative">
-              <Input
-                type="text"
-                placeholder="Enter bib number..."
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                className="w-48 pr-10"
-              />
-              <Button
-                type="submit"
-                size="sm"
-                className="absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 transform p-0"
-              >
-                <Search className="h-3 w-3" />
+          {primaryCta && (
+            <div className="hidden md:flex">
+              <Button size="sm" className="shadow-sm" asChild>
+                <Link href={primaryCta.href}>{primaryCta.label}</Link>
               </Button>
-            </form>
-          </div> */}
+            </div>
+          )}
 
-          {/* Mobile Controls */}
-          <div className="flex items-center space-x-2 md:hidden">
-            {/* Mobile Search Toggle - Disabled */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-              aria-label="Toggle search"
-            >
-              <Search className="h-4 w-4" />
-            </Button> */}
-
-            {/* Mobile Menu */}
+          <div className="flex items-center md:hidden">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" aria-label="Open menu">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-[300px] px-2 sm:w-[400px]"
-              >
+              <SheetContent side="right" className="w-[300px] px-2 sm:w-[360px]">
                 <div className="flex flex-col space-y-4 pt-6">
-                  <Link
-                    href="/"
-                    className="flex items-center space-x-2"
-                    onClick={() => setIsSheetOpen(false)}
-                  >
-                    {org.subdomain ? (
-                      <div className="relative h-10 w-32">
-                        <Image
-                          src={assets.logo}
-                          alt={org.name}
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-xl font-bold">{org.name}</span>
-                    )}
+                  <Link href="/" onClick={() => setIsSheetOpen(false)}>
+                    {renderLogo}
                   </Link>
-
                   <nav className="flex flex-col space-y-3">
                     {navigation.map((item) => {
-                      const isActive =
-                        pathname === item.href ||
-                        (item.href !== "/" && pathname.startsWith(item.href));
+                      const isAnchor = item.href.startsWith("#");
+                      const isActive = isAnchor
+                        ? pathname === "/"
+                        : pathname === item.href ||
+                          (item.href !== "/" && pathname.startsWith(item.href));
 
                       return (
                         <Link
@@ -145,7 +122,7 @@ export function Header() {
                           href={item.href}
                           className={`text-lg transition-colors ${
                             isActive
-                              ? "text-foreground font-bold"
+                              ? "text-foreground font-semibold"
                               : "text-muted-foreground hover:text-foreground font-medium"
                           }`}
                           onClick={() => setIsSheetOpen(false)}
@@ -155,23 +132,16 @@ export function Header() {
                       );
                     })}
                   </nav>
-
-                  {/* Mobile Search in Menu - Disabled */}
-                  {/* <div className="border-t pt-4">
-                    <form onSubmit={handleSearch} className="space-y-2">
-                      <Input
-                        type="text"
-                        placeholder="Enter bib number..."
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                        className="w-full"
-                      />
-                      <Button type="submit" className="w-full">
-                        <Search className="mr-2 h-4 w-4" />
-                        Find My Photos
+                  {primaryCta && (
+                    <div className="border-t pt-6">
+                      <Button className="w-full" size="lg" asChild>
+                        <Link href={primaryCta.href}>
+                          {primaryCta.label}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
                       </Button>
-                    </form>
-                  </div> */}
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

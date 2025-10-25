@@ -1,0 +1,6 @@
+<svg width="220" height="72" viewBox="0 0 220 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="220" height="72" rx="18" fill="#0B1120" />
+  <path d="M34 46l12-20 12 12 12-20 12 12 12-20" stroke="#A855F7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9" />
+  <text x="112" y="40" fill="#DDD6FE" font-size="24" font-weight="700" letter-spacing="6">RACEDAY</text>
+  <text x="112" y="58" fill="#C4B5FD" font-size="12" letter-spacing="4">TECH</text>
+</svg>
