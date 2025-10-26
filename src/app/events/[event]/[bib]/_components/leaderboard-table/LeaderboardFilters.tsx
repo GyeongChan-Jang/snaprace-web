@@ -27,7 +27,7 @@ export function LeaderboardFilters({
   divisions,
 }: LeaderboardFiltersProps) {
   return (
-    <div className="flex flex-col gap-2 px-3 md:flex-row md:items-center md:gap-3 md:px-0">
+    <div className="mt-2 flex flex-col gap-2 px-3 md:flex-row md:items-center md:gap-3 md:px-0">
       {/* 검색 */}
       <div className="relative flex-1">
         <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 md:left-3 md:h-4 md:w-4" />
