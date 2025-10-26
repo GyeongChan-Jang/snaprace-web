@@ -35,7 +35,7 @@ async function fetchLeaderboard() {
     console.log(`Fetched ${data.data?.length || 0} participants from leaderboard`);
     return data;
   } catch (error) {
-    console.error('Error fetching leaderboard:', error.message);
+    console.error('Error fetching leaderboard:', error instanceof Error ? error.message : 'Unknown error');
     throw error;
   }
 }
@@ -53,7 +53,7 @@ async function fetchParticipantDetail(participantId, eventUniqueCode) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.warn(`Warning: Error fetching details for participant ${participantId}:`, error.message);
+    console.warn(`Warning: Error fetching details for participant ${participantId}:`, error instanceof Error ? error.message : 'Unknown error');
     return null;
   }
 }
@@ -109,7 +109,7 @@ function convertToMockFormat(leaderboardData, participantDetails) {
 
   // Create a map of participant ID to details for quick lookup
   const detailMap = new Map();
-  participantDetails.forEach(detail => {
+  participantDetails.forEach((detail) => {
     if (detail && detail.data && detail.data.result) {
       // Store the participant data using the URL parameter ID as key
       // We need to extract the participant ID from the API call context
@@ -255,7 +255,7 @@ function convertToMockFormat(leaderboardData, participantDetails) {
   ];
 
   // Create division information based on the data
-  const uniqueDivisions = [...new Set(results.map(r => r[14]))]; // division field
+  const uniqueDivisions = [...new Set(results.map((r) => r[14]))]; // division field
   const divisions = uniqueDivisions.map((divName, index) => ({
     race_division_id: 6382710 + index,
     division_name: divName,
@@ -312,7 +312,7 @@ function convertToMockFormat(leaderboardData, participantDetails) {
     },
     resultUrls: [],
     auxData: {
-      rowFirstNameLens: results.map(r => r[2] ? r[2].split(' ')[0].length : 0)
+      rowFirstNameLens: results.map((r) => r[2] ? r[2].split(' ')[0].length : 0)
     },
     teamResultSetId: null,
     overallDivisionResults: [],
@@ -359,7 +359,7 @@ async function main() {
     console.log(`- Output file: ${CONFIG.outputFile}`);
 
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Error:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   }
 }
