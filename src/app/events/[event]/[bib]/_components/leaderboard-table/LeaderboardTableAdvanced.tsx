@@ -253,7 +253,7 @@ export function LeaderboardTableAdvanced({
                         <TooltipTrigger asChild>{rowContent}</TooltipTrigger>
                         <TooltipContent
                           align="start"
-                          className="bg-foreground text-background font-medium"
+                          className="bg-secondary text-primary-foreground font-medium"
                         >
                           <p>{tooltipMessage}</p>
                         </TooltipContent>
