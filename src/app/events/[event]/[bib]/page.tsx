@@ -350,6 +350,7 @@ export default function EventPhotoPage() {
         eventId={event}
         eventName={eventQuery.data?.event_name ?? ""}
         organizationId={eventQuery.data?.organization_id ?? ""}
+        event={eventQuery.data ?? null}
         bibNumber={bibNumber}
         isAllPhotos={isAllPhotos}
         isUploading={isUploading}

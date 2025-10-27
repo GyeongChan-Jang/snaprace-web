@@ -48,11 +48,5 @@ yarn-error.log*
 # test
 sample-sources
 
-# AGENTS
-AGENTS.md
-
-# CLaude
-CLAUDE.md
-
 # lambda functions
 lambda_functions

@@ -6,17 +6,20 @@ import { AlertTriangle, MapPin, Timer } from "lucide-react";
 
 import { api } from "@/trpc/react";
 import type { BibDetailResponse } from "@/server/services/timing-service";
+import type { Event } from "@/server/api/routers/events";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBadge";
 
 import { SelfieUploadCard } from "./SelfieUploadCard";
 import { EventLeaderboard } from "./EventLeaderboard";
+import { FinishlineVideo } from "./FinishlineVideo";
 
 interface RunnerSpotlightProps {
   eventId: string;
   eventName: string;
   organizationId: string;
+  event: Event | null;
   bibNumber: string;
   isAllPhotos: boolean;
   isUploading: boolean;
@@ -34,6 +37,7 @@ export function RunnerSpotlight({
   eventId,
   eventName,
   organizationId,
+  event,
   bibNumber,
   isAllPhotos,
   isUploading,
@@ -100,6 +104,14 @@ export function RunnerSpotlight({
             organizationId={organizationId}
             highlightBib={!isAllPhotos ? bibNumber : undefined}
           />
+
+          {event?.finishline_video_info && (
+            <FinishlineVideo
+              event={event}
+              timingDetail={detail}
+              isAllPhotos={isAllPhotos}
+            />
+          )}
 
           <SelfieUploadCard
             bibNumber={bibNumber}

@@ -12,6 +12,26 @@ export const EventSchema = z.object({
   event_type: z.string(),
   organization_id: z.string(),
   participant_count: z.number().optional(),
+  finishline_video_info: z
+    .object({
+      duration: z.number(),
+      firstParticipantGunTime: z.number(),
+      firstParticipantLocalTime: z.number().nullable(),
+      firstParticipantTimeType: z.enum(["gun_time", "net_time"]),
+      firstParticipantVideoTime: z.number(),
+      name: z.string(),
+      participantVideoTime: z.number(),
+      provider: z.literal("youtube"),
+      providerVideoId: z.string(),
+      resultEventId: z.number(),
+      rewindSeconds: z.number(),
+      segmentId: z.number().nullable(),
+      status: z.enum(["enabled", "disabled"]),
+      subEventId: z.number(),
+      thumbnail: z.string(),
+      url: z.string(),
+    })
+    .optional(),
 });
 
 export type Event = z.infer<typeof EventSchema>;
