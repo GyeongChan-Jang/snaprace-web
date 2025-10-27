@@ -35,13 +35,11 @@ import type { FilterState, EnhancedLeaderboardResult } from "./types";
 interface LeaderboardTableAdvancedProps {
   results: LeaderboardResult[];
   highlightBib?: string;
-  showResultsCount?: boolean;
 }
 
 export function LeaderboardTableAdvanced({
   results,
   highlightBib,
-  showResultsCount = true,
 }: LeaderboardTableAdvancedProps) {
   // 상태 관리
   const [searchQuery, setSearchQuery] = useState("");

@@ -122,7 +122,6 @@ export function EventLeaderboard({
               <LeaderboardTableAdvanced
                 results={currentResults}
                 highlightBib={highlightBib}
-                showResultsCount={categories.length === 1}
               />
             </div>
           </AccordionContent>

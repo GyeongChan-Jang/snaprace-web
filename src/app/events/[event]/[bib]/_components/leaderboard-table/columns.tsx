@@ -1,6 +1,5 @@
 import type { ColumnDef, Column } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBadge";
 import {
   Medal,
   Award,
@@ -289,7 +288,9 @@ export const columns: ColumnDef<EnhancedLeaderboardResult>[] = [
     cell: ({ row }) => {
       const value = row.original.agePerformance;
       return value && value > 0 ? (
-        <PerformanceTierBadge value={value} className="text-[9px] md:text-xs" />
+        <span className="font-mono text-[9px] md:text-xs">
+          {Math.round(value)}%
+        </span>
       ) : (
         <span className="text-muted-foreground text-[9px]">-</span>
       );
