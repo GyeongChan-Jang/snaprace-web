@@ -151,7 +151,7 @@ export function createColumns(
         return (
           <Link
             href={`/events/${eventId}/${bib}`}
-            className="text-[9px] font-medium hover:underline md:text-sm"
+            className="text-[9px] font-semibold text-sky-700 hover:underline md:text-sm"
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
             onPointerUp={(e) => e.stopPropagation()}
