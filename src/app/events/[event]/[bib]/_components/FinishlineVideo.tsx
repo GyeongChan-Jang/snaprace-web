@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { AlertCircle, Play } from "lucide-react";
+import { AlertCircle, Play, PlayCircle } from "lucide-react";
 
 import type { Event } from "@/server/api/routers/events";
 import type { BibDetailResponse } from "@/server/services/timing-service";
@@ -49,7 +49,7 @@ function YouTubeIframe({
           style={{ backgroundImage: `url(${thumbnail})` }}
         >
           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-            <Play className="h-16 w-16 text-white/80" />
+            <PlayCircle className="h-16 w-16 text-white/80" />
           </div>
         </div>
       )}
@@ -189,33 +189,18 @@ export function FinishlineVideo({
     setHasError(false);
   };
 
-  // Participant information
-  const participantName = timingDetail?.meta.name;
-  const participantBib = timingDetail?.meta.bib;
-
   return (
     <article className="border-border/60 bg-background/95 overflow-hidden rounded-2xl border shadow-sm">
       <Accordion type="single" collapsible>
         <AccordionItem value="finishline-video" className="border-0">
           <AccordionTrigger className="px-3 hover:no-underline">
             <div className="flex items-center gap-1.5 md:gap-2">
-              <Play className="text-primary h-4 w-4 md:h-5 md:w-5" />
+              <PlayCircle className="text-primary h-4 w-4 md:h-5 md:w-5" />
               <h2 className="text-sm font-semibold md:text-lg">Video Finish</h2>
-              {!isAllPhotos && participantName && (
-                <Badge variant="outline" className="text-xs">
-                  Bib #{participantBib}
-                </Badge>
-              )}
             </div>
           </AccordionTrigger>
-          <AccordionContent className="overflow-hidden">
+          <AccordionContent className="overflow-hidden pb-0">
             <div className="w-full max-w-full space-y-4 px-3 pb-4 md:px-6 md:pb-6">
-              {!isAllPhotos && participantName && (
-                <p className="text-muted-foreground text-sm">
-                  {participantName}&apos;s finish moment
-                </p>
-              )}
-
               {/* Video Player */}
               <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
                 {hasError ? (
@@ -229,35 +214,6 @@ export function FinishlineVideo({
                     onError={handleError}
                   />
                 )}
-
-                {/* Start time overlay */}
-                {/* {startTime > 0 && (
-                  <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
-                    Starts at {Math.floor(startTime / 60)}:
-                    {(Math.floor(startTime) % 60).toString().padStart(2, "0")}
-                  </div>
-                )} */}
-              </div>
-
-              {/* Video Information */}
-              <div className="text-muted-foreground flex items-center justify-between text-sm">
-                <div>
-                  {!isAllPhotos && timingDetail ? (
-                    <span className="text-xs md:text-sm">
-                      Personal finish video (starts at {Math.floor(startTime)}s)
-                    </span>
-                  ) : (
-                    <span className="text-xs md:text-sm">
-                      Full finish line video
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs md:text-sm">
-                  Duration: {Math.floor(videoInfo.duration / 60)}:
-                  {(Math.floor(videoInfo.duration) % 60)
-                    .toString()
-                    .padStart(2, "0")}
-                </div>
               </div>
             </div>
           </AccordionContent>
