@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-table";
 
 import type { LeaderboardResult } from "@/server/services/timing-service";
-import { columns } from "./columns";
+import { createColumns } from "./columns";
 import { LeaderboardFilters } from "./LeaderboardFilters";
 import { LeaderboardPagination } from "./LeaderboardPagination";
 import { StickyUserRow } from "./StickyUserRow";
@@ -27,7 +27,6 @@ import {
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { FilterState, EnhancedLeaderboardResult } from "./types";
@@ -35,11 +34,15 @@ import type { FilterState, EnhancedLeaderboardResult } from "./types";
 interface LeaderboardTableAdvancedProps {
   results: LeaderboardResult[];
   highlightBib?: string;
+  eventId: string;
+  organizationId: string;
 }
 
 export function LeaderboardTableAdvanced({
   results,
   highlightBib,
+  eventId,
+  organizationId,
 }: LeaderboardTableAdvancedProps) {
   // 상태 관리
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,6 +94,9 @@ export function LeaderboardTableAdvanced({
     );
   }, [processedData]);
 
+  // Columns 생성
+  const columns = useMemo(() => createColumns(eventId), [eventId]);
+
   // 조건부 columns (Performance 데이터가 없으면 해당 컬럼 제거)
   const visibleColumns = useMemo(() => {
     if (hasPerformanceData) {
@@ -99,7 +105,7 @@ export function LeaderboardTableAdvanced({
     return columns.filter(
       (col) => !("accessorKey" in col) || col.accessorKey !== "agePerformance",
     );
-  }, [hasPerformanceData]);
+  }, [hasPerformanceData, columns]);
 
   // TanStack Table 인스턴스
   const table = useReactTable({
@@ -246,16 +252,15 @@ export function LeaderboardTableAdvanced({
                   </tr>
                 );
 
+                // Tooltip이 있는 경우에만 Tooltip으로 감싸기
                 if (tooltipMessage) {
                   return (
-                    <TooltipProvider key={row.id}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>{rowContent}</TooltipTrigger>
-                        <TooltipContent align="start" className="font-medium">
-                          <p>{tooltipMessage}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Tooltip key={row.id}>
+                      <TooltipTrigger asChild>{rowContent}</TooltipTrigger>
+                      <TooltipContent align="start" className="font-medium">
+                        <p>{tooltipMessage}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 }
 

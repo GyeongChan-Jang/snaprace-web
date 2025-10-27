@@ -122,6 +122,8 @@ export function EventLeaderboard({
               <LeaderboardTableAdvanced
                 results={currentResults}
                 highlightBib={highlightBib}
+                eventId={eventId}
+                organizationId={organizationId}
               />
             </div>
           </AccordionContent>
