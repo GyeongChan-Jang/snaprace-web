@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import { dynamoClient, TABLES } from "@/lib/dynamodb";
 import { ScanCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { compareDesc } from "date-fns";
 
 export const EventSchema = z.object({
   event_id: z.string(),
@@ -63,7 +64,8 @@ export const eventsRouter = createTRPCRouter({
           },
         });
         const result = await dynamoClient.send(command);
-        return (result.Items ?? []) as Event[];
+        const events = (result.Items ?? []) as Event[];
+        return events.sort((a, b) => compareDesc(a.event_date, b.event_date));
       }
 
       // Main site: return all public events
@@ -72,7 +74,8 @@ export const eventsRouter = createTRPCRouter({
           TableName: TABLES.EVENTS,
         });
         const result = await dynamoClient.send(command);
-        return (result.Items ?? []) as Event[];
+        const events = (result.Items ?? []) as Event[];
+        return events.sort((a, b) => compareDesc(a.event_date, b.event_date));
       }
 
       // Fallback: return empty array if no organization context
@@ -91,7 +94,10 @@ export const eventsRouter = createTRPCRouter({
         },
       });
       const result = await dynamoClient.send(command);
-      return (result.Items ?? []) as Event[];
+      const events = (result.Items ?? []) as Event[];
+      return events.sort((a, b) => 
+        new Date(b.event_date).getTime() - new Date(a.event_date).getTime()
+      );
     }),
 
   getById: publicProcedure
