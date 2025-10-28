@@ -3,28 +3,56 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// Configuration
-const CONFIG = {
-  eventId: '98041',
-  subEventId: '242107',
-  eventUniqueCode: 'qyqqnssgsukgp7uh',
-  limit: 1000,
-  outputDir: path.join(__dirname, 'raceroster'),
-  outputFile: path.join(__dirname, 'raceroster', '5k.json')
-};
+// Parse command line arguments
+function parseArguments() {
+  const args = process.argv.slice(2);
+
+  if (args.length < 2) {
+    console.error('Usage: node fetch-raceroster-data.js <eventUniqueCode> <outputDir> [--sub-events all|<comma-separated-ids>]');
+    console.error('Example: node fetch-raceroster-data.js dutbkx7e2epftx4x ./raceroster --sub-events all');
+    process.exit(1);
+  }
+
+  const eventUniqueCode = args[0];
+  const outputDir = args[1];
+
+  const subEventsIndex = args.indexOf('--sub-events');
+  let subEvents = 'all';
+
+  if (subEventsIndex !== -1 && args[subEventsIndex + 1]) {
+    subEvents = args[subEventsIndex + 1];
+  }
+
+  return {
+    eventUniqueCode,
+    outputDir: path.resolve(outputDir),
+    subEvents
+  };
+}
+
+// Configuration from command line arguments
+const CONFIG = parseArguments();
 
 // Ensure output directory exists
 if (!fs.existsSync(CONFIG.outputDir)) {
   fs.mkdirSync(CONFIG.outputDir, { recursive: true });
 }
 
-// Function to fetch leaderboard data
-async function fetchLeaderboard() {
-  const url = `https://results.raceroster.com/v2/api/result-events/${CONFIG.eventId}/sub-events/${CONFIG.subEventId}/results?filter_search=&limit=${CONFIG.limit}`;
+// Progress tracking
+let processedCount = 0;
+let totalCount = 0;
 
-  console.log(`Fetching leaderboard from: ${url}`);
+function logProgress(message) {
+  processedCount++;
+  console.log(`[${processedCount}/${totalCount}] ${message}`);
+}
+
+// Function to fetch event data and sub-events
+async function fetchEventData(eventUniqueCode) {
+  const url = `https://results.raceroster.com/v2/api/events/${eventUniqueCode}`;
+
+  console.log(`Fetching event data from: ${url}`);
 
   try {
     const response = await fetch(url);
@@ -32,12 +60,100 @@ async function fetchLeaderboard() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    console.log(`Fetched ${data.data?.length || 0} participants from leaderboard`);
+    console.log(`✅ Fetched event: ${data.data.event.name}`);
     return data;
   } catch (error) {
-    console.error('Error fetching leaderboard:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('❌ Error fetching event data:', error instanceof Error ? error.message : 'Unknown error');
     throw error;
   }
+}
+
+// Function to filter sub-events based on configuration
+function filterSubEvents(subEvents, config) {
+  if (config.subEvents === 'all') {
+    return subEvents.filter(subEvent => subEvent.hasResults && subEvent.isPublic);
+  }
+
+  const targetIds = config.subEvents.split(',').map(id => parseInt(id.trim()));
+  return subEvents.filter(subEvent =>
+    targetIds.includes(subEvent.resultSubEventId) &&
+    subEvent.hasResults &&
+    subEvent.isPublic
+  );
+}
+
+// Function to generate kebab-case filename from sub-event name
+function generateFileName(subEvent) {
+  const sanitizedName = subEvent.name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+
+  return `${sanitizedName}.json`;
+}
+
+// Function to fetch leaderboard data for a sub-event with pagination using start parameter
+async function fetchSubEventLeaderboard(eventId, subEventId, subEventName) {
+  console.log(`Fetching leaderboard for ${subEventName}...`);
+
+  const allParticipants = [];
+  let start = 0;
+  const limit = 1000; // Maximum allowed by API
+  let hasMore = true;
+
+  while (hasMore) {
+    const url = `https://results.raceroster.com/v2/api/result-events/${eventId}/sub-events/${subEventId}/results?filter_search=&start=${start}&limit=${limit}`;
+
+    console.log(`Fetching data for ${subEventName} (start ${start}): ${url}`);
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.data || data.data.length === 0) {
+        hasMore = false;
+        console.log(`No more data found for ${subEventName} at start ${start}`);
+        break;
+      }
+
+      allParticipants.push(...data.data);
+      console.log(`✅ Fetched ${data.data.length} participants from ${subEventName} (start ${start}, total: ${allParticipants.length})`);
+
+      // Check if we got less than the maximum, meaning we're done
+      if (data.data.length < limit) {
+        hasMore = false;
+      } else {
+        start += limit;
+      }
+
+      // Add a small delay to avoid overwhelming the API
+      if (hasMore) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+    } catch (error) {
+      console.error(`❌ Error fetching data for ${subEventName} at start ${start}:`, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }
+
+  console.log(`✅ Total fetched ${allParticipants.length} participants for ${subEventName}`);
+
+  // Return the data in the same format as the original API response
+  return {
+    data: allParticipants,
+    meta: {
+      total: allParticipants.length,
+      start: start - limit,
+      limit: limit
+    }
+  };
 }
 
 // Function to fetch participant details
@@ -59,21 +175,21 @@ async function fetchParticipantDetail(participantId, eventUniqueCode) {
 }
 
 // Function to fetch all participant details with rate limiting
-async function fetchAllParticipantDetails(participants, eventUniqueCode) {
+async function fetchAllParticipantDetails(participants, eventUniqueCode, subEventName) {
   const details = [];
   const totalParticipants = participants.length;
 
-  console.log(`Fetching details for ${totalParticipants} participants...`);
+  console.log(`Fetching details for ${totalParticipants} participants in ${subEventName}...`);
 
   // Process participants in batches to avoid overwhelming the API
-  const batchSize = 10; // 10 concurrent requests
-  const delayBetweenBatches = 1000; // 1 second delay between batches
+  const batchSize = 10;
+  const delayBetweenBatches = 1000;
 
   for (let i = 0; i < totalParticipants; i += batchSize) {
     const batch = participants.slice(i, i + batchSize);
     const batchPromises = batch.map(async (participant, index) => {
       const globalIndex = i + index;
-      console.log(`Fetching details for participant ${globalIndex + 1}/${totalParticipants}: ${participant.name}`);
+      console.log(`Fetching details for participant ${globalIndex + 1}/${totalParticipants} in ${subEventName}: ${participant.name}`);
 
       const detailData = await fetchParticipantDetail(participant.id, eventUniqueCode);
 
@@ -91,7 +207,7 @@ async function fetchAllParticipantDetails(participants, eventUniqueCode) {
     const batchResults = await Promise.all(batchPromises);
     details.push(...batchResults.filter(detail => detail !== null));
 
-    console.log(`Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(totalParticipants / batchSize)}`);
+    console.log(`Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(totalParticipants / batchSize)} for ${subEventName}`);
 
     // Delay between batches
     if (i + batchSize < totalParticipants) {
@@ -99,20 +215,18 @@ async function fetchAllParticipantDetails(participants, eventUniqueCode) {
     }
   }
 
-  console.log(`Successfully fetched details for ${details.length} participants`);
+  console.log(`Successfully fetched details for ${details.length} participants in ${subEventName}`);
   return details;
 }
 
 // Function to convert detailed participant data to mock format
-function convertToMockFormat(leaderboardData, participantDetails) {
-  console.log('Converting data to mock format...');
+function convertToMockFormat(leaderboardData, participantDetails, subEvent) {
+  console.log(`Converting ${subEvent.name} data to mock format...`);
 
   // Create a map of participant ID to details for quick lookup
   const detailMap = new Map();
   participantDetails.forEach((detail) => {
     if (detail && detail.data && detail.data.result) {
-      // Store the participant data using the URL parameter ID as key
-      // We need to extract the participant ID from the API call context
       detailMap.set(detail.participantId, detail.data);
     }
   });
@@ -291,7 +405,7 @@ function convertToMockFormat(leaderboardData, participantDetails) {
         individual_result_set_id: 503106,
         race_category_id: 893971,
         individual_result_set_deleted: "F",
-        individual_result_set_name: "2024 - 5K Race",
+        individual_result_set_name: subEvent.name,
         public_results: "T",
         disable_division_placement_calc: "F",
         results_source_name: "Race Roster API",
@@ -325,41 +439,130 @@ function convertToMockFormat(leaderboardData, participantDetails) {
   };
 }
 
-// Main execution function
-async function main() {
-  console.log('Starting RaceRoster data fetch...');
-  console.log(`Event ID: ${CONFIG.eventId}, Sub-event ID: ${CONFIG.subEventId}`);
+// Function to generate index.json
+function generateIndexFile(eventData, subEventResults) {
+  const event = eventData.data.event;
 
+  const resultSets = subEventResults.map(result => ({
+    id: `${event.uniqueCode}-${result.subEvent.resultSubEventId}`,
+    category: result.subEvent.name,
+    s3_key: `${result.fileName}`
+  }));
+
+  return {
+    event_id: event.uniqueCode,
+    event_name: event.name,
+    organization_id: "millenniumrunning", // Can be made configurable if needed
+    result_sets: resultSets,
+    updated_at: new Date().toISOString()
+  };
+}
+
+// Function to process a single sub-event
+async function processSubEvent(eventData, subEvent) {
   try {
-    // Step 1: Fetch leaderboard data
-    const leaderboardData = await fetchLeaderboard();
+    logProgress(`Processing ${subEvent.name}...`);
 
-    if (!leaderboardData || !leaderboardData.data || leaderboardData.data.length === 0) {
-      throw new Error('No participant data found in leaderboard');
-    }
-
-    console.log(`Found ${leaderboardData.data.length} participants in leaderboard`);
-
-    // Step 2: Fetch participant details
-    const participantDetails = await fetchAllParticipantDetails(
-      leaderboardData.data,
-      CONFIG.eventUniqueCode
+    // Fetch leaderboard data
+    const leaderboardData = await fetchSubEventLeaderboard(
+      eventData.data.event.resultEventId,
+      subEvent.resultSubEventId,
+      subEvent.name
     );
 
-    // Step 3: Convert to mock format
-    const mockData = convertToMockFormat(leaderboardData, participantDetails);
+    if (!leaderboardData || !leaderboardData.data || leaderboardData.data.length === 0) {
+      console.warn(`⚠️ No participant data found for ${subEvent.name}`);
+      return null;
+    }
 
-    // Step 4: Save to file
-    console.log(`Saving data to: ${CONFIG.outputFile}`);
-    fs.writeFileSync(CONFIG.outputFile, JSON.stringify(mockData, null, 2));
+    // Fetch participant details
+    const participantDetails = await fetchAllParticipantDetails(
+      leaderboardData.data,
+      eventData.data.event.uniqueCode,
+      subEvent.name
+    );
 
-    console.log('✅ Success!');
-    console.log(`- Processed ${mockData.resultSet.numResults} participants`);
-    console.log(`- Created ${mockData.divisions.length} divisions`);
-    console.log(`- Output file: ${CONFIG.outputFile}`);
+    // Convert to mock format
+    const mockData = convertToMockFormat(leaderboardData, participantDetails, subEvent);
+
+    // Generate filename
+    const fileName = generateFileName(subEvent);
+    const filePath = path.join(CONFIG.outputDir, fileName);
+
+    // Save to file
+    fs.writeFileSync(filePath, JSON.stringify(mockData, null, 2));
+    console.log(`✅ Saved ${subEvent.name} data to: ${fileName} (${mockData.resultSet.numResults} participants)`);
+
+    return {
+      subEvent,
+      fileName,
+      data: mockData
+    };
 
   } catch (error) {
-    console.error('❌ Error:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(`❌ Error processing ${subEvent.name}:`, error instanceof Error ? error.message : 'Unknown error');
+    return null; // Continue with other sub-events even if this one fails
+  }
+}
+
+// Main execution function
+async function main() {
+  console.log('🚀 Starting RaceRoster data fetch...');
+  console.log(`📅 Event: ${CONFIG.eventUniqueCode}`);
+  console.log(`📁 Output: ${CONFIG.outputDir}`);
+  console.log(`🏃 Sub-events: ${CONFIG.subEvents}`);
+
+  try {
+    // Step 1: Fetch event data
+    const eventData = await fetchEventData(CONFIG.eventUniqueCode);
+
+    if (!eventData || !eventData.data || !eventData.data.event) {
+      throw new Error('Invalid event data received');
+    }
+
+    // Step 2: Filter sub-events
+    const targetSubEvents = filterSubEvents(eventData.data.event.subEvents, CONFIG);
+
+    if (targetSubEvents.length === 0) {
+      throw new Error('No valid sub-events found to process');
+    }
+
+    totalCount = targetSubEvents.length;
+    console.log(`📋 Found ${totalCount} sub-events to process: ${targetSubEvents.map(se => se.name).join(', ')}`);
+
+    // Step 3: Process all sub-events
+    const subEventResults = [];
+
+    for (const subEvent of targetSubEvents) {
+      const result = await processSubEvent(eventData, subEvent);
+      if (result) {
+        subEventResults.push(result);
+      }
+    }
+
+    if (subEventResults.length === 0) {
+      throw new Error('No sub-events were successfully processed');
+    }
+
+    // Step 4: Generate index.json
+    console.log('📄 Generating index.json...');
+    const indexData = generateIndexFile(eventData, subEventResults);
+    const indexPath = path.join(CONFIG.outputDir, 'index.json');
+    fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
+
+    // Step 5: Summary
+    console.log('\n🎉 Success!');
+    console.log(`✅ Processed ${subEventResults.length} sub-events`);
+    console.log(`✅ Total participants: ${subEventResults.reduce((sum, r) => sum + r.data.resultSet.numResults, 0)}`);
+    console.log(`📁 Files created in: ${CONFIG.outputDir}`);
+    console.log('\n📋 Created files:');
+    console.log('   - index.json');
+    subEventResults.forEach(result => {
+      console.log(`   - ${result.fileName} (${result.data.resultSet.numResults} participants)`);
+    });
+
+  } catch (error) {
+    console.error('\n❌ Error:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   }
 }
