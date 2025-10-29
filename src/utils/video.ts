@@ -59,5 +59,5 @@ export function getYouTubeId(url: string): string {
   const regex =
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
   const match = regex.exec(url);
-  return match ? match[1] : "";
+  return match ? (match[1] ?? "") : "";
 }
