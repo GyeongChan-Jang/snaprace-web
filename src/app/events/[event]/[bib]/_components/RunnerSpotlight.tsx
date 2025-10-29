@@ -13,7 +13,7 @@ import { PerformanceTierBadge } from "@/components/performance/PerformanceTierBa
 
 import { SelfieUploadCard } from "./SelfieUploadCard";
 import { EventLeaderboard } from "./EventLeaderboard";
-import { FinishlineVideo } from "./FinishlineVideo";
+import { FinishVideo } from "./FinishVideo";
 
 interface RunnerSpotlightProps {
   eventId: string;
@@ -106,7 +106,7 @@ export function RunnerSpotlight({
           />
 
           {event?.finishline_video_info && (
-            <FinishlineVideo
+            <FinishVideo
               event={event}
               timingDetail={detail}
               isAllPhotos={isAllPhotos}
