@@ -113,19 +113,21 @@ export function RunnerSpotlight({
             />
           )}
 
-          <SelfieUploadCard
-            bibNumber={bibNumber}
-            disabled={!bibNumber}
-            isUploading={isUploading}
-            uploadedFile={uploadedFile}
-            selfieEnhanced={selfieEnhanced}
-            matchedCount={selfieMatchedCount}
-            showNoMatches={showNoMatches}
-            inputRef={inputRef}
-            onLabelClick={onLabelClick}
-            onFileChange={onFileChange}
-            onRetry={onRetryUpload}
-          />
+          {bibNumber && (
+            <SelfieUploadCard
+              bibNumber={bibNumber}
+              disabled={!bibNumber}
+              isUploading={isUploading}
+              uploadedFile={uploadedFile}
+              selfieEnhanced={selfieEnhanced}
+              matchedCount={selfieMatchedCount}
+              showNoMatches={showNoMatches}
+              inputRef={inputRef}
+              onLabelClick={onLabelClick}
+              onFileChange={onFileChange}
+              onRetry={onRetryUpload}
+            />
+          )}
         </div>
       </section>
     </div>
