@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import {
   trackSocialShareClick,
   trackShareComplete,
-  trackShareLinkCopy
+  trackShareLinkCopy,
 } from "@/lib/analytics";
 
 interface ShareDialogProps {
@@ -52,10 +52,10 @@ export function ShareDialog({
 }: ShareDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const shareableUrl = generateShareablePhotoUrl(photoUrl, shareOptions);
-  
+
   // Extract analytics parameters
-  const eventId = shareOptions?.eventId || '';
-  const bibNumber = shareOptions?.bibNumber || '';
+  const eventId = shareOptions?.eventId || "";
+  const bibNumber = shareOptions?.bibNumber || "";
 
   const handleCopyLink = async () => {
     try {
@@ -78,7 +78,7 @@ export function ShareDialog({
   const handleMoreShare = async () => {
     // Track "More" button click
     if (eventId) {
-      trackSocialShareClick(eventId, bibNumber, 'more');
+      trackSocialShareClick(eventId, bibNumber, "more");
     }
 
     const result = await sharePhotoWithOptions(
@@ -91,7 +91,7 @@ export function ShareDialog({
     if (result.success) {
       // Track successful share
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, result.method || 'more', true);
+        trackShareComplete(eventId, bibNumber, result.method || "more", true);
       }
 
       switch (result.method) {
@@ -108,7 +108,7 @@ export function ShareDialog({
     } else if (result.method !== "cancelled") {
       // Track failed share (only if not cancelled)
       if (eventId) {
-        trackShareComplete(eventId, bibNumber, 'more', false);
+        trackShareComplete(eventId, bibNumber, "more", false);
       }
       toast.error("Failed to share");
     }
@@ -165,7 +165,7 @@ export function ShareDialog({
                     `https://www.messenger.com/t/?link=${encodeURIComponent(shareableUrl)}`,
                     "_blank",
                   );
-                  handleSocialShare('messenger');
+                  handleSocialShare("messenger");
                 }}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 hover:bg-blue-700"
               >
@@ -185,7 +185,7 @@ export function ShareDialog({
               <WhatsappShareButton
                 url={shareableUrl}
                 title="Check out this race photo!"
-                onClick={() => handleSocialShare('whatsapp')}
+                onClick={() => handleSocialShare("whatsapp")}
               >
                 <WhatsappIcon size={48} round />
               </WhatsappShareButton>
@@ -196,7 +196,7 @@ export function ShareDialog({
             <div className="flex flex-col items-center">
               <FacebookShareButton
                 url={shareableUrl}
-                onClick={() => handleSocialShare('facebook')}
+                onClick={() => handleSocialShare("facebook")}
               >
                 <FacebookIcon size={48} round />
               </FacebookShareButton>
@@ -208,7 +208,7 @@ export function ShareDialog({
               <a
                 href={`mailto:?subject=Race Photo&body=Check out this race photo: ${shareableUrl}`}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-600 hover:bg-gray-700"
-                onClick={() => handleSocialShare('email')}
+                onClick={() => handleSocialShare("email")}
               >
                 <svg
                   className="h-6 w-6 text-white"
@@ -235,7 +235,7 @@ export function ShareDialog({
               <TwitterShareButton
                 url={shareableUrl}
                 title="Check out this race photo!"
-                onClick={() => handleSocialShare('twitter')}
+                onClick={() => handleSocialShare("twitter")}
               >
                 <TwitterIcon size={48} round />
               </TwitterShareButton>
@@ -248,7 +248,7 @@ export function ShareDialog({
                 onClick={() => {
                   const pinterestUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareableUrl)}&media=${encodeURIComponent(photoUrl)}&description=Check out this race photo!`;
                   window.open(pinterestUrl, "_blank");
-                  handleSocialShare('pinterest');
+                  handleSocialShare("pinterest");
                 }}
                 className="flex h-12 w-12 items-center justify-center rounded-full bg-red-600 hover:bg-red-700"
               >
@@ -268,7 +268,7 @@ export function ShareDialog({
               <ThreadsShareButton
                 url={shareableUrl}
                 title="Check out this race photo!"
-                onClick={() => handleSocialShare('threads')}
+                onClick={() => handleSocialShare("threads")}
               >
                 <ThreadsIcon size={48} round />
               </ThreadsShareButton>

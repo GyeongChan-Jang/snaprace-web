@@ -1,0 +1,66 @@
+
+
+> @repo/web@0.1.0 build /Users/chan/Desktop/develop/snaprace-mono/apps/web
+> next build
+
+   [1m[38;2;173;127;168m▲ Next.js 15.5.6[39m[22m
+   - Environments: .env
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully in 3.7s
+[?25l [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Linting and checking validity of types  [36m...[39m[2K[1G[?25h
+./src/app/events/[event]/[bib]/_components/EventLeaderboard.tsx
+24:3  Warning: 'eventName' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/app/events/[event]/[bib]/_components/FinishVideo.tsx
+72:9  Warning: Prefer using an optional chain expression instead, as it's more concise and easier to read.  @typescript-eslint/prefer-optional-chain
+79:7  Warning: Prefer using an optional chain expression instead, as it's more concise and easier to read.  @typescript-eslint/prefer-optional-chain
+
+./src/app/events/[event]/[bib]/_components/RunnerSpotlight.tsx
+148:3  Warning: 'onRetry' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/app/events/[event]/[bib]/_components/leaderboard-table/LeaderboardTableAdvanced.tsx
+32:28  Warning: 'EnhancedLeaderboardResult' is defined but never used.  @typescript-eslint/no-unused-vars
+45:3  Warning: 'organizationId' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/app/events/[event]/[bib]/page.tsx
+233:6  Warning: React Hook useCallback has missing dependencies: 'bibNumber' and 'event'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/modals/FacialRecognitionConsentModal.tsx
+35:3  Warning: 'eventName' is defined but never used. Allowed unused args must match /^_/u.  @typescript-eslint/no-unused-vars
+52:9  Warning: 'handleDeny' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/performance/PerformanceTierBadge.tsx
+8:3  Warning: 'ShieldCheck' is defined but never used.  @typescript-eslint/no-unused-vars
+105:23  Warning: 'label' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+[?25l [36m.[39m [2K[1G [36m..[39m [2K[1G [36m...[39m [2K[1G[?25h    [32m[1m✓[22m[39m Linting and checking validity of types 
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m...[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
+[?25l [37m[1m [22m[39m Generating static pages (0/8)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/8)  [36m[=   ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (8/8)
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:3000". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m..[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m...[39m[2K[1G [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
+[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
+
+[4mRoute (app)[24m                                 [4mSize[24m  [4mFirst Load JS[24m  [4m[24m  [4m[24m
+┌ ƒ /                                    2.55 kB         [37m[1m198 kB[22m[39m
+├ ƒ /_not-found                            993 B         [37m[1m103 kB[22m[39m
+├ ƒ /api/auth/[...nextauth]                132 B         [37m[1m102 kB[22m[39m
+├ ƒ /api/download-image                    132 B         [37m[1m102 kB[22m[39m
+├ ƒ /api/feedback                          132 B         [37m[1m102 kB[22m[39m
+├ ƒ /api/trpc/[trpc]                       132 B         [37m[1m102 kB[22m[39m
+├ ƒ /events                              4.39 kB         [37m[1m168 kB[22m[39m
+├ ƒ /events/[event]/[bib]                70.6 kB         [37m[1m307 kB[22m[39m
+├ ƒ /photo/[photoId]                       673 B         [37m[1m167 kB[22m[39m
+└ ƒ /privacy-policy                      4.92 kB         [37m[1m116 kB[22m[39m
++ First Load JS shared by all             [37m[1m102 kB[22m[39m
+  ├ chunks/18-21ecafc06d315b56.js        45.8 kB
+  ├ chunks/31268ae4-f4e0ccd23f773bb5.js  54.2 kB
+  └ other shared chunks (total)          2.03 kB
+
+
+ƒ Middleware                               [37m[1m34 kB[22m[39m
+
+ƒ  (Dynamic)  server-rendered on demand
+
+[?25h

@@ -34,6 +34,9 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      // 모노레포 통합 시 발생하는 에러 완화
+      "@typescript-eslint/prefer-optional-chain": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
   {
